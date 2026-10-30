@@ -76,3 +76,14 @@ class Unavailable:
     name: str  # as written on the page; matched to a roster id by names.match_player
     kind: str  # injured, suspended or warned
     text: str  # the page's note, "" when there is none
+
+
+@dataclass(frozen=True)
+class Fixture:
+    matchday: int  # 0 for a past season's match (head to head only)
+    home: str  # fantacalcio.it club slug
+    away: str
+    kickoff: datetime | None  # UTC; None when ESPN doesn't list the match
+    home_goals: int | None  # None unless completed
+    away_goals: int | None
+    completed: bool

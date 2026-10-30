@@ -330,7 +330,7 @@ def test_match_player():
   - `stats.player_stats(roster: list[RosterPlayer], votes: list[VoteRow], fixtures: list[Fixture], lineups: tuple[list[LineupEntry], set[str]], unavailable: list[Unavailable], clubs_out: dict[str, dict]) -> dict[str, dict]` → the `players.json` object.
   - `history` is a list of `Fixture` from past seasons (matchday 0) used only for head to head.
 
-- [ ] **Step 1: Write the failing tests** with a small hand-built season (4 clubs, 6 fixtures, a few vote rows):
+- [x] **Step 1: Write the failing tests** with a small hand-built season (4 clubs, 6 fixtures, a few vote rows):
 
 ```python
 def test_join_keeps_unplayed_and_postponed():
@@ -373,10 +373,10 @@ def test_player_status_and_start_pct():
     assert out["444"]["club"] is None                 # voted earlier, no longer in roster
 ```
 
-- [ ] **Step 2: Run** `python -m pytest tests/test_fixtures.py tests/test_stats.py -v`. Expected: FAIL.
-- [ ] **Step 3: Implement** following the spec's Definitions section and the data contract. Medians with `statistics.median`, rounded to 2 decimals. "Last 5" uses the club's last 5 completed fixtures by kickoff and the player's `VoteRow` for each fixture's matchday (any club, so transfers work). Clean sheet: player had a vote and the club conceded 0 in that fixture (roles P and D only). Positions and points come from `standings`; form, goals and splits from fixtures. Head to head: completed meetings from `history` + this season, last 5 by kickoff.
-- [ ] **Step 4: Run the tests again.** Expected: PASS.
-- [ ] **Step 5: Commit** `git commit -m "pipeline: fixtures join and stats"`.
+- [x] **Step 2: Run** `python -m pytest tests/test_fixtures.py tests/test_stats.py -v`. Expected: FAIL.
+- [x] **Step 3: Implement** following the spec's Definitions section and the data contract. Medians with `statistics.median`, rounded to 2 decimals. "Last 5" uses the club's last 5 completed fixtures by kickoff and the player's `VoteRow` for each fixture's matchday (any club, so transfers work). Clean sheet: player had a vote and the club conceded 0 in that fixture (roles P and D only). Positions and points come from `standings`; form, goals and splits from fixtures. Head to head: completed meetings from `history` + this season, last 5 by kickoff.
+- [x] **Step 4: Run the tests again.** Expected: PASS.
+- [x] **Step 5: Commit** `git commit -m "pipeline: fixtures join and stats"`.
 
 ---
 
