@@ -83,7 +83,7 @@ const byRoleThenName = (a: Row, b: Row) => roleIndex(a) - roleIndex(b) || a.name
 
 const SORT_VALUE: Record<Exclude<SortKey, "role">, (r: Row) => number | null> = {
   start: r => r.player?.startPct ?? null,
-  fv: r => r.player?.season.medFV ?? null,
+  fv: r => r.player?.season?.medFV ?? null,
   matchup: r => r.matchup?.score ?? null,
 };
 

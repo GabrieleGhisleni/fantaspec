@@ -11,21 +11,25 @@ type Props = {
   home: boolean;
   /** Last meetings from `club`'s side, oldest first. */
   h2h: Result[];
-  /** Squad players on each side, when the table sits in a match card. */
-  players?: [string[], string[]];
 };
 
-const splitText = (s: Split) => `${s.gf}–${s.ga} in ${s.played}`;
+const scored = (s: Pick<Split, "gf" | "played">) => num1(perGame(s.gf, s.played));
+const conceded = (s: Pick<Split, "ga" | "played">) => num1(perGame(s.ga, s.played));
 
-/** Club and opponent side by side; the venue row uses the club's home and the opponent's away numbers, or the reverse. */
-export function ClubCompare({ club, opponent, home, h2h, players }: Props) {
-  const row = (label: string, ours: ReactNode, theirs: ReactNode) => (
-    <tr>
+/**
+ * Club and opponent side by side: season numbers, then the venue of this match (the club's home games against
+ * the opponent's away games, or the reverse), all per game.
+ */
+export function ClubCompare({ club, opponent, home, h2h }: Props) {
+  const row = (label: string, ours: ReactNode, theirs: ReactNode, className?: string) => (
+    <tr className={className}>
       <th scope="row">{label}</th>
       <td>{ours}</td>
       <td>{theirs}</td>
     </tr>
   );
+  const ourVenue = home ? club.home : club.away;
+  const theirVenue = home ? opponent.away : opponent.home;
   return (
     <table className="compare">
       <thead>
@@ -38,11 +42,15 @@ export function ClubCompare({ club, opponent, home, h2h, players }: Props) {
       <tbody>
         {row("Classifica", `${club.position}° · ${club.points} pt`, `${opponent.position}° · ${opponent.points} pt`)}
         {row("Forma", <FormPills results={club.form} />, <FormPills results={opponent.form} />)}
-        {row("Gol fatti a partita", num1(perGame(club.gf, club.played)), num1(perGame(opponent.gf, opponent.played)))}
-        {row("Gol subiti a partita", num1(perGame(club.ga, club.played)), num1(perGame(opponent.ga, opponent.played)))}
-        {home
-          ? row("In casa / In trasferta", splitText(club.home), splitText(opponent.away))
-          : row("In trasferta / In casa", splitText(club.away), splitText(opponent.home))}
+        {row("Gol fatti a partita", scored(club), scored(opponent))}
+        {row("Gol subiti a partita", conceded(club), conceded(opponent))}
+        <tr className="venue">
+          <td />
+          <th scope="col">{home ? "In casa" : "In trasferta"}</th>
+          <th scope="col">{home ? "In trasferta" : "In casa"}</th>
+        </tr>
+        {row("Fatti a partita", scored(ourVenue), scored(theirVenue), "venue-stat")}
+        {row("Subiti a partita", conceded(ourVenue), conceded(theirVenue), "venue-stat")}
         {h2h.length > 0
           ? row("Precedenti", <FormPills results={h2h} />, <FormPills results={mirror(h2h)} />)
           : (
@@ -51,7 +59,6 @@ export function ClubCompare({ club, opponent, home, h2h, players }: Props) {
               <td colSpan={2}>nessun precedente</td>
             </tr>
           )}
-        {players && row("In rosa", players[0].join(", "), players[1].join(", "))}
       </tbody>
     </table>
   );

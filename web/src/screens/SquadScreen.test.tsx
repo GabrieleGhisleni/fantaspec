@@ -15,6 +15,8 @@ beforeEach(() => {
 const row = (name: string) => screen.getByText(name).closest("li")!;
 /** Player names in the order the rows are shown. */
 const rowNames = () => screen.getAllByRole("listitem").map(li => li.querySelector(".player-name")?.textContent);
+/** The texts of a table row's cells, left to right. */
+const cellTexts = (cell: HTMLElement) => [...cell.closest("tr")!.children].map(c => c.textContent);
 
 test("groups by role with Italian headers", () => {
   render(<SquadScreen {...props} />);
@@ -148,14 +150,26 @@ test("the detail shows season, last 5 and the club vs opponent numbers", async (
   await user.click(screen.getByText("Meret"));
   const detail = within(row("Meret"));
   expect(detail.getByText("−10")).toHaveClass("bad"); // a keeper's goals conceded: negative and red
+  expect(detail.getByText("−6")).toHaveClass("bad"); // the same over the last 5
   expect(detail.getByText("5/5")).toBeInTheDocument();
   expect(detail.getByText("5,0 6,0 7,0 4,0 6,0")).toBeInTheDocument();
   expect(detail.getByText("4° · 17 pt")).toBeInTheDocument();
   expect(detail.getByText("2° · 20 pt")).toBeInTheDocument();
   expect(detail.getByText("1,6")).toBeInTheDocument(); // Napoli scored 14 in 9
-  expect(detail.getByText("In trasferta / In casa")).toBeInTheDocument();
-  expect(detail.getByText("6–7 in 4")).toBeInTheDocument(); // Napoli away
-  expect(detail.getByText("10–2 in 5")).toBeInTheDocument(); // Juventus at home
+  // The venue block: Napoli's away games against Juventus' home games, per game, so nothing reads like a score.
+  expect(cellTexts(detail.getByText("In trasferta"))).toEqual(["", "In trasferta", "In casa"]);
+  expect(cellTexts(detail.getByText("Fatti a partita"))).toEqual(["Fatti a partita", "1,5", "2,0"]);
+  expect(cellTexts(detail.getByText("Subiti a partita"))).toEqual(["Subiti a partita", "1,8", "0,4"]);
+  expect(detail.queryByText(/\d–\d/)).not.toBeInTheDocument();
+});
+
+test("the venue block follows where the club plays", async () => {
+  render(<SquadScreen {...props} />);
+  await user.click(screen.getByText("Kean"));
+  const detail = within(row("Kean"));
+  expect(cellTexts(detail.getByText("In casa"))).toEqual(["", "In casa", "In trasferta"]);
+  expect(cellTexts(detail.getByText("Fatti a partita"))).toEqual(["Fatti a partita", "2,0", "1,5"]);
+  expect(cellTexts(detail.getByText("Subiti a partita"))).toEqual(["Subiti a partita", "0,4", "1,8"]);
 });
 
 test("a never-voted player's detail shows dashes and an empty trend", async () => {
@@ -183,12 +197,15 @@ test("a squad player missing from the data keeps the stored name", () => {
   expect(screen.getAllByRole("heading")).toHaveLength(4);
 });
 
-test("a player whose data breaks the row shows a fallback line and the rest still renders", () => {
+test("a player whose data breaks the row shows a fallback line and the rest still renders", async () => {
   vi.spyOn(console, "error").mockImplementation(() => {});
   const broken = { ...sampleData.players["572"], season: null } as unknown as PlayerData;
   render(<SquadScreen {...props} data={{ ...sampleData, players: { ...sampleData.players, 572: broken } }} />);
   expect(within(row("Meret")).getByText("dati non disponibili")).toBeInTheDocument();
   expect(within(row("Kean")).getByText("infortunato")).toBeInTheDocument();
+  // Sorting by median FV copes with it too: no median, so last with the never-voted player.
+  await user.selectOptions(screen.getByLabelText("Ordina"), "FV mediana");
+  expect(rowNames().slice(-2)).toEqual(["Meret", "Panchinaro"]);
 });
 
 test("match cards: one per upcoming match of the squad's clubs, with the squad players involved", async () => {
@@ -199,7 +216,8 @@ test("match cards: one per upcoming match of the squad's clubs, with the squad p
   const first = within(cards[0]);
   expect(first.getByText("Juventus – Napoli")).toBeInTheDocument();
   expect(first.getByText("sab 31 ott 18:00")).toBeInTheDocument();
-  expect(first.getByText("Bernardeschi, Kean")).toBeInTheDocument();
-  expect(first.getByText("Meret, Di Lorenzo")).toBeInTheDocument();
+  // Under the title, one element per name, so a name is never split across lines.
+  expect(first.getByText("Bernardeschi").closest("p")).toHaveTextContent("Juventus Bernardeschi, Kean");
+  expect(first.getByText("Di Lorenzo").closest("p")).toHaveTextContent("Napoli Meret, Di Lorenzo");
   expect(within(cards[1]).getByText("Inter – Roma")).toBeInTheDocument();
 });

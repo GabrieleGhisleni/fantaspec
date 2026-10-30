@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { kickoffTime } from "../format";
 import { mirror, type Row } from "../screens/squadView";
 import type { ClubData, Result } from "../types";
@@ -25,7 +25,23 @@ export function MatchCards({ rows }: { rows: Row[] }) {
   const [open, setOpen] = useState(false);
   const matches = upcomingMatches(rows);
   if (matches.length === 0) return null;
-  const names = (club: ClubData) => rows.filter(r => r.club?.key === club.key).map(r => r.name);
+
+  // The squad's players in this match, one element per name so a line only ever breaks between names.
+  const players = (club: ClubData) => {
+    const names = rows.filter(r => r.club?.key === club.key).map(r => r.name);
+    return names.length > 0 && (
+      <p className="match-players" key={club.key}>
+        <span className="muted">{club.name}</span>{" "}
+        {names.map((name, i) => (
+          <Fragment key={i}>
+            {i > 0 && ", "}
+            <span className="name">{name}</span>
+          </Fragment>
+        ))}
+      </p>
+    );
+  };
+
   return (
     <details className="matches" onToggle={e => setOpen(e.currentTarget.open)}>
       <summary>
@@ -37,7 +53,9 @@ export function MatchCards({ rows }: { rows: Row[] }) {
             <strong>{`${m.home.name} – ${m.away.name}`}</strong>
             <span className="muted">{kickoffTime(m.kickoff)}</span>
           </p>
-          <ClubCompare club={m.home} opponent={m.away} home h2h={m.h2h} players={[names(m.home), names(m.away)]} />
+          {players(m.home)}
+          {players(m.away)}
+          <ClubCompare club={m.home} opponent={m.away} home h2h={m.h2h} />
         </article>
       ))}
     </details>
