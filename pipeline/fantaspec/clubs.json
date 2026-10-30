@@ -1,0 +1,22 @@
+[
+  {"key": "atalanta", "name": "Atalanta", "espn_id": 105},
+  {"key": "bologna", "name": "Bologna", "espn_id": 107},
+  {"key": "cagliari", "name": "Cagliari", "espn_id": 2925},
+  {"key": "como", "name": "Como", "espn_id": 2572},
+  {"key": "fiorentina", "name": "Fiorentina", "espn_id": 109},
+  {"key": "frosinone", "name": "Frosinone", "espn_id": 4057},
+  {"key": "genoa", "name": "Genoa", "espn_id": 3263},
+  {"key": "inter", "name": "Inter", "espn_id": 110},
+  {"key": "juventus", "name": "Juventus", "espn_id": 111},
+  {"key": "lazio", "name": "Lazio", "espn_id": 112},
+  {"key": "lecce", "name": "Lecce", "espn_id": 113},
+  {"key": "milan", "name": "Milan", "espn_id": 103},
+  {"key": "monza", "name": "Monza", "espn_id": 4007},
+  {"key": "napoli", "name": "Napoli", "espn_id": 114},
+  {"key": "parma", "name": "Parma", "espn_id": 115},
+  {"key": "roma", "name": "Roma", "espn_id": 104},
+  {"key": "sassuolo", "name": "Sassuolo", "espn_id": 3997},
+  {"key": "torino", "name": "Torino", "espn_id": 239},
+  {"key": "udinese", "name": "Udinese", "espn_id": 118},
+  {"key": "venezia", "name": "Venezia", "espn_id": 17530}
+]

@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fantaspec"
+version = "0.1.0"
+description = "Scrapes fantacalcio.it and ESPN into the JSON files served by the fantaspec site"
+requires-python = ">=3.12"
+dependencies = ["requests", "beautifulsoup4"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.setuptools]
+packages = ["fantaspec", "fantaspec.sources"]
+
+[tool.setuptools.package-data]
+fantaspec = ["clubs.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

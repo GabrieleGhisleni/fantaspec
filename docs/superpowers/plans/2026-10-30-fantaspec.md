@@ -182,8 +182,8 @@ Done on 2026-10-30 in the planning session. The spec and plan moved into this re
   - `espn.parse_teams(doc: dict) -> dict[int, str]` (espn id → display name), `espn.parse_schedule(doc: dict) -> list[EspnMatch]`, `espn.parse_standings(doc: dict) -> list[StandingRow]`.
 
 - [x] **Step 1: Save the ESPN fixtures.** Already saved on 2026-10-30: `espn_teams.json`, `espn_schedule_napoli_2026.json`, `espn_standings.json` in `pipeline/tests/fixtures/`.
-- [ ] **Step 2: Write `clubs.json`**: 20 rows `{"key", "name", "espn_id"}` for keys `atalanta bologna cagliari como fiorentina frosinone genoa inter juventus lazio lecce milan monza napoli parma roma sassuolo torino udinese venezia`, Italian display names, espn ids from the saved teams file (known: milan 103, roma 104, atalanta 105, bologna 107, napoli 114, como 2572, cagliari 2925, monza 4007).
-- [ ] **Step 3: Write the failing tests**
+- [x] **Step 2: Write `clubs.json`**: 20 rows `{"key", "name", "espn_id"}` for keys `atalanta bologna cagliari como fiorentina frosinone genoa inter juventus lazio lecce milan monza napoli parma roma sassuolo torino udinese venezia`, Italian display names, espn ids from the saved teams file (known: milan 103, roma 104, atalanta 105, bologna 107, napoli 114, como 2572, cagliari 2925, monza 4007).
+- [x] **Step 3: Write the failing tests**
 
 ```python
 def test_clubs_mapping_complete():
@@ -206,10 +206,10 @@ def test_parse_standings():
 ```
 `load_fixture(name)` lives in `tests/conftest.py` and reads `.json`, `.html` or `.html.gz` from `tests/fixtures/`.
 
-- [ ] **Step 4: Run** `cd pipeline && python -m pytest tests/test_espn.py tests/test_clubs.py -v`. Expected: FAIL (imports missing).
-- [ ] **Step 5: Implement** `pyproject.toml` (package `fantaspec`, dependencies `requests`, `beautifulsoup4`, optional group `test = ["pytest"]`, package data `clubs.json`), `config.py` (`REPO_ROOT = Path(__file__).resolve().parents[2]`), `models.py`, `clubs.py`, `http.py` and `sources/espn.py`. Goals come from `competitors[].score.value`; `home_goals`/`away_goals` are `None` unless `status.type.completed`. Kickoff is the event `date` parsed as UTC.
-- [ ] **Step 6: Run the tests again.** Expected: PASS.
-- [ ] **Step 7: Commit** `git commit -m "pipeline: package skeleton, club mapping, ESPN parsers"`.
+- [x] **Step 4: Run** `cd pipeline && python -m pytest tests/test_espn.py tests/test_clubs.py -v`. Expected: FAIL (imports missing).
+- [x] **Step 5: Implement** `pyproject.toml` (package `fantaspec`, dependencies `requests`, `beautifulsoup4`, optional group `test = ["pytest"]`, package data `clubs.json`), `config.py` (`REPO_ROOT = Path(__file__).resolve().parents[2]`), `models.py`, `clubs.py`, `http.py` and `sources/espn.py`. Goals come from `competitors[].score.value`; `home_goals`/`away_goals` are `None` unless `status.type.completed`. Kickoff is the event `date` parsed as UTC.
+- [x] **Step 6: Run the tests again.** Expected: PASS.
+- [x] **Step 7: Commit** `git commit -m "pipeline: package skeleton, club mapping, ESPN parsers"`.
 
 ---
 
