@@ -1,7 +1,7 @@
 from season import CAL, CLUBS, ESPN, utc
 
 from fantaspec.fixtures import join_fixtures
-from fantaspec.models import Fixture
+from fantaspec.models import EspnMatch, Fixture
 
 
 def test_join_keeps_unplayed_and_postponed():
@@ -18,3 +18,11 @@ def test_join_takes_kickoff_and_score_from_espn():
     assert Fixture(1, "roma", "torino", utc(2026, 10, 22, 18, 45), 0, 0, True) in fx       # played late
     assert Fixture(4, "juventus", "napoli", utc(2026, 10, 31, 17, 0), None, None, False) in fx
     assert Fixture(5, "lazio", "juventus", None, None, None, False) in fx                 # not on ESPN
+
+
+def test_join_prefers_the_completed_copy_of_a_match():
+    # torino-napoli as listed by a page fetched before the match, kept in raw/ when that page later failed
+    stale = EspnMatch("e5", utc(2026, 10, 18, 16, 0), 239, 114, None, None, False)
+    played = Fixture(3, "torino", "napoli", utc(2026, 10, 18, 16, 0), 2, 1, True)
+    assert played in join_fixtures(CAL, ESPN + [stale], CLUBS)
+    assert played in join_fixtures(CAL, [stale] + ESPN, CLUBS)

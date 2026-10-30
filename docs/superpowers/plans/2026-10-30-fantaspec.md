@@ -452,7 +452,7 @@ Run behaviour:
 - Then compute, validate, and `write_if_changed` meta, clubs and players into `OUT_DIR`. `lastRun.ok` is `false` when `errors` is not empty.
 - Gate: load fixtures from `raw/`, `due(now, slots(...))`; empty `raw/` → `full`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def test_write_if_changed_ignores_timestamps(tmp_path):
@@ -496,9 +496,9 @@ def test_same_slot_twice_writes_once(tmp_repo):
 ```
 `tmp_repo` is a fixture that points `RAW_DIR` and `OUT_DIR` at `tmp_path` (monkeypatch `config`).
 
-- [ ] **Step 2: Run** `python -m pytest tests/test_build.py tests/test_run.py -v`. Expected: FAIL.
-- [ ] **Step 3: Implement** `build.py`, `run.py`, `__main__.py` (argparse). `run` takes the fetcher as a parameter; the CLI passes `http.fetch_text`.
-- [ ] **Step 4: Run the whole suite** `python -m pytest -v`. Expected: all PASS.
+- [x] **Step 2: Run** `python -m pytest tests/test_build.py tests/test_run.py -v`. Expected: FAIL.
+- [x] **Step 3: Implement** `build.py`, `run.py`, `__main__.py` (argparse). `run` takes the fetcher as a parameter; the CLI passes `http.fetch_text`.
+- [x] **Step 4: Run the whole suite** `python -m pytest -v`. Expected: all PASS.
 - [ ] **Step 5: Real backfill.** From the repo root: `cd pipeline && pip install -e . && python -m fantaspec run --kind full --backfill`. Expected: exit 0, `raw/` filled, `web/public/data/{meta,clubs,players}.json` written; `jq '.["572"].season' ../web/public/data/players.json` shows Meret with `pres` > 0.
 - [ ] **Step 6: Commit** `git add pipeline raw web/public/data && git commit -m "pipeline: build, validation, run orchestration, first backfill"`.
 
