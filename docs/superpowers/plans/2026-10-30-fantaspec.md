@@ -6,7 +6,7 @@
 
 **Architecture:** A Python package (`pipeline/fantaspec`) fetches fantacalcio.it HTML and ESPN JSON, caches the parsed raw data in `raw/`, computes everything into three JSON files in `web/public/data/`, and commits only when something changed. An hourly workflow runs a gate that decides from the fixture dates whether this hour is an update slot. The React app (`web/`) reads the three JSON files, keeps squads in localStorage, and is redeployed to Pages whenever code or data changes.
 
-**Tech Stack:** Python 3.12, requests, beautifulsoup4 (`html.parser`), pytest. Node 20, Vite, React 18, TypeScript, Vitest, @testing-library/react, jsdom. GitHub Actions, GitHub Pages (source: GitHub Actions).
+**Tech Stack:** Python 3.14, requests, beautifulsoup4 (`html.parser`), pytest. Node 26, Vite, React 19, TypeScript, Vitest, @testing-library/react, jsdom. GitHub Actions, GitHub Pages (source: GitHub Actions).
 
 **Spec:** `docs/superpowers/specs/2026-10-30-fantaspec-design.md` (this repo). Read it before starting.
 
@@ -673,7 +673,7 @@ test("invalid link", () => {
 - Consumes: `python -m fantaspec gate|run`, `npm run build`.
 
 Workflows:
-- `ci.yml`: on push and pull_request; job 1 Python 3.12 `pip install -e pipeline[test]` + `python -m pytest pipeline`; job 2 Node 20 `npm ci && npx vitest run && npm run build` in `web/`.
+- `ci.yml`: on push and pull_request; job 1 Python 3.14 `pip install -e pipeline[test]` + `python -m pytest pipeline`; job 2 Node 26 `npm ci && npx vitest run && npm run build` in `web/`.
 - `deploy.yml`: `on: push (branches: main, paths: web/**)`, `workflow_dispatch` and `workflow_call`. Checks out with `ref: main` (when called from `update.yml`, the event SHA is the commit *before* the data commit), builds `web/` and deploys with `actions/upload-pages-artifact` + `actions/deploy-pages`. Permissions `pages: write`, `id-token: write`, `contents: read`. Concurrency group `pages`.
 - `update.yml`: `schedule: cron "7 * * * *"` and `workflow_dispatch` with inputs `kind` (choice light/full, default full) and `backfill` (boolean). Concurrency group `update`, no cancel. Job `gate` (scheduled runs only) outputs `kind`; job `run` (if `kind != skip`) runs `python -m fantaspec run`, then commits `raw/` and `web/public/data/` as `github-actions[bot]` with message `data: <kind> <ISO time>` only if `git diff --cached --quiet` fails, and sets output `changed`. Job `deploy` calls `./.github/workflows/deploy.yml` when `changed == 'true'` (pushes made with `GITHUB_TOKEN` don't trigger other workflows, so the update workflow deploys itself). Permissions `contents: write`, plus those deploy needs.
 
