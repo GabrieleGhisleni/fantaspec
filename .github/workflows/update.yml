@@ -1,0 +1,188 @@
+name: update
+
+# Hourly trigger. The gate job asks `python -m fantaspec gate` whether this hour falls in an update slot
+# (decided from the fixture dates in raw/); outside the slots the run job is skipped. A manual run skips
+# the gate and uses the chosen inputs.
+
+on:
+  schedule:
+    - cron: "7 * * * *"
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: Kind of run
+        type: choice
+        options: [light, full]
+        default: full
+      backfill:
+        description: Backfill the whole season (always a full run)
+        type: boolean
+        default: false
+
+# Runs queue one after the other; none is cancelled halfway through.
+concurrency:
+  group: update
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      kind: ${{ steps.decide.outputs.kind }}
+      slot: ${{ steps.decide.outputs.slot }}
+      slot_key: ${{ steps.decide.outputs.slot_key }}
+    steps:
+      - if: github.event_name == 'schedule'
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          persist-credentials: false
+      - if: github.event_name == 'schedule'
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: pipeline/pyproject.toml
+      - if: github.event_name == 'schedule'
+        run: pip install -e pipeline
+      # Prints and writes kind=<light|full|skip> and slot=<Europe/Rome ISO time, or empty>.
+      - id: gate
+        if: github.event_name == 'schedule'
+        run: python -m fantaspec gate
+
+      # The gate keeps a slot due for 90 minutes, so an on-the-hour slot is due at two consecutive hourly
+      # triggers. The run job leaves a cache entry named after the slot; if it is there, the slot is done.
+      - id: key
+        if: github.event_name == 'schedule' && steps.gate.outputs.slot != ''
+        env:
+          SLOT: ${{ steps.gate.outputs.slot }}
+        run: echo "slot_key=slot-$(printf '%s' "$SLOT" | tr -c 'A-Za-z0-9' '-')" >> "$GITHUB_OUTPUT"
+      - id: seen
+        if: steps.key.outputs.slot_key != ''
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ runner.temp }}/slot-marker
+          key: ${{ steps.key.outputs.slot_key }}
+          lookup-only: true
+
+      - id: decide
+        env:
+          EVENT: ${{ github.event_name }}
+          GATE_KIND: ${{ steps.gate.outputs.kind }}
+          GATE_SLOT: ${{ steps.gate.outputs.slot }}
+          SLOT_KEY: ${{ steps.key.outputs.slot_key }}
+          SEEN: ${{ steps.seen.outputs.cache-hit }}
+          INPUT_KIND: ${{ inputs.kind }}
+          INPUT_BACKFILL: ${{ inputs.backfill }}
+        run: |
+          if [ "$EVENT" = schedule ]; then
+            kind="$GATE_KIND"
+            slot="$GATE_SLOT"
+            slot_key="$SLOT_KEY"
+            if [ "$kind" != skip ] && [ "$SEEN" = true ]; then
+              echo "Slot $slot was already handled by an earlier run"
+              kind=skip
+            fi
+          else
+            kind="$INPUT_KIND"
+            slot=""
+            slot_key=""
+            if [ "$INPUT_BACKFILL" = true ]; then
+              kind=full
+            fi
+          fi
+          echo "event=$EVENT kind=$kind slot=$slot"
+          {
+            echo "kind=$kind"
+            echo "slot=$slot"
+            echo "slot_key=$slot_key"
+          } >> "$GITHUB_OUTPUT"
+
+  run:
+    needs: gate
+    if: needs.gate.outputs.kind != 'skip'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      # The tip of main, not the SHA this run was triggered at: an earlier queued run may have committed since.
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: pipeline/pyproject.toml
+      - run: pip install -e pipeline
+
+      # Exit code 1 means the new data failed validation: nothing is committed and the job fails.
+      - name: Fetch and compute
+        env:
+          KIND: ${{ needs.gate.outputs.kind }}
+          BACKFILL: ${{ inputs.backfill }}
+        run: |
+          args=(run --kind "$KIND")
+          if [ "$BACKFILL" = true ]; then
+            args+=(--backfill)
+          fi
+          python -m fantaspec "${args[@]}"
+
+      - id: commit
+        name: Commit the data if it changed
+        env:
+          KIND: ${{ needs.gate.outputs.kind }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898585+github-actions[bot]@users.noreply.github.com"
+          git add raw web/public/data
+          if git diff --cached --quiet; then
+            echo "Nothing changed"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git commit -m "data: $KIND $(TZ=Europe/Rome date -Iseconds)"
+          # A code push may have landed since the checkout.
+          pushed=false
+          for attempt in 1 2 3; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              pushed=true
+              break
+            fi
+            git rebase --abort 2>/dev/null || true
+            sleep $((attempt * 5))
+          done
+          if [ "$pushed" != true ]; then
+            echo "::error::Could not push the data commit"
+            exit 1
+          fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      # Only a run that got this far counts as the slot's run; a failed one is retried by the next trigger.
+      - name: Mark the slot as done
+        if: needs.gate.outputs.slot_key != ''
+        env:
+          SLOT: ${{ needs.gate.outputs.slot }}
+        run: printf '%s\n' "$SLOT" > "$RUNNER_TEMP/slot-marker"
+      - if: needs.gate.outputs.slot_key != ''
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ runner.temp }}/slot-marker
+          key: ${{ needs.gate.outputs.slot_key }}
+
+  # Pushes made with GITHUB_TOKEN trigger no workflow, so a data commit has to deploy itself.
+  deploy:
+    needs: run
+    if: needs.run.outputs.changed == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy.yml
