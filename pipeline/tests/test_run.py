@@ -1,5 +1,5 @@
 from dataclasses import replace
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from league import (CLUBS, NOW, SEEDED_LINEUPS, current, espn_page, fake_fetcher, read_out, read_raw, reset,
@@ -169,8 +169,9 @@ def test_first_full_run_on_empty_raw_is_a_backfill(tmp_repo):
     assert read_out(tmp_repo, "meta")["lastRun"]["kind"] == "full"
 
 
-def test_gate_without_raw_runs_full_this_hour(tmp_repo):
-    assert gate(datetime(2026, 10, 30, 12, 20, tzinfo=TZ)) == ("full", "2026-10-30T12:00:00+01:00")
+def test_gate_without_raw_runs_full_once_a_day(tmp_repo):
+    assert gate(datetime(2026, 10, 30, 12, 20, tzinfo=TZ)) == ("full", "2026-10-30T00:00:00+01:00")
+    assert gate(datetime(2026, 10, 30, 23, 59, tzinfo=TZ)) == ("full", "2026-10-30T00:00:00+01:00")   # same slot
 
 
 def test_gate_follows_the_slots(tmp_repo):
@@ -185,7 +186,10 @@ def test_gate_runs_full_when_no_fixture_left_has_a_date(tmp_repo):
     seed_raw(tmp_repo)
     espn = read_raw(tmp_repo, "espn")
     write_raw(tmp_repo, "espn", {k: [m for m in v if m["completed"]] for k, v in espn.items()})   # dates lost
-    assert gate(datetime(2026, 10, 30, 15, 7, tzinfo=TZ)) == ("full", "2026-10-30T15:00:00+01:00")
+    # once a day: the slot is the local date, so the workflow runs it once
+    assert gate(datetime(2026, 10, 30, 15, 7, tzinfo=TZ)) == ("full", "2026-10-30T00:00:00+01:00")
+    assert gate(datetime(2026, 10, 30, 16, 7, tzinfo=TZ)) == ("full", "2026-10-30T00:00:00+01:00")
+    assert gate(datetime(2026, 10, 30, 23, 30, tzinfo=timezone.utc)) == ("full", "2026-10-31T00:00:00+01:00")
     # season over: every fixture completed, no fallback
     write_raw(tmp_repo, "espn", {k: [{**m, "completed": True, "home_goals": 1, "away_goals": 1} for m in v]
                                  for k, v in espn.items()})

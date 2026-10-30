@@ -15,7 +15,7 @@ import json
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 
 from fantaspec import config
 from fantaspec.build import meta, validate, write_if_changed
@@ -81,13 +81,14 @@ def gate(now: datetime) -> tuple[str, str]:
     """(kind, slot) for an hourly trigger at `now` (aware): the due slot's kind and its Europe/Rome ISO time,
     or ("skip", "") outside every slot.
 
-    When raw/ can't drive the slots, a full run with slot = this hour: no fixtures yet (empty raw/), or
-    fixtures still to play none of which has a kickoff after `now` (their dates were lost).
+    When raw/ can't drive the slots, a full run whose slot is today's local midnight, so the workflow runs
+    it once a day: no fixtures yet (empty raw/), or fixtures still to play none of which has a kickoff
+    after `now` (their dates were lost, or a postponed match has no new date yet).
     """
     fixtures = _fixtures(load_clubs())
     pending = [f for f in fixtures if not f.completed]
     if not fixtures or (pending and not any(f.kickoff is not None and f.kickoff > now for f in pending)):
-        return FULL, now.astimezone(TZ).replace(minute=0, second=0, microsecond=0).isoformat()
+        return FULL, datetime.combine(now.astimezone(TZ).date(), time(0), tzinfo=TZ).isoformat()
     slot = due(now, slots(fixtures))
     return (slot.kind, slot.at.isoformat()) if slot else (SKIP, "")
 
