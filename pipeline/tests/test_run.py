@@ -1,12 +1,13 @@
+from dataclasses import replace
 from datetime import datetime, timedelta
 
 import pytest
-from league import (CLUBS, NOW, SEEDED_LINEUPS, current, fake_fetcher, read_out, read_raw, reset, seed_raw,
-                    write_raw)
+from league import (CLUBS, NOW, SEEDED_LINEUPS, current, espn_page, fake_fetcher, read_out, read_raw, reset,
+                    seed_raw, write_raw)
 
 from fantaspec import __main__ as cli
-from fantaspec.config import (ESPN_SEASON, H2H_SEASONS, TZ, espn_schedule_url, fc_calendar_url, fc_lineups_url,
-                              fc_roster_url, fc_unavailable_url, fc_votes_url)
+from fantaspec.config import (ESPN_SEASON, H2H_SEASONS, TZ, espn_fixtures_url, espn_schedule_url, fc_calendar_url,
+                              fc_lineups_url, fc_roster_url, fc_unavailable_url, fc_votes_url)
 from fantaspec.run import RunResult, gate, run
 
 
@@ -110,6 +111,64 @@ def test_backfill_fills_raw_from_scratch(tmp_repo):
     assert read_out(tmp_repo, "players")["572"]["season"]["pres"] > 0
 
 
+def test_espn_pages_must_cover_the_whole_season(tmp_repo):
+    seed_raw(tmp_repo); seed_out(tmp_repo)
+    espn, clubs, meta = read_raw(tmp_repo, "espn"), read_out(tmp_repo, "clubs"), read_out(tmp_repo, "meta")
+    napoli = [m for m in current().matches if 114 in (m.home_espn, m.away_espn)]
+    pages = {espn_fixtures_url(c.espn_id): espn_page([]) for c in CLUBS}     # upcoming pages come back empty
+    # Napoli's upcoming page lists a played match instead of its first upcoming one: 38 events, 37 different
+    pages[espn_fixtures_url(114)] = espn_page(napoli[:1] + [m for m in napoli if not m.completed][1:])
+    result = run("full", fake_fetcher(override=pages), now=NOW + timedelta(minutes=5))
+    assert result.errors == [f"espn: {c.key}: ValueError: only {37 if c.key == 'napoli' else 9} of 38 matches"
+                             for c in CLUBS]
+    assert result.wrote is False
+    assert read_raw(tmp_repo, "espn") == espn
+    assert read_out(tmp_repo, "clubs") == clubs
+    assert read_out(tmp_repo, "meta")["nextMatchday"] == meta["nextMatchday"] == {
+        "number": 10, "from": "2026-10-31", "to": "2026-10-31"}
+
+
+def test_a_club_with_its_season_over_needs_no_upcoming_page(tmp_repo):
+    seed_raw(tmp_repo)
+    # as if Napoli had played its whole season: its 29 unplayed matches moved a year back and completed
+    napoli = [m if m.completed else replace(m, kickoff=m.kickoff - timedelta(days=365), completed=True,
+                                            home_goals=1, away_goals=0)
+              for m in current().matches if 114 in (m.home_espn, m.away_espn)]
+    pages = {espn_schedule_url(114, ESPN_SEASON): espn_page(napoli), espn_fixtures_url(114): espn_page([])}
+    result = run("full", fake_fetcher(override=pages), now=NOW)
+    assert result.errors == []
+    assert len(read_raw(tmp_repo, "espn")["napoli"]) == 38
+    assert read_out(tmp_repo, "clubs")["napoli"]["next"] is None
+
+
+def test_votes_not_out_yet_are_skipped_silently(tmp_repo):
+    seed_raw(tmp_repo, completed_yesterday=[("lazio", "roma", 3)])   # ended yesterday at 22:45, 13 h ago
+    fetch = fake_fetcher(override={fc_votes_url(3): "<html><body></body></html>"})
+    result = run("full", fetch, now=NOW)
+    assert fc_votes_url(3) in fetch.requested
+    assert result.ok and result.errors == []
+    assert read_raw(tmp_repo, "votes").keys() == {"8", "9"}    # matchday 3 keeps what raw/ had (nothing)
+
+
+def test_votes_still_missing_a_day_after_the_matchday_are_an_error(tmp_repo):
+    seed_raw(tmp_repo)                                             # matchday 9 ended Wednesday at 22:45
+    votes = read_raw(tmp_repo, "votes")
+    result = run("full", fake_fetcher(override={fc_votes_url(9): "<html><body></body></html>"}), now=NOW)
+    assert result.errors == ["votes: matchday 9: ValueError: no rows"]
+    assert read_raw(tmp_repo, "votes") == votes
+
+
+def test_first_full_run_on_empty_raw_is_a_backfill(tmp_repo):
+    fetch = fake_fetcher()
+    result = run("full", fetch, now=NOW)
+    assert result.ok and result.wrote, result.errors
+    for club in CLUBS:
+        assert espn_schedule_url(club.espn_id, ESPN_SEASON - 1) in fetch.requested
+    assert [u for u in fetch.requested if "voti" in u] == [fc_votes_url(md) for md in range(1, 10)]
+    assert [m["espn_id"] for m in read_raw(tmp_repo, "history")] == ["h1", "h2", "h3", "h4"]
+    assert read_out(tmp_repo, "meta")["lastRun"]["kind"] == "full"
+
+
 def test_gate_without_raw_runs_full_this_hour(tmp_repo):
     assert gate(datetime(2026, 10, 30, 12, 20, tzinfo=TZ)) == ("full", "2026-10-30T12:00:00+01:00")
 
@@ -120,6 +179,17 @@ def test_gate_follows_the_slots(tmp_repo):
     assert gate(datetime(2026, 10, 30, 19, 7, tzinfo=TZ)) == ("light", "2026-10-30T19:00:00+01:00")
     assert gate(datetime(2026, 10, 30, 15, 7, tzinfo=TZ)) == ("skip", "")
     assert gate(datetime(2026, 11, 1, 0, 59, tzinfo=TZ)) == ("full", "2026-10-31T23:30:00+01:00")   # late trigger
+
+
+def test_gate_runs_full_when_no_fixture_left_has_a_date(tmp_repo):
+    seed_raw(tmp_repo)
+    espn = read_raw(tmp_repo, "espn")
+    write_raw(tmp_repo, "espn", {k: [m for m in v if m["completed"]] for k, v in espn.items()})   # dates lost
+    assert gate(datetime(2026, 10, 30, 15, 7, tzinfo=TZ)) == ("full", "2026-10-30T15:00:00+01:00")
+    # season over: every fixture completed, no fallback
+    write_raw(tmp_repo, "espn", {k: [{**m, "completed": True, "home_goals": 1, "away_goals": 1} for m in v]
+                                 for k, v in espn.items()})
+    assert gate(datetime(2027, 6, 1, 15, 7, tzinfo=TZ)) == ("skip", "")
 
 
 def test_cli_gate_prints_and_appends_to_github_output(tmp_repo, monkeypatch, capsys):

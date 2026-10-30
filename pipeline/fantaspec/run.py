@@ -12,6 +12,7 @@ raw/ layout (one record per line, so diffs stay small):
   history.json      [EspnMatch, ...]  completed matches of past seasons, once each, by kickoff
 """
 import json
+from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
@@ -37,6 +38,8 @@ Fetcher = Callable[[str], str]
 SKIP = "skip"
 MATCHDAYS = 38
 RECENT = timedelta(days=4)  # a full run refetches the votes of matchdays with a match completed this recently
+MATCH_LENGTH = timedelta(hours=2)  # kickoff to final whistle, roughly
+VOTES_DUE = timedelta(hours=24)  # after a matchday's last completed match ends, its votes page can't be empty
 
 
 @dataclass(frozen=True)
@@ -49,7 +52,8 @@ class RunResult:
 
 def run(kind: str, fetch: Fetcher, now: datetime, backfill: bool = False) -> RunResult:
     """A light or full run at `now` (aware); a backfill is a full run that also fetches every calendar page,
-    every played matchday's votes and the past seasons for head to head.
+    every played matchday's votes and the past seasons for head to head. A full run with no calendar in
+    raw/ yet (the season's first run) is a backfill.
 
     A source that fails to fetch or parse (or parses to nothing where that can't be right) is reported as
     "<source>: <message>" and keeps its previous raw/ data. Site data that doesn't validate is not written.
@@ -58,6 +62,7 @@ def run(kind: str, fetch: Fetcher, now: datetime, backfill: bool = False) -> Run
         raise ValueError(f"no such run: kind={kind!r}, backfill={backfill}")
     clubs = load_clubs()
     errors: list[str] = []
+    backfill = backfill or (kind == FULL and not _load("calendar", {}))
     if kind == FULL:
         _refresh_calendar(fetch, errors, every=backfill)
         _refresh_espn(fetch, clubs, errors)
@@ -74,9 +79,14 @@ def run(kind: str, fetch: Fetcher, now: datetime, backfill: bool = False) -> Run
 
 def gate(now: datetime) -> tuple[str, str]:
     """(kind, slot) for an hourly trigger at `now` (aware): the due slot's kind and its Europe/Rome ISO time,
-    or ("skip", "") outside every slot. With no fixture dates in raw/ yet: a full run, slot = this hour."""
+    or ("skip", "") outside every slot.
+
+    When raw/ can't drive the slots, a full run with slot = this hour: no fixtures yet (empty raw/), or
+    fixtures still to play none of which has a kickoff after `now` (their dates were lost).
+    """
     fixtures = _fixtures(load_clubs())
-    if not any(f.kickoff for f in fixtures):
+    pending = [f for f in fixtures if not f.completed]
+    if not fixtures or (pending and not any(f.kickoff is not None and f.kickoff > now for f in pending)):
         return FULL, now.astimezone(TZ).replace(minute=0, second=0, microsecond=0).isoformat()
     slot = due(now, slots(fixtures))
     return (slot.kind, slot.at.isoformat()) if slot else (SKIP, "")
@@ -114,10 +124,14 @@ def _refresh_calendar(fetch: Fetcher, errors: list[str], every: bool) -> None:
 
 
 def _refresh_espn(fetch: Fetcher, clubs: list[Club], errors: list[str]) -> None:
-    """Each club's results and upcoming fixtures; a club whose pages fail keeps its previous matches."""
+    """Each club's results and upcoming fixtures; a club whose pages fail, or don't hold all its MATCHDAYS
+    matches between them, keeps its previous matches (at season end the upcoming page is empty, rightly)."""
     def pages(club: Club) -> list[dict]:
         results = parse_schedule(json.loads(fetch(config.espn_schedule_url(club.espn_id, config.ESPN_SEASON))))
         upcoming = parse_schedule(json.loads(fetch(config.espn_fixtures_url(club.espn_id))))
+        found = len({m.espn_id for m in results + upcoming})
+        if found < MATCHDAYS:
+            raise ValueError(f"only {found} of {MATCHDAYS} matches")
         return _rows(sorted(results + upcoming, key=lambda m: (m.kickoff, m.espn_id)))
 
     stored = _load("espn", {})
@@ -133,13 +147,23 @@ def _refresh_espn(fetch: Fetcher, clubs: list[Club], errors: list[str]) -> None:
 
 def _refresh_votes(fetch: Fetcher, clubs: list[Club], now: datetime, errors: list[str], every: bool) -> None:
     """The votes of every matchday with a match completed in the last RECENT (every played matchday when
-    `every`), including a postponed match finally played: its votes are on its own matchday's page."""
-    played = [f for f in _fixtures(clubs) if f.completed]
-    wanted = sorted({f.matchday for f in played if every or now - f.kickoff <= RECENT})
+    `every`), including a postponed match finally played: its votes are on its own matchday's page.
+
+    An empty page keeps the matchday's previous votes. It is an error only once every completed match of
+    the matchday ended more than VOTES_DUE ago; before that the votes may simply not be out yet.
+    """
+    kickoffs: dict[int, list[datetime]] = defaultdict(list)
+    for f in _fixtures(clubs):
+        if f.completed:
+            kickoffs[f.matchday].append(f.kickoff)
     fetched = {}
-    for md in wanted:
-        rows = _attempt(f"votes: matchday {md}", errors, lambda: _rows(parse_votes(fetch(config.fc_votes_url(md)), md)))
-        if rows is not None:
+    for md, times in sorted(kickoffs.items()):
+        if not (every or any(now - k <= RECENT for k in times)):
+            continue
+        overdue = now - (max(times) + MATCH_LENGTH) > VOTES_DUE
+        rows = _attempt(f"votes: matchday {md}", errors,
+                        lambda: _votes_rows(fetch(config.fc_votes_url(md)), md, overdue))
+        if rows:
             fetched[str(md)] = rows
     if fetched:
         _save("votes", _by_matchday({**_load("votes", {}), **fetched}))
@@ -165,6 +189,12 @@ def _rows(items: list) -> list[dict]:
     if not items:
         raise ValueError("no rows")
     return [_record(item) for item in items]
+
+
+def _votes_rows(html: str, md: int, overdue: bool) -> list[dict]:
+    """The page's votes; [] for an empty page while the votes may not be out yet."""
+    rows = parse_votes(html, md)
+    return _rows(rows) if rows or overdue else []
 
 
 def _standings_rows(text: str, clubs: list[Club]) -> list[dict]:
