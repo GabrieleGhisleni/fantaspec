@@ -10,6 +10,17 @@
   --bad: #c0302c;
   --banner-bg: #fbe4e2;
   --banner-fg: #7a1511;
+  --warn: #8a5a00;
+  --warn-bg: #fff0cc;
+  --bad-bg: #fbe4e2;
+  --chip-bg: #e9ecf0;
+  --on-accent: #ffffff;
+  --role-p: #f0b429;
+  --role-d: #2e8b57;
+  --role-c: #2f6fd6;
+  --role-a: #c9423b;
+  --on-role-p: #2a1d00;
+  --on-role: #ffffff;
   --radius: 10px;
 }
 
@@ -25,6 +36,17 @@
     --bad: #f0706b;
     --banner-bg: #4a1f1d;
     --banner-fg: #ffd9d6;
+    --warn: #f2c063;
+    --warn-bg: #3d2f12;
+    --bad-bg: #4a1f1d;
+    --chip-bg: #2b323c;
+    --on-accent: #0b1a14;
+    --role-p: #e0a526;
+    --role-d: #3fa66c;
+    --role-c: #4f86e0;
+    --role-a: #d9574f;
+    --on-role-p: #2a1d00;
+    --on-role: #ffffff;
   }
 }
 
@@ -78,4 +100,375 @@ a {
 .status {
   margin: 24px 0;
   color: var(--muted);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.good {
+  color: var(--good);
+}
+
+.bad {
+  color: var(--bad);
+}
+
+/* Squad screen */
+
+select {
+  min-height: 44px;
+  min-width: 0;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--fg);
+  font: inherit;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.squad-select {
+  flex: 1 1 140px;
+  font-weight: 600;
+}
+
+.sort-label {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.matchday {
+  margin: 10px 0 0;
+  font-weight: 600;
+}
+
+.updated {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.banner {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  background: var(--banner-bg);
+  color: var(--banner-fg);
+  font-size: 14px;
+}
+
+.matches {
+  margin: 12px 0 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.matches summary {
+  padding: 11px 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.match-card {
+  padding: 8px 12px 12px;
+  border-top: 1px solid var(--line);
+}
+
+.match-title {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 8px;
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+
+.chips {
+  display: flex;
+  gap: 6px;
+  margin: 12px 0 4px;
+}
+
+.chip {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--fg);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chip[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.group-title {
+  margin: 16px 4px 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.rows {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.group-title + .rows {
+  margin-top: 0;
+}
+
+.row {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.row-main {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+button.row-main {
+  cursor: pointer;
+}
+
+.line1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.role {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--chip-bg);
+  color: var(--fg);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.role-P {
+  background: var(--role-p);
+  color: var(--on-role-p);
+}
+
+.role-D {
+  background: var(--role-d);
+  color: var(--on-role);
+}
+
+.role-C {
+  background: var(--role-c);
+  color: var(--on-role);
+}
+
+.role-A {
+  background: var(--role-a);
+  color: var(--on-role);
+}
+
+.player-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.tag {
+  flex: none;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--chip-bg);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.tag-injured,
+.tag-suspended {
+  background: var(--bad-bg);
+  color: var(--bad);
+}
+
+.tag-doubtful,
+.tag-warned {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+.start {
+  flex: none;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.chevron {
+  flex: none;
+  color: var(--muted);
+  transition: transform 0.15s;
+}
+
+.row-main[aria-expanded="true"] .chevron {
+  transform: rotate(180deg);
+}
+
+.line2 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  min-width: 0;
+  margin-top: 4px;
+  padding-left: 32px;
+  color: var(--muted);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.matchup.good,
+.matchup.bad,
+.start.good,
+.start.bad {
+  font-weight: 700;
+}
+
+.detail {
+  display: grid;
+  gap: 10px;
+  padding: 8px 10px 12px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.status-note {
+  margin: 0;
+}
+
+.stats,
+.compare {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats th,
+.stats td,
+.compare th,
+.compare td {
+  padding: 4px 2px;
+  text-align: left;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+
+.stats tr > :first-child,
+.compare tr > :first-child {
+  width: 36%;
+}
+
+.stats thead th,
+.compare thead th {
+  font-size: 13px;
+}
+
+.stats tbody th,
+.compare tbody th {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.stats tbody tr + tr,
+.compare tbody tr + tr {
+  border-top: 1px solid var(--line);
+}
+
+.trend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin: 0;
+}
+
+.trend-values {
+  font-variant-numeric: tabular-nums;
+}
+
+.sparkline {
+  flex: none;
+}
+
+.sparkline polyline {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sparkline circle {
+  fill: var(--accent);
+}
+
+.pills {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  vertical-align: middle;
+}
+
+.pill {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  background: var(--chip-bg);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.pill.good {
+  background: var(--good);
+  color: var(--card);
+}
+
+.pill.bad {
+  background: var(--bad);
+  color: var(--card);
 }

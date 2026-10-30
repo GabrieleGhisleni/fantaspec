@@ -1,4 +1,4 @@
-import { dateRange, num1, perGame, startClass, tertile } from "./format";
+import { dateRange, dayTime, kickoffTime, num1, perGame, startClass, tertile } from "./format";
 
 test("italian number format", () => {
   expect(num1(6.5)).toBe("6,5"); expect(num1(null)).toBe("–");
@@ -51,4 +51,16 @@ test("matchday date range", () => {
   expect(dateRange("2026-10-31", "2026-11-02")).toBe("31 ott – 2 nov");
   expect(dateRange("2026-12-29", "2027-01-01")).toBe("29 dic – 1 gen");
   expect(dateRange("2026-10-31", "2026-10-31")).toBe("31 ott");
+});
+
+test("date and time are shown in Rome time, whatever the browser's zone", () => {
+  expect(dayTime("2026-10-31T10:07:12+01:00")).toBe("31 ott 10:07");
+  expect(dayTime("2026-10-30T18:05:00Z")).toBe("30 ott 19:05");
+  expect(dayTime("2026-07-01T08:00:00Z")).toBe("1 lug 10:00"); // summer time
+  expect(dayTime("2026-10-31T23:30:00Z")).toBe("1 nov 00:30");
+});
+
+test("kickoff with the weekday", () => {
+  expect(kickoffTime("2026-10-31T18:00:00+01:00")).toBe("sab 31 ott 18:00");
+  expect(kickoffTime("2026-11-01T19:45:00Z")).toBe("dom 1 nov 20:45");
 });

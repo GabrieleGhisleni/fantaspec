@@ -1,5 +1,24 @@
 const oneDecimal = new Intl.NumberFormat("it-IT", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const dayMonth = new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "short", timeZone: "UTC" });
+// Times are always shown in Italian time, whatever zone the phone is in.
+const romeTime = new Intl.DateTimeFormat("it-IT", {
+  timeZone: "Europe/Rome", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+});
+
+function romeParts(iso: string): Record<string, string> {
+  return Object.fromEntries(romeTime.formatToParts(new Date(iso)).map(p => [p.type, p.value]));
+}
+
+/** "2026-10-31T10:07:12+01:00" -> "31 ott 10:07", in Europe/Rome. */
+export function dayTime(iso: string): string {
+  const p = romeParts(iso);
+  return `${p.day} ${p.month} ${p.hour}:${p.minute}`;
+}
+
+/** "2026-10-31T18:00:00+01:00" -> "sab 31 ott 18:00", in Europe/Rome. */
+export function kickoffTime(iso: string): string {
+  return `${romeParts(iso).weekday} ${dayTime(iso)}`;
+}
 
 /** One decimal, Italian style: 6,5. A missing number shows as an en dash. */
 export function num1(n: number | null): string {
