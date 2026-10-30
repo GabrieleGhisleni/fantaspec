@@ -395,7 +395,7 @@ Slot rules (spec "Update schedule"), computed per local date:
 - For each matchday, its first fixture date F: F−2 and F−1 at 09:00 and 19:00 `light`, unless that date has fixtures.
 - For each fixture date D whose next day has no fixture: D+1 at 12:00 `full`; and D+2 at 12:00 `full` if D+1 and D+2 have no fixtures.
 
-- [ ] **Step 1: Write the failing tests** (round 10 on Sat 31 Oct, Sun 1 Nov, Mon 2 Nov; round 11 starting Sat 7 Nov):
+- [x] **Step 1: Write the failing tests** (round 10 on Sat 31 Oct, Sun 1 Nov, Mon 2 Nov; round 11 starting Sat 7 Nov):
 
 ```python
 def test_slots_for_a_normal_week():
@@ -422,10 +422,10 @@ def test_midweek_round_overlap_and_dst():
 ```
 `rome(...)` and `utc(...)` are test helpers building aware datetimes.
 
-- [ ] **Step 2: Run** `python -m pytest tests/test_schedule.py -v`. Expected: FAIL.
-- [ ] **Step 3: Implement** `slots` and `due` with `zoneinfo`; build each slot from a local date and time with `datetime.combine(d, t, tzinfo=TZ)`.
-- [ ] **Step 4: Run the tests again.** Expected: PASS.
-- [ ] **Step 5: Commit** `git commit -m "pipeline: update slots and gate"`.
+- [x] **Step 2: Run** `python -m pytest tests/test_schedule.py -v`. Expected: FAIL.
+- [x] **Step 3: Implement** `slots` and `due` with `zoneinfo`; build each slot from a local date and time with `datetime.combine(d, t, tzinfo=TZ)`.
+- [x] **Step 4: Run the tests again.** Expected: PASS.
+- [x] **Step 5: Commit** `git commit -m "pipeline: update slots and gate"`.
 
 ---
 
