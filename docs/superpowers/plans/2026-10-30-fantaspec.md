@@ -518,8 +518,8 @@ def test_same_slot_twice_writes_once(tmp_repo):
   - `format.ts`: `num1(n: number | null): string` (`6,5`, `–` for null), `perGame(total: number, played: number): number`, `tertile(value: number, all: number[], higherIsGood: boolean): "good" | "bad" | ""`, `startClass(pct: number | null): "good" | "bad" | ""` (≥75 good, <50 bad), `dateRange(from: string, to: string): string` (`31 ott – 2 nov`).
   - `App.tsx`: hash routes `#/` → `SquadScreen`, `#/rose` → `SquadEditor`, `#/importa?s=…` → `ImportScreen` (placeholders in this task, filled by Tasks 9–10). No squads → redirect to `#/rose`.
 
-- [ ] **Step 1: Scaffold** with `npm create vite@latest web -- --template react-ts`, add `vitest`, `jsdom`, `@testing-library/react`, `@testing-library/user-event`. In `vite.config.ts` set `base: "/fantaspec/"` and `test: { environment: "jsdom" }`. `index.html`: `lang="it"`, viewport meta, title `fantaspec`.
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 1: Scaffold** with `npm create vite@latest web -- --template react-ts`, add `vitest`, `jsdom`, `@testing-library/react`, `@testing-library/user-event`. In `vite.config.ts` set `base: "/fantaspec/"` and `test: { environment: "jsdom" }`. `index.html`: `lang="it"`, viewport meta, title `fantaspec`.
+- [x] **Step 2: Write the failing tests**
 
 ```ts
 test("share link round trip keeps names and order", () => {
@@ -549,10 +549,10 @@ test("no squads sends the user to the editor", async () => {
 ```
 `sampleData.ts` holds a small `AppData` (4 clubs, ~10 players covering every role, one injured, one never voted, one with `club: null`).
 
-- [ ] **Step 3: Run** `cd web && npx vitest run`. Expected: FAIL.
-- [ ] **Step 4: Implement** the modules. Share payload: base64url of `JSON.stringify({ n: name, p: [[id, name], ...] })`. Every localStorage access wrapped in try/catch.
-- [ ] **Step 5: Run the tests again.** Expected: PASS. Also `npm run build` succeeds.
-- [ ] **Step 6: Commit** `git commit -m "web: skeleton, data loading, squad storage"`.
+- [x] **Step 3: Run** `cd web && npx vitest run`. Expected: FAIL.
+- [x] **Step 4: Implement** the modules. Share payload: base64url of `JSON.stringify({ n: name, p: [[id, name], ...] })`. Every localStorage access wrapped in try/catch.
+- [x] **Step 5: Run the tests again.** Expected: PASS. Also `npm run build` succeeds.
+- [x] **Step 6: Commit** `git commit -m "web: skeleton, data loading, squad storage"`.
 
 ---
 
