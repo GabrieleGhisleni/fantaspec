@@ -59,3 +59,20 @@ class CalendarFixture:
     matchday: int
     home: str  # fantacalcio.it club slug
     away: str
+
+
+@dataclass(frozen=True)
+class LineupEntry:
+    player_id: int  # fantacalcio.it player id
+    name: str
+    club: str  # fantacalcio.it club slug
+    start_pct: int  # 0-100, chance of starting
+    doubtful: bool  # named in a "ballottaggio" (two-way doubt for a starting spot)
+
+
+@dataclass(frozen=True)
+class Unavailable:
+    club: str  # fantacalcio.it club slug
+    name: str  # as written on the page; matched to a roster id by names.match_player
+    kind: str  # injured, suspended or warned
+    text: str  # the page's note, "" when there is none
