@@ -235,7 +235,7 @@ def test_parse_standings():
 ```python
 def test_votes_matchday_8():
     rows = parse_votes(load_fixture("fc_votes_8.html.gz"), 8)
-    assert len(rows) == 305
+    assert len(rows) == 316
     assert len({r.club for r in rows}) == 20
     meret = next(r for r in rows if r.player_id == 572)
     assert (meret.name, meret.club, meret.role, meret.vote, meret.fanta_vote, meret.conceded) == ("Meret", "napoli", "P", 6.5, 3.5, 3)
@@ -274,7 +274,7 @@ def test_calendar_matchday_10():
 **Interfaces:**
 - Consumes: `RosterPlayer`.
 - Produces:
-  - `LineupEntry(player_id: int, name: str, club: str, start_pct: int, doubtful: bool)`; `fc_lineups.parse_lineups(html: str) -> tuple[list[LineupEntry], set[str]]` (entries, and the club keys covered by the page).
+  - `LineupEntry(player_id: int, name: str, club: str, start_pct: int, doubtful: bool)`; `fc_lineups.parse_lineups(html: str) -> tuple[list[LineupEntry], set[tuple[str, str]]]` (entries, and the (home, away) club-key pairs of the matches on the page).
   - `Unavailable(club: str, name: str, kind: str, text: str)` with kind `injured` | `suspended` | `warned`; `fc_unavailable.parse_unavailable(html: str) -> list[Unavailable]`.
   - `names.match_player(name: str, club: str, roster: list[RosterPlayer]) -> int | None`.
 
@@ -283,8 +283,8 @@ def test_calendar_matchday_10():
 
 ```python
 def test_lineups_structure():
-    entries, clubs = parse_lineups(load_fixture("fc_lineups.html.gz"))
-    assert len(clubs) >= 18
+    entries, pairs = parse_lineups(load_fixture("fc_lineups.html.gz"))
+    assert len({c for pair in pairs for c in pair}) >= 18
     assert len(entries) >= 300
     assert all(0 <= e.start_pct <= 100 for e in entries)
     assert any(e.doubtful for e in entries)
@@ -307,7 +307,7 @@ def test_match_player():
 
 - [x] **Step 3: Run the tests.** Expected: FAIL.
 - [x] **Step 4: Implement.**
-  - Lineups: per match block, starters and bench each carry a name link (player id) and a `NN%`; a player in a "ballottaggio" pair is `doubtful=True`. Covered clubs are the two clubs of every match block.
+  - Lineups: per match block, starters and bench each carry a name link (player id) and a `NN%`; a player in a "ballottaggio" pair is `doubtful=True`. The page's matches are the (home, away) pairs of every match block.
   - Unavailable: per club section, the `Infortunati`, `Squalificati`, `Diffidati` lists; each entry's first word(s) are the name, the rest is `text`; "Nessuno"/"Nessun calciatore" means an empty list.
   - `match_player`: normalise (lower case, strip accents, unify apostrophes, drop dots), only within the same club; exact normalised match first, then a unique surname match; ambiguous or missing → `None`.
 - [x] **Step 5: Run the tests again.** Expected: PASS.
@@ -327,7 +327,7 @@ def test_match_player():
   - `Fixture(matchday: int, home: str, away: str, kickoff: datetime | None, home_goals: int | None, away_goals: int | None, completed: bool)`
   - `fixtures.join_fixtures(calendar: list[CalendarFixture], espn: list[EspnMatch], clubs: list[Club]) -> list[Fixture]` — join on the ordered pair (home key, away key), unique per season.
   - `stats.club_stats(fixtures: list[Fixture], standings: list[StandingRow], history: list[Fixture], clubs: list[Club], now: datetime) -> dict[str, dict]` → the `clubs.json` object of the data contract.
-  - `stats.player_stats(roster: list[RosterPlayer], votes: list[VoteRow], fixtures: list[Fixture], lineups: tuple[list[LineupEntry], set[str]], unavailable: list[Unavailable], clubs_out: dict[str, dict]) -> dict[str, dict]` → the `players.json` object.
+  - `stats.player_stats(roster: list[RosterPlayer], votes: list[VoteRow], fixtures: list[Fixture], lineups: tuple[list[LineupEntry], set[tuple[str, str]]], unavailable: list[Unavailable], clubs_out: dict[str, dict]) -> dict[str, dict]` → the `players.json` object.
   - `history` is a list of `Fixture` from past seasons (matchday 0) used only for head to head.
 
 - [x] **Step 1: Write the failing tests** with a small hand-built season (4 clubs, 6 fixtures, a few vote rows):
