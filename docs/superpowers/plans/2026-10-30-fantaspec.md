@@ -499,8 +499,8 @@ def test_same_slot_twice_writes_once(tmp_repo):
 - [x] **Step 2: Run** `python -m pytest tests/test_build.py tests/test_run.py -v`. Expected: FAIL.
 - [x] **Step 3: Implement** `build.py`, `run.py`, `__main__.py` (argparse). `run` takes the fetcher as a parameter; the CLI passes `http.fetch_text`.
 - [x] **Step 4: Run the whole suite** `python -m pytest -v`. Expected: all PASS.
-- [ ] **Step 5: Real backfill.** From the repo root: `cd pipeline && pip install -e . && python -m fantaspec run --kind full --backfill`. Expected: exit 0, `raw/` filled, `web/public/data/{meta,clubs,players}.json` written; `jq '.["572"].season' ../web/public/data/players.json` shows Meret with `pres` > 0.
-- [ ] **Step 6: Commit** `git add pipeline raw web/public/data && git commit -m "pipeline: build, validation, run orchestration, first backfill"`.
+- [x] **Step 5: Real backfill.** From the repo root: `cd pipeline && pip install -e . && python -m fantaspec run --kind full --backfill`. Expected: exit 0, `raw/` filled, `web/public/data/{meta,clubs,players}.json` written; `jq '.["572"].season' ../web/public/data/players.json` shows Meret with `pres` > 0.
+- [x] **Step 6: Commit** `git add pipeline raw web/public/data && git commit -m "pipeline: build, validation, run orchestration, first backfill"`.
 
 ---
 
