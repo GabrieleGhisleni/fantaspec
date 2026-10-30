@@ -230,7 +230,7 @@ def test_parse_standings():
   - `fc_calendar.parse_calendar(html: str, matchday: int) -> list[CalendarFixture]`
 
 - [x] **Step 1: Save the pages.** Already saved on 2026-10-30: `fc_votes_8.html.gz`, `fc_roster.html.gz`, `fc_calendar_10.html.gz` (10 fixtures) in `pipeline/tests/fixtures/`.
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 ```python
 def test_votes_matchday_8():
@@ -255,13 +255,13 @@ def test_calendar_matchday_10():
     assert CalendarFixture(10, "milan", "inter") in fx
 ```
 
-- [ ] **Step 3: Run** `python -m pytest tests/test_fc_votes.py tests/test_fc_roster.py tests/test_fc_calendar.py -v`. Expected: FAIL.
-- [ ] **Step 4: Implement the three parsers** with BeautifulSoup (`html.parser`).
+- [x] **Step 3: Run** `python -m pytest tests/test_fc_votes.py tests/test_fc_roster.py tests/test_fc_calendar.py -v`. Expected: FAIL.
+- [x] **Step 4: Implement the three parsers** with BeautifulSoup (`html.parser`).
   - Votes: one row per `tr` containing `a.player-name` with href `/serie-a/squadre/<club>/<slug>/<id>`; skip rows without that link (coaches). Role from `span.role[data-value]` upper-cased. Vote and fantavote from the first `.pill` (`.player-grade` / `.player-fanta-grade`, `data-value` with comma decimal); a non-numeric value means `None`. Bonus cells `.player-bonus[data-value]` by `title`: `Gol segnati`, `Gol subiti`, `Autoreti`, `Rigori segnati`, `Rigori sbagliati`, `Rigori parati`, `Assist`.
   - Roster: rows carry `data-filter-role-classic="p"` and the same player link; club from the link.
   - Calendar: links `calendario/<md>/<season>/<home>-<away>/<id>` filtered to the requested matchday; split `<home>-<away>` by trying every known club key as the prefix, de-duplicated.
-- [ ] **Step 5: Run the tests again.** Expected: PASS.
-- [ ] **Step 6: Commit** `git commit -m "pipeline: fantacalcio votes, roster and calendar parsers"`.
+- [x] **Step 5: Run the tests again.** Expected: PASS.
+- [x] **Step 6: Commit** `git commit -m "pipeline: fantacalcio votes, roster and calendar parsers"`.
 
 ---
 

@@ -26,3 +26,36 @@ class StandingRow:
     position: int
     points: int
     played: int
+
+
+@dataclass(frozen=True)
+class VoteRow:
+    player_id: int  # fantacalcio.it player id
+    name: str
+    club: str  # fantacalcio.it club slug
+    role: str  # P, D, C or A
+    matchday: int
+    vote: float | None  # None when s.v.
+    fanta_vote: float | None
+    goals: int  # open-play goals only; penalties are in pens_scored
+    conceded: int
+    own_goals: int
+    pens_scored: int
+    pens_missed: int
+    pens_saved: int
+    assists: int
+
+
+@dataclass(frozen=True)
+class RosterPlayer:
+    id: int  # fantacalcio.it player id
+    name: str
+    club: str  # fantacalcio.it club slug
+    role: str  # P, D, C or A
+
+
+@dataclass(frozen=True)
+class CalendarFixture:
+    matchday: int
+    home: str  # fantacalcio.it club slug
+    away: str
