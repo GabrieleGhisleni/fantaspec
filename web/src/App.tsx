@@ -23,11 +23,17 @@ function subscribeToHash(onChange: () => void) {
 }
 
 /**
- * The saved squads. A browser that never saved any starts with the default squad, saved and selected;
- * an emptied list, corrupted or blocked storage stay empty.
+ * The saved squads, decided once at startup. A browser that never saved any starts with the default squad,
+ * saved and selected; an emptied list, corrupted or blocked storage stay empty. A new browser that arrives
+ * through a share link is someone else's device: it saves an empty list instead, so neither the import nor
+ * a cancelled import nor a later visit ever brings in the default squad.
  */
-function initialSquads(): Squad[] {
+function initialSquads(path: Route["path"]): Squad[] {
   if (!isNewBrowser()) return loadSquads();
+  if (path === "/importa") {
+    saveSquads([]);
+    return [];
+  }
   const squad = defaultSquad();
   saveSquads([squad]);
   saveSelected(squad.id);
@@ -44,7 +50,7 @@ type Props = {
 export default function App({ load = loadData }: Props) {
   const route = parseRoute(useSyncExternalStore(subscribeToHash, () => window.location.hash));
   // In this order: seeding the default squad also saves the selection read next.
-  const [squads, setSquads] = useState(initialSquads);
+  const [squads, setSquads] = useState(() => initialSquads(route.path));
   const [selected, setSelected] = useState(loadSelected);
   const [loaded, setLoaded] = useState<Load>({ state: "loading" });
 

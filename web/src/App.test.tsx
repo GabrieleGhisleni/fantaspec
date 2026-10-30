@@ -119,3 +119,30 @@ test("blocked storage gets no default squad", async () => {
   render(<App load={() => Promise.resolve(sampleData)} />);
   expect(await screen.findByText("Crea la tua prima rosa")).toBeInTheDocument();
 });
+
+// A share link opened in a new browser is a friend's device: never the default squad there, now or later.
+
+test("a first visit through a share link imports only that squad", async () => {
+  const user = userEvent.setup();
+  window.location.hash = `#/importa?s=${encodeShare(sampleSquad)}`;
+  render(<App load={() => Promise.resolve(sampleData)} />);
+  await user.click(await screen.findByText("Importa"));
+  expect(await screen.findByLabelText("Rosa")).toHaveDisplayValue(sampleSquad.name);
+  expect(loadSquads()).toEqual([{ ...sampleSquad, id: expect.any(String) }]);
+  expect(screen.queryByText("La mia rosa")).not.toBeInTheDocument();
+});
+
+test("a first visit through a share link that is cancelled gets no default squad, then or on the next visit", async () => {
+  const user = userEvent.setup();
+  window.location.hash = `#/importa?s=${encodeShare(sampleSquad)}`;
+  const { unmount } = render(<App load={() => Promise.resolve(sampleData)} />);
+  await user.click(await screen.findByText("Annulla"));
+  expect(await screen.findByText("Crea la tua prima rosa")).toBeInTheDocument();
+  expect(window.location.hash).toBe("#/rose");
+  expect(loadSquads()).toEqual([]);
+  unmount();
+  window.location.hash = "#/";
+  render(<App load={() => Promise.resolve(sampleData)} />);
+  expect(await screen.findByText("Crea la tua prima rosa")).toBeInTheDocument();
+  expect(screen.queryByText("La mia rosa")).not.toBeInTheDocument();
+});
