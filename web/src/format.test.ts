@@ -1,4 +1,4 @@
-import { dateRange, dayTime, kickoffTime, num1, perGame, startClass, tertile } from "./format";
+import { dateRange, dayTime, kickoffTime, num1, perGame, playerCount, startClass, tertile } from "./format";
 
 test("italian number format", () => {
   expect(num1(6.5)).toBe("6,5"); expect(num1(null)).toBe("–");
@@ -63,4 +63,10 @@ test("date and time are shown in Rome time, whatever the browser's zone", () => 
 test("kickoff with the weekday", () => {
   expect(kickoffTime("2026-10-31T18:00:00+01:00")).toBe("sab 31 ott 18:00");
   expect(kickoffTime("2026-11-01T19:45:00Z")).toBe("dom 1 nov 20:45");
+});
+
+test("player counts agree in number", () => {
+  expect(playerCount(0)).toBe("0 giocatori");
+  expect(playerCount(1)).toBe("1 giocatore");
+  expect(playerCount(29)).toBe("29 giocatori");
 });

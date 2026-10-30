@@ -627,7 +627,7 @@ test("status tags and collapsed match cards", () => {
 
 Behaviour: list squads (`Nuova rosa`, `Rinomina`, `Elimina` with a confirm), open one to edit; search over all players by name (accent-insensitive, ≥2 characters), chips to filter by role and a club select; tap a result to add, tap a squad player to remove; no size rules. `Condividi` uses `navigator.share` when available, else copies `location.origin + location.pathname + "#/importa?s=" + encodeShare(squad)` and shows `Link copiato`. Import asks `Importare «{name}» ({n} giocatori)?`; `Importa` adds it (new id; same-name squads get a ` (2)` suffix) and goes to `#/`; an invalid param shows `Link non valido`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```tsx
 test("create a squad, add and remove players", async () => {
@@ -656,11 +656,11 @@ test("invalid link", () => {
 });
 ```
 
-- [ ] **Step 2: Run** `npx vitest run src/screens`. Expected: FAIL.
-- [ ] **Step 3: Implement** both screens and wire them into `App.tsx`.
-- [ ] **Step 4: Run the full suite** `npx vitest run`. Expected: PASS.
+- [x] **Step 2: Run** `npx vitest run src/screens`. Expected: FAIL.
+- [x] **Step 3: Implement** both screens and wire them into `App.tsx`.
+- [x] **Step 4: Run the full suite** `npx vitest run`. Expected: PASS.
 - [ ] **Step 5: Check at 360px** in the browser pane: create a squad, add 5 players, share, open the link in a new tab, import.
-- [ ] **Step 6: Commit** `git commit -m "web: squad editor and import"`.
+- [x] **Step 6: Commit** `git commit -m "web: squad editor and import"`.
 
 ---
 

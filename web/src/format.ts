@@ -55,3 +55,8 @@ export function dateRange(from: string, to: string): string {
   const day = (iso: string) => dayMonth.format(new Date(`${iso}T00:00:00Z`));
   return from === to ? day(from) : `${day(from)} – ${day(to)}`;
 }
+
+/** "1 giocatore", "3 giocatori". */
+export function playerCount(n: number): string {
+  return `${n} ${n === 1 ? "giocatore" : "giocatori"}`;
+}

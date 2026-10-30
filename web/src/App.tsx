@@ -1,9 +1,10 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { loadData } from "./data";
+import { defaultSquad } from "./defaultSquad";
 import { ImportScreen } from "./screens/ImportScreen";
 import { SquadEditor } from "./screens/SquadEditor";
 import { SquadScreen } from "./screens/SquadScreen";
-import { loadSelected, loadSquads, saveSelected, saveSquads, type Squad } from "./squads";
+import { isNewBrowser, loadSelected, loadSquads, saveSelected, saveSquads, type Squad } from "./squads";
 import type { AppData } from "./types";
 
 type Route = { path: "/" | "/rose" | "/importa"; params: URLSearchParams };
@@ -21,6 +22,18 @@ function subscribeToHash(onChange: () => void) {
   return () => window.removeEventListener("hashchange", onChange);
 }
 
+/**
+ * The saved squads. A browser that never saved any starts with the default squad, saved and selected;
+ * an emptied list, corrupted or blocked storage stay empty.
+ */
+function initialSquads(): Squad[] {
+  if (!isNewBrowser()) return loadSquads();
+  const squad = defaultSquad();
+  saveSquads([squad]);
+  saveSelected(squad.id);
+  return [squad];
+}
+
 type Load = { state: "loading" } | { state: "failed" } | { state: "ready"; data: AppData };
 
 type Props = {
@@ -30,7 +43,8 @@ type Props = {
 
 export default function App({ load = loadData }: Props) {
   const route = parseRoute(useSyncExternalStore(subscribeToHash, () => window.location.hash));
-  const [squads, setSquads] = useState(loadSquads);
+  // In this order: seeding the default squad also saves the selection read next.
+  const [squads, setSquads] = useState(initialSquads);
   const [selected, setSelected] = useState(loadSelected);
   const [loaded, setLoaded] = useState<Load>({ state: "loading" });
 
@@ -63,7 +77,7 @@ export default function App({ load = loadData }: Props) {
   function importSquad(squad: Squad) {
     changeSquads([...squads, squad]);
     select(squad.id);
-    window.location.hash = "#/";
+    window.location.replace("#/"); // Back must not lead to the import question again
   }
 
   let screen;

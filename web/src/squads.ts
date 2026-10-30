@@ -40,6 +40,15 @@ export function newId(): string {
     : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+/** True when this browser never saved squads: storage can be read and the key is absent. */
+export function isNewBrowser(): boolean {
+  try {
+    return localStorage.getItem(SQUADS_KEY) === null;
+  } catch {
+    return false;
+  }
+}
+
 export function loadSquads(): Squad[] {
   try {
     const parsed: unknown = JSON.parse(readStorage(SQUADS_KEY) ?? "[]");
@@ -61,7 +70,18 @@ export function saveSelected(id: string): void {
   writeStorage(SELECTED_KEY, id);
 }
 
+/** `name`, or `name (2)`, `name (3)`... the first one no squad uses yet. */
+export function uniqueName(name: string, squads: Squad[]): string {
+  const taken = new Set(squads.map(s => s.name));
+  let candidate = name;
+  for (let n = 2; taken.has(candidate); n++) candidate = `${name} (${n})`;
+  return candidate;
+}
+
 // Share link payload: base64url of the UTF-8 JSON {"n": name, "p": [[id, name], ...]}.
+// A link is someone else's input: names are trimmed, repeated players dropped, absurd sizes refused.
+const MAX_SHARED_NAME = 100;
+const MAX_SHARED_PLAYERS = 100;
 
 export function encodeShare(squad: Squad): string {
   const json = JSON.stringify({ n: squad.name, p: squad.players.map(p => [p.id, p.name]) });
@@ -77,15 +97,20 @@ export function decodeShare(param: string): Squad | null {
     const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
     const payload: unknown = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
     const { n, p } = payload as { n?: unknown; p?: unknown };
-    if (typeof n !== "string" || !Array.isArray(p)) return null;
+    if (typeof n !== "string" || !Array.isArray(p) || p.length > MAX_SHARED_PLAYERS) return null;
+    const name = n.trim();
+    if (name === "" || name.length > MAX_SHARED_NAME) return null;
     const players: SquadPlayer[] = [];
+    const seen = new Set<number>();
     for (const entry of p) {
       if (!Array.isArray(entry)) return null;
       const player = { id: entry[0], name: entry[1] };
       if (!isSquadPlayer(player)) return null;
+      if (seen.has(player.id)) continue;
+      seen.add(player.id);
       players.push(player);
     }
-    return { id: newId(), name: n, players };
+    return { id: newId(), name, players };
   } catch {
     return null;
   }

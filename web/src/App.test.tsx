@@ -1,8 +1,9 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import App from "./App";
 import type { AppData } from "./types";
-import { saveSelected, saveSquads, type Squad } from "./squads";
-import { sampleData, sampleSquad } from "./test/sampleData";
+import { encodeShare, loadSelected, loadSquads, saveSelected, saveSquads, type Squad } from "./squads";
+import { fullSquad, sampleData, sampleSquad } from "./test/sampleData";
 
 function renderApp({ data, squads, load }: { data?: AppData; squads: Squad[]; load?: () => Promise<AppData> }) {
   saveSquads(squads);
@@ -15,7 +16,7 @@ test("no squads sends the user to the editor", async () => {
   expect(window.location.hash).toBe("#/rose");
 });
 
-// Screens 9 and 10 will replace the placeholders, so these tests only rely on the squad name and the editor title.
+// These tests only rely on the squad name, the squad selector and the editor title.
 const squadName = new RegExp(sampleSquad.name);
 
 test("with squads the home route shows the squad screen", async () => {
@@ -28,8 +29,9 @@ test("with squads the home route shows the squad screen", async () => {
 
 test("an unknown selected squad falls back to the first one", async () => {
   saveSelected("gone");
-  renderApp({ data: sampleData, squads: [sampleSquad] });
-  expect(await screen.findAllByText(squadName)).not.toHaveLength(0);
+  renderApp({ data: sampleData, squads: [sampleSquad, fullSquad] });
+  expect(await screen.findByLabelText("Rosa")).toHaveDisplayValue(sampleSquad.name);
+  expect(screen.queryByText("Bastoni")).not.toBeInTheDocument(); // only in the second squad
 });
 
 test("the hash switches between the screens", async () => {
@@ -56,6 +58,64 @@ test("data that cannot be loaded shows a message instead of a blank page", async
 
 test("corrupted stored squads start the app with the first-visit editor", async () => {
   localStorage.setItem("fantaspec.squads.v1", "{broken");
+  render(<App load={() => Promise.resolve(sampleData)} />);
+  expect(await screen.findByText("Crea la tua prima rosa")).toBeInTheDocument();
+  expect(localStorage.getItem("fantaspec.squads.v1")).toBe("{broken"); // no default squad written over it
+});
+
+test("importing a link adds the squad, selects and saves it, and goes home without a history entry", async () => {
+  const user = userEvent.setup();
+  saveSelected(fullSquad.id);
+  window.location.hash = `#/importa?s=${encodeShare(sampleSquad)}`;
+  renderApp({ data: sampleData, squads: [fullSquad] });
+  const before = history.length;
+  await user.click(await screen.findByText("Importa"));
+  expect(window.location.hash).toBe("#/");
+  expect(history.length).toBe(before);
+  expect(await screen.findByLabelText("Rosa")).toHaveDisplayValue(sampleSquad.name);
+  const stored = loadSquads();
+  expect(stored).toEqual([fullSquad, { ...sampleSquad, id: expect.any(String) }]);
+  expect(stored[1].id).not.toBe(sampleSquad.id);
+  expect(loadSelected()).toBe(stored[1].id);
+});
+
+test("squads created and edited in the editor are saved", async () => {
+  const user = userEvent.setup();
+  renderApp({ data: sampleData, squads: [] });
+  await user.click(await screen.findByText("Nuova rosa"));
+  await user.type(screen.getByLabelText("Cerca giocatore"), "mer");
+  await user.click(screen.getByText("Meret"));
+  await user.click(screen.getByText("Rinomina"));
+  const name = screen.getByLabelText("Nome della rosa");
+  await user.clear(name);
+  await user.type(name, "Titolari{Enter}");
+  expect(loadSquads()).toEqual([{ id: expect.any(String), name: "Titolari", players: [{ id: 572, name: "Meret" }] }]);
+  window.location.hash = "#/";
+  expect(await screen.findByLabelText("Rosa")).toHaveDisplayValue("Titolari");
+});
+
+// The default squad: only a browser that never saved squads gets it.
+
+test("a first visit starts with the default squad, saved and selected", async () => {
+  render(<App load={() => Promise.resolve(sampleData)} />);
+  expect(await screen.findByLabelText("Rosa")).toHaveDisplayValue("La mia rosa");
+  expect(window.location.hash).toBe("");
+  const stored = loadSquads();
+  expect(stored).toEqual([{ id: expect.any(String), name: "La mia rosa", players: expect.any(Array) }]);
+  expect(stored[0].players).toHaveLength(29);
+  expect(loadSelected()).toBe(stored[0].id);
+});
+
+test("a saved empty list stays empty: no default squad after deleting everything", async () => {
+  localStorage.setItem("fantaspec.squads.v1", "[]");
+  render(<App load={() => Promise.resolve(sampleData)} />);
+  expect(await screen.findByText("Crea la tua prima rosa")).toBeInTheDocument();
+  expect(localStorage.getItem("fantaspec.squads.v1")).toBe("[]");
+});
+
+test("blocked storage gets no default squad", async () => {
+  vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw new Error("blocked"); });
+  vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("blocked"); });
   render(<App load={() => Promise.resolve(sampleData)} />);
   expect(await screen.findByText("Crea la tua prima rosa")).toBeInTheDocument();
 });

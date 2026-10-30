@@ -1,4 +1,7 @@
-import { decodeShare, encodeShare, loadSelected, loadSquads, saveSelected, saveSquads } from "./squads";
+import { decodeShare, encodeShare, isNewBrowser, loadSelected, loadSquads, saveSelected, saveSquads, uniqueName } from "./squads";
+
+/** A share param built by hand (ASCII only). */
+const b64 = (v: unknown) => btoa(JSON.stringify(v));
 
 test("share link round trip keeps names and order", () => {
   const s = { id: "x", name: "FC Ghisleni", players: [{ id: 572, name: "Meret" }, { id: 184, name: "Bernardeschi" }] };
@@ -18,7 +21,6 @@ test("every decoded share link gets a fresh id", () => {
 });
 
 test("bad share links return null", () => {
-  const b64 = (v: unknown) => btoa(JSON.stringify(v));
   const bad = [
     "",
     "%%%",
@@ -34,6 +36,42 @@ test("bad share links return null", () => {
     "/w", // not valid UTF-8 once decoded
   ];
   for (const param of bad) expect(decodeShare(param)).toBeNull();
+});
+
+test("share links: the name is trimmed and must not be empty or absurdly long", () => {
+  expect(decodeShare(b64({ n: "  FC Ghisleni ", p: [] }))).toEqual({ id: expect.any(String), name: "FC Ghisleni", players: [] });
+  expect(decodeShare(b64({ n: "x".repeat(100), p: [] }))).not.toBeNull();
+  for (const n of ["", "   ", "x".repeat(101)]) expect(decodeShare(b64({ n, p: [] }))).toBeNull();
+});
+
+test("share links: a repeated player is kept once, where he first appears", () => {
+  const squad = decodeShare(b64({ n: "A", p: [[1, "Meret"], [2, "Kean"], [1, "Altro"]] }));
+  expect(squad!.players).toEqual([{ id: 1, name: "Meret" }, { id: 2, name: "Kean" }]);
+});
+
+test("share links: more than 100 players is not a squad", () => {
+  const players = (n: number) => Array.from({ length: n }, (_, i) => [i + 1, `G${i + 1}`]);
+  expect(decodeShare(b64({ n: "A", p: players(100) }))!.players).toHaveLength(100);
+  expect(decodeShare(b64({ n: "A", p: players(101) }))).toBeNull();
+});
+
+test("uniqueName adds the first free number to a taken name", () => {
+  const squads = (...names: string[]) => names.map(name => ({ id: name, name, players: [] }));
+  expect(uniqueName("A", [])).toBe("A");
+  expect(uniqueName("A", squads("B", "A (2)"))).toBe("A");
+  expect(uniqueName("A", squads("A"))).toBe("A (2)");
+  expect(uniqueName("A", squads("A", "A (2)", "A (4)"))).toBe("A (3)");
+});
+
+test("a new browser is one that never saved squads and can read its storage", () => {
+  expect(isNewBrowser()).toBe(true);
+  saveSquads([]);
+  expect(isNewBrowser()).toBe(false);
+  localStorage.setItem("fantaspec.squads.v1", "{broken");
+  expect(isNewBrowser()).toBe(false);
+  localStorage.clear();
+  vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw new Error("blocked"); });
+  expect(isNewBrowser()).toBe(false);
 });
 
 test("squads and selection survive a reload", () => {
