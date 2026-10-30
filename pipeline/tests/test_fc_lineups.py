@@ -6,16 +6,16 @@ from fantaspec.sources.fc_lineups import parse_lineups
 
 
 def test_lineups_structure():
-    entries, clubs = parse_lineups(load_fixture("fc_lineups.html.gz"))
-    assert len(clubs) >= 18
+    entries, pairs = parse_lineups(load_fixture("fc_lineups.html.gz"))
+    assert len({c for pair in pairs for c in pair}) >= 18
     assert len(entries) >= 300
     assert all(0 <= e.start_pct <= 100 for e in entries)
     assert any(e.doubtful for e in entries)
 
 
 def test_lineups_values():
-    entries, clubs = parse_lineups(load_fixture("fc_lineups.html.gz"))
-    assert {"bologna", "monza"} <= clubs
+    entries, pairs = parse_lineups(load_fixture("fc_lineups.html.gz"))
+    assert {("bologna", "monza"), ("juventus", "napoli")} <= pairs  # (home, away), as in the round 10 calendar
     assert LineupEntry(133, "Skorupski", "bologna", 90, False) in entries  # starter
     assert LineupEntry(7212, "Heggem", "bologna", 40, True) in entries  # bench, in a ballottaggio with Casale
     assert LineupEntry(5498, "Casale", "bologna", 60, True) in entries

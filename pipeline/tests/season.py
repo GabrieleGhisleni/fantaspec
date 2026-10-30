@@ -80,11 +80,14 @@ VOTES = [
     vote(444, "Rossi", "lazio", "D", 1, 5.0, 4.5),
 ]
 
+# The page shows juventus-napoli (next for both) and roma-torino, already played: roma's next match is
+# roma-lazio and torino has none left.
 LINEUPS = ([LineupEntry(572, "Meret", "napoli", 95, False),
             LineupEntry(321, "Buongiorno", "napoli", 90, False),
             LineupEntry(123, "McTominay", "napoli", 55, True),
+            LineupEntry(777, "Dybala", "roma", 70, True),
             LineupEntry(666, "Milinkovic-Savic V.", "torino", 90, False)],
-           {"napoli", "juventus", "torino"})
+           {("juventus", "napoli"), ("roma", "torino")})
 
 UNAVAIL_555_SUSPENDED = Unavailable("juventus", "Vlahovic D.", "suspended", "squalificato per una giornata")
 UNAVAIL = [

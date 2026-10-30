@@ -41,13 +41,16 @@ def club_stats(fixtures: list[Fixture], standings: list[StandingRow], history: l
 
 
 def player_stats(roster: list[RosterPlayer], votes: list[VoteRow], fixtures: list[Fixture],
-                 lineups: tuple[list[LineupEntry], set[str]], unavailable: list[Unavailable],
+                 lineups: tuple[list[LineupEntry], set[tuple[str, str]]], unavailable: list[Unavailable],
                  clubs_out: dict[str, dict]) -> dict[str, dict]:
     """The players.json object, keyed by player id: every roster player plus every player with a vote.
 
     A player no longer on the roster has club None and the name and role of their latest vote row.
+    `lineups` is the probable lineups page: its entries and the (home, away) pairs of its matches.
+    The page gives a player's startPct and "doubtful" status only when it has his club's next match;
+    a match already played, still on the page until the round ends, is ignored.
     """
-    entries, covered = lineups
+    entries, pairs = lineups
     rows: dict[int, list[VoteRow]] = defaultdict(list)
     for row in votes:
         rows[row.player_id].append(row)
@@ -59,13 +62,14 @@ def player_stats(roster: list[RosterPlayer], votes: list[VoteRow], fixtures: lis
 
     recent = {key: _completed(fixtures, key)[-LAST:] for key in clubs_out}
     match_of = {(f.matchday, side): f for f in fixtures if f.completed for side in (f.home, f.away)}
-    start_pct = {e.player_id: e.start_pct for e in entries}
-    status = _statuses(roster, entries, unavailable)
+    on_page = {key for key, club in clubs_out.items() if _next_pair(key, club["next"]) in pairs}
+    club_of = {p.id: p.club for p in roster}
+    current = [e for e in entries if club_of.get(e.player_id) in on_page]
+    start_pct = {e.player_id: e.start_pct for e in current}
+    status = _statuses(roster, current, unavailable)
     out = {}
     for pid, name, club, role in people:
         mine = rows.get(pid, [])
-        # The lineups page has this club's next match (a club with no fixture left has none).
-        on_page = club in covered and clubs_out.get(club, {}).get("next") is not None
         out[str(pid)] = {
             "id": pid,
             "name": name,
@@ -74,7 +78,7 @@ def player_stats(roster: list[RosterPlayer], votes: list[VoteRow], fixtures: lis
             "season": _season(mine, role, match_of),
             "last5": _last5(mine, recent.get(club, [])),
             "status": status.get(pid),
-            "startPct": start_pct.get(pid, 0) if on_page else None,
+            "startPct": start_pct.get(pid, 0) if club in on_page else None,
         }
     return out
 
@@ -119,6 +123,13 @@ def _next_match(fixtures: list[Fixture], history: list[Fixture], club: str, now:
         "matchday": f.matchday,
         "h2h": [_result(m, club) for m in meetings[-LAST:]],
     }
+
+
+def _next_pair(club: str, nxt: dict | None) -> tuple[str, str] | None:
+    """(home, away) of the club's next match from its clubs.json `next`; None when it has none."""
+    if nxt is None:
+        return None
+    return (club, nxt["opponent"]) if nxt["home"] else (nxt["opponent"], club)
 
 
 def _season(rows: list[VoteRow], role: str, match_of: dict[tuple[int, str], Fixture]) -> dict:

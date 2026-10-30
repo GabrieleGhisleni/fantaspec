@@ -9,8 +9,9 @@ _CLUB_HREF = re.compile(r"/serie-a/squadre/([^/]+)$")
 _PERCENT = re.compile(r"(\d{1,3})%")
 
 
-def parse_lineups(html: str) -> tuple[list[LineupEntry], set[str]]:
-    """fantacalcio.it probable lineups page -> (starters and bench of every match, the clubs of those matches).
+def parse_lineups(html: str) -> tuple[list[LineupEntry], set[tuple[str, str]]]:
+    """fantacalcio.it probable lineups page -> (starters and bench of every match, the (home, away) club
+    pairs of those matches).
 
     A player named in one of the match's "ballottaggi" is doubtful.
     Raises ValueError when a match block doesn't look as expected.
@@ -19,17 +20,17 @@ def parse_lineups(html: str) -> tuple[list[LineupEntry], set[str]]:
     if not matches:
         raise ValueError("lineups page: no match blocks")
     entries: list[LineupEntry] = []
-    clubs: set[str] = set()
+    pairs: set[tuple[str, str]] = set()
     for match in matches:
         pair = _match_clubs(match)
-        clubs.update(pair)
+        pairs.add(pair)
         doubtful = {link[0] for li in match.select(".ballot-list li") if (link := parse_player_link(li))}
         for item in match.select(".team-card .player-list li.player-item"):
             entry = _entry(item, doubtful)
             if entry.club not in pair:
                 raise ValueError(f"lineups page: {entry.name} ({entry.club}) listed in {pair[0]}-{pair[1]}")
             entries.append(entry)
-    return entries, clubs
+    return entries, pairs
 
 
 def _match_clubs(match: Tag) -> tuple[str, str]:

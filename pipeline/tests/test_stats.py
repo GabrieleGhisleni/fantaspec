@@ -104,3 +104,14 @@ def test_departed_player():
     assert rossi["season"]["pres"] == 2 and rossi["season"]["cs"] == 0
     assert rossi["last5"] == {"played": 0, "g": 0, "gs": 0, "a": 0, "fv": []}
     assert rossi["status"] is None and rossi["startPct"] is None
+
+
+def test_lineups_page_counts_only_for_the_clubs_next_match():
+    clubs_out = club_stats(FX, STANDINGS, HISTORY, CLUBS, now=NOW)
+    out = compute()                                   # roma's played match (roma-torino) is on the page
+    assert out["777"]["startPct"] is None and out["777"]["status"] is None
+    stale = player_stats(ROSTER, VOTES, FX, (LINEUPS[0], {("lazio", "roma")}), [], clubs_out)   # postponed md 3
+    assert stale["777"]["startPct"] is None and stale["777"]["status"] is None
+    fresh = player_stats(ROSTER, VOTES, FX, (LINEUPS[0], {("roma", "lazio")}), [], clubs_out)   # roma's next
+    assert fresh["777"]["startPct"] == 70 and fresh["777"]["status"] == {"kind": "doubtful", "text": ""}
+    assert fresh["572"]["startPct"] is None and fresh["123"]["status"] is None
