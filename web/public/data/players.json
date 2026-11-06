@@ -146,11 +146,8 @@
       "medV": 5.5,
       "pres": 3
     },
-    "startPct": 0,
-    "status": {
-      "kind": "injured",
-      "text": "L'ivoriano condizionato da una distrazione di basso grado al polpaccio della gamba destra, tentativo rientro da inizio novembre e da valutare l'eventuale convocazione già domenica a Monza."
-    }
+    "startPct": 20,
+    "status": null
   },
   "1852": {
     "club": "napoli",
@@ -338,7 +335,7 @@
     "startPct": 0,
     "status": {
       "kind": "injured",
-      "text": "il centrocampista granata fermato il 23 ottobre contro il Monza da un problema muscolare al flessore sinistro. Rientro dalla metà di novembre."
+      "text": "il centrocampista granata fermato il 23 ottobre contro il Monza da un problema muscolare al flessore sinistro. Rientro dalla metà di novembre, ma sta provando a esserci già sabato contro il Lecce. Da valutare nella rifinitura di venerdì."
     }
   },
   "2012": {
@@ -645,10 +642,7 @@
       "pres": 7
     },
     "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "status": null
   },
   "2155": {
     "club": "monza",
@@ -770,7 +764,7 @@
       "medV": 7.0,
       "pres": 3
     },
-    "startPct": 1,
+    "startPct": 5,
     "status": null
   },
   "218": {
@@ -830,7 +824,7 @@
       "medV": 6.0,
       "pres": 1
     },
-    "startPct": 10,
+    "startPct": 35,
     "status": null
   },
   "219": {
@@ -1043,7 +1037,7 @@
       "medV": 7.0,
       "pres": 8
     },
-    "startPct": 90,
+    "startPct": 80,
     "status": null
   },
   "2401": {
@@ -1166,11 +1160,8 @@
       "medV": 6.0,
       "pres": 3
     },
-    "startPct": 0,
-    "status": {
-      "kind": "injured",
-      "text": "il difensore alle prese con un risentimento ai flessori della coscia sinistra. Possibile rientro dall'inizio di novembre, ma da valutare la convocazione già domenica contro il Como."
-    }
+    "startPct": 25,
+    "status": null
   },
   "2517": {
     "club": "napoli",
@@ -1199,11 +1190,8 @@
       "medV": 6.5,
       "pres": 10
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": 85,
+    "status": null
   },
   "252": {
     "club": "torino",
@@ -1352,7 +1340,7 @@
       "medV": 6.0,
       "pres": 5
     },
-    "startPct": 55,
+    "startPct": 40,
     "status": null
   },
   "2531": {
@@ -1535,11 +1523,8 @@
       "medV": 6.0,
       "pres": 6
     },
-    "startPct": 0,
-    "status": {
-      "kind": "injured",
-      "text": "il difensore KO il 18 ottobre a Milano vittima di una distrazione muscolare al retto femorale della coscia sinistra, recuperabile dalla metà di novembre."
-    }
+    "startPct": 15,
+    "status": null
   },
   "2724": {
     "club": "napoli",
@@ -1697,7 +1682,7 @@
       "medV": 5.5,
       "pres": 8
     },
-    "startPct": 55,
+    "startPct": 60,
     "status": {
       "kind": "doubtful",
       "text": ""
@@ -1883,8 +1868,11 @@
       "medV": 6.0,
       "pres": 10
     },
-    "startPct": 20,
-    "status": null
+    "startPct": 0,
+    "status": {
+      "kind": "injured",
+      "text": "il capitano azzurro costretto al cambio l'1 novembre contro la Juve per un risentimento all'adduttore, recuperabile dalla seconda metà di novembre."
+    }
   },
   "283": {
     "club": "juventus",
@@ -1976,7 +1964,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 5,
+    "startPct": 1,
     "status": null
   },
   "2848": {
@@ -2684,7 +2672,7 @@
       "medV": 5.25,
       "pres": 6
     },
-    "startPct": 55,
+    "startPct": 50,
     "status": {
       "kind": "doubtful",
       "text": ""
@@ -2840,10 +2828,10 @@
       "medV": 6.0,
       "pres": 7
     },
-    "startPct": 0,
+    "startPct": 55,
     "status": {
-      "kind": "injured",
-      "text": "l'attaccante indisponibile a causa di un guaio muscolare al bicipite femorale della coscia destra. Recuperabile dalla metà di novembre, ma sta provando a forzare il rientro già domenica a Parma."
+      "kind": "doubtful",
+      "text": ""
     }
   },
   "4360": {
@@ -2939,7 +2927,7 @@
     "startPct": 0,
     "status": {
       "kind": "injured",
-      "text": "Nuovo stop muscolare per l'attaccante, frenato il 15 ottobre in Conference League da una distrazione muscolare di basso grado al bicipite femorale della coscia destra. Punta a rientrare dall'inizio di novembre, ma da valutare la convocazione già domenica a Monza."
+      "text": "Nuovo stop muscolare per l'attaccante, frenato il 15 ottobre in Conference League da una distrazione muscolare di basso grado al bicipite femorale della coscia destra. Punta a rientrare dalla metà di novembre."
     }
   },
   "4374": {
@@ -3068,7 +3056,7 @@
     "startPct": 0,
     "status": {
       "kind": "injured",
-      "text": "l'attaccante a fine luglio ha deciso di operarsi per un problema alla schiena, che lo costringerà a stare ai box per buona parte del girone d'andata del campionato. Tentativo di rientro dalla metà di novembre."
+      "text": "l'attaccante a fine luglio ha deciso di operarsi per un problema alla schiena, che lo costringerà a stare ai box per buona parte del girone d'andata del campionato. Rientro dalla metà di novembre."
     }
   },
   "4401": {
@@ -3251,7 +3239,7 @@
       "medV": 6.25,
       "pres": 2
     },
-    "startPct": 10,
+    "startPct": 30,
     "status": null
   },
   "4461": {
@@ -3900,7 +3888,10 @@
       "pres": 6
     },
     "startPct": 60,
-    "status": null
+    "status": {
+      "kind": "doubtful",
+      "text": ""
+    }
   },
   "4845": {
     "club": "venezia",
@@ -3929,11 +3920,8 @@
       "medV": 6.0,
       "pres": 4
     },
-    "startPct": 0,
-    "status": {
-      "kind": "injured",
-      "text": "il cursore di fascia dei veneti KO il 12 ottobre a Bergamo vittima di un risentimento muscolare al flessore della gamba sinistra, sarà out anche venerdì contro l'Udinese. Da valutare in vista della 12a giornata."
-    }
+    "startPct": 40,
+    "status": null
   },
   "4856": {
     "club": "milan",
@@ -3965,7 +3953,7 @@
     "startPct": 0,
     "status": {
       "kind": "injured",
-      "text": "Il nigeriano dal 21 ottobre fermo per un problema all'anca sinistra. Iniziato un trattamento infiltrativo all'anca, a inizio novembre nuovi controlli medici per stabilire i tempi di rientro."
+      "text": "Il nigeriano dal 21 ottobre fermato dalla rottura del tendine del muscolo tensore della fascia lata dell'anca sinistra. Operato il 4 novembre, lungo stop. Ipotesi di rientro in campo da aprile."
     }
   },
   "4867": {
@@ -3995,7 +3983,7 @@
       "medV": 6.0,
       "pres": 3
     },
-    "startPct": 90,
+    "startPct": 80,
     "status": null
   },
   "487": {
@@ -4862,8 +4850,11 @@
       "medV": 6.0,
       "pres": 6
     },
-    "startPct": 70,
-    "status": null
+    "startPct": 60,
+    "status": {
+      "kind": "doubtful",
+      "text": ""
+    }
   },
   "5172": {
     "club": "inter",
@@ -4892,7 +4883,7 @@
       "medV": 6.0,
       "pres": 4
     },
-    "startPct": 20,
+    "startPct": 55,
     "status": null
   },
   "526": {
@@ -4952,7 +4943,7 @@
       "medV": 5.5,
       "pres": 7
     },
-    "startPct": 60,
+    "startPct": 55,
     "status": null
   },
   "5295": {
@@ -5228,8 +5219,11 @@
       "medV": 6.5,
       "pres": 4
     },
-    "startPct": 25,
-    "status": null
+    "startPct": 0,
+    "status": {
+      "kind": "injured",
+      "text": "L'attaccante alle prese con una distrazione muscolare ai flessori della coscia destra, rientro dalla seconda metà di novembre."
+    }
   },
   "536": {
     "club": "napoli",
@@ -5721,7 +5715,10 @@
       "pres": 6
     },
     "startPct": 60,
-    "status": null
+    "status": {
+      "kind": "doubtful",
+      "text": ""
+    }
   },
   "5504": {
     "club": "lecce",
@@ -5750,8 +5747,11 @@
       "medV": 6.0,
       "pres": 7
     },
-    "startPct": 35,
-    "status": null
+    "startPct": 55,
+    "status": {
+      "kind": "doubtful",
+      "text": ""
+    }
   },
   "5507": {
     "club": "venezia",
@@ -5897,7 +5897,7 @@
       "medV": 5.75,
       "pres": 8
     },
-    "startPct": 90,
+    "startPct": 85,
     "status": null
   },
   "5527": {
@@ -6050,8 +6050,11 @@
       "medV": 6.5,
       "pres": 10
     },
-    "startPct": 70,
-    "status": null
+    "startPct": 60,
+    "status": {
+      "kind": "doubtful",
+      "text": ""
+    }
   },
   "5562": {
     "club": "juventus",
@@ -6242,8 +6245,11 @@
       "medV": 6.5,
       "pres": 9
     },
-    "startPct": 90,
-    "status": null
+    "startPct": 55,
+    "status": {
+      "kind": "doubtful",
+      "text": ""
+    }
   },
   "5637": {
     "club": "udinese",
@@ -6272,8 +6278,11 @@
       "medV": 6.0,
       "pres": 9
     },
-    "startPct": 90,
-    "status": null
+    "startPct": 65,
+    "status": {
+      "kind": "doubtful",
+      "text": ""
+    }
   },
   "5641": {
     "club": "como",
@@ -6833,7 +6842,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 15,
+    "startPct": 0,
     "status": null
   },
   "5750": {
@@ -8090,11 +8099,8 @@
       "medV": 6.0,
       "pres": 9
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": 80,
+    "status": null
   },
   "6024": {
     "club": "sassuolo",
@@ -8186,7 +8192,7 @@
       "medV": 6.0,
       "pres": 9
     },
-    "startPct": 90,
+    "startPct": 80,
     "status": null
   },
   "6046": {
@@ -8249,8 +8255,11 @@
       "medV": 6.0,
       "pres": 6
     },
-    "startPct": 70,
-    "status": null
+    "startPct": 60,
+    "status": {
+      "kind": "doubtful",
+      "text": ""
+    }
   },
   "6052": {
     "club": "napoli",
@@ -8279,7 +8288,7 @@
       "medV": 6.5,
       "pres": 9
     },
-    "startPct": 85,
+    "startPct": 90,
     "status": null
   },
   "6054": {
@@ -8708,7 +8717,7 @@
       "medV": 5.5,
       "pres": 2
     },
-    "startPct": 80,
+    "startPct": 85,
     "status": null
   },
   "6204": {
@@ -9410,8 +9419,11 @@
       "medV": 6.25,
       "pres": 10
     },
-    "startPct": 90,
-    "status": null
+    "startPct": 0,
+    "status": {
+      "kind": "injured",
+      "text": "Il capitano dei biancocelesti alle prese con una lesione del quadricipite femorale sinistro, tentativo di rientro in campo da fine novembre."
+    }
   },
   "6320": {
     "club": "lazio",
@@ -9470,8 +9482,11 @@
       "medV": 6.5,
       "pres": 2
     },
-    "startPct": 5,
-    "status": null
+    "startPct": 45,
+    "status": {
+      "kind": "doubtful",
+      "text": ""
+    }
   },
   "6372": {
     "club": "milan",
@@ -9746,7 +9761,7 @@
     "startPct": 0,
     "status": {
       "kind": "injured",
-      "text": "l'attaccante turco, dopo la gara di Frosinone (23 agosto), ha lamentato un problema al piede. Operato il 31 agosto di osteosintesi della frattura della base del V metatarso del piede sinistro, stop di circa tre mesi. Rientro in campo da inizio dicembre."
+      "text": "l'attaccante turco, dopo la gara di Frosinone (23 agosto), ha lamentato un problema al piede. Operato il 31 agosto di osteosintesi della frattura della base del V metatarso del piede sinistro, stop di circa tre mesi. Rientro in campo da prima metà di dicembre."
     }
   },
   "6435": {
@@ -9776,11 +9791,8 @@
       "medV": 5.5,
       "pres": 10
     },
-    "startPct": 65,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": 90,
+    "status": null
   },
   "6462": {
     "club": "udinese",
@@ -9965,7 +9977,7 @@
       "medV": 5.75,
       "pres": 2
     },
-    "startPct": 35,
+    "startPct": 30,
     "status": null
   },
   "6506": {
@@ -10241,11 +10253,8 @@
       "medV": 6.75,
       "pres": 8
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": 80,
+    "status": null
   },
   "6569": {
     "club": "genoa",
@@ -10548,7 +10557,10 @@
       "pres": 6
     },
     "startPct": 60,
-    "status": null
+    "status": {
+      "kind": "doubtful",
+      "text": ""
+    }
   },
   "6638": {
     "club": "napoli",
@@ -11006,7 +11018,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 1,
+    "startPct": 0,
     "status": null
   },
   "6672": {
@@ -11099,11 +11111,8 @@
       "medV": 5.5,
       "pres": 4
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": 55,
+    "status": null
   },
   "6677": {
     "club": "sassuolo",
@@ -11384,7 +11393,7 @@
       "medV": 5.5,
       "pres": 7
     },
-    "startPct": 90,
+    "startPct": 80,
     "status": null
   },
   "6766": {
@@ -11445,7 +11454,10 @@
       "pres": 7
     },
     "startPct": 60,
-    "status": null
+    "status": {
+      "kind": "doubtful",
+      "text": ""
+    }
   },
   "6809": {
     "club": "napoli",
@@ -11753,7 +11765,7 @@
       "medV": 7.25,
       "pres": 2
     },
-    "startPct": 60,
+    "startPct": 55,
     "status": null
   },
   "6844": {
@@ -11813,7 +11825,7 @@
       "medV": 6.0,
       "pres": 6
     },
-    "startPct": 55,
+    "startPct": 60,
     "status": {
       "kind": "doubtful",
       "text": ""
@@ -12389,8 +12401,11 @@
       "medV": 6.0,
       "pres": 5
     },
-    "startPct": 85,
-    "status": null
+    "startPct": 60,
+    "status": {
+      "kind": "doubtful",
+      "text": ""
+    }
   },
   "6966": {
     "club": "como",
@@ -12419,8 +12434,11 @@
       "medV": 6.0,
       "pres": 8
     },
-    "startPct": 75,
-    "status": null
+    "startPct": 55,
+    "status": {
+      "kind": "doubtful",
+      "text": ""
+    }
   },
   "6967": {
     "club": "como",
@@ -12513,10 +12531,7 @@
       "pres": 0
     },
     "startPct": 0,
-    "status": {
-      "kind": "injured",
-      "text": "il calciatore operato al tendine rotuleo e ora in fase di recupero. Di certo assente nel prossimo turno di campionato, rientro da fine novembre."
-    }
+    "status": null
   },
   "6981": {
     "club": "roma",
@@ -12638,7 +12653,7 @@
     "startPct": 0,
     "status": {
       "kind": "injured",
-      "text": "Il difensore KO a Manchester in Champions League il 3 novembre per un problema fisico che andrà valutato. Out per domenica in campionato contro il Sassuolo."
+      "text": "Il difensore KO a Manchester in Champions League il 3 novembre per una lesione di primo grado dell'adduttore lungo di destra, rientro in campo dalla seconda metà di novembre."
     }
   },
   "6989": {
@@ -12884,7 +12899,7 @@
       "medV": 6.25,
       "pres": 10
     },
-    "startPct": 90,
+    "startPct": 75,
     "status": null
   },
   "7023": {
@@ -13040,11 +13055,8 @@
       "medV": 6.0,
       "pres": 9
     },
-    "startPct": 0,
-    "status": {
-      "kind": "injured",
-      "text": "l'esterno dei granata non al meglio per una sub-lussazione alla spalla sinistra rimediata nel turno precedente e forfait domenica scorsa a Frosinone. Da valutare nei prossimi allenamenti in vista di sabato contro il Lecce nella 11a giornata di campionato."
-    }
+    "startPct": 40,
+    "status": null
   },
   "7068": {
     "club": "bologna",
@@ -13259,8 +13271,11 @@
       "medV": 6.0,
       "pres": 8
     },
-    "startPct": 70,
-    "status": null
+    "startPct": 60,
+    "status": {
+      "kind": "doubtful",
+      "text": ""
+    }
   },
   "7125": {
     "club": "cagliari",
@@ -13322,11 +13337,8 @@
       "medV": 6.0,
       "pres": 9
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": 85,
+    "status": null
   },
   "7127": {
     "club": "como",
@@ -13685,11 +13697,8 @@
       "medV": 5.5,
       "pres": 3
     },
-    "startPct": 0,
-    "status": {
-      "kind": "injured",
-      "text": "l'attaccante assente a Torino il 12 ottobre a causa di una lesione al bicipite femorale della coscia destra, rientro tra i convocati da metà novembre."
-    }
+    "startPct": 55,
+    "status": null
   },
   "7162": {
     "club": "napoli",
@@ -13719,7 +13728,10 @@
       "pres": 3
     },
     "startPct": 60,
-    "status": null
+    "status": {
+      "kind": "doubtful",
+      "text": ""
+    }
   },
   "7164": {
     "club": "lecce",
@@ -13898,7 +13910,7 @@
       "medV": 5.75,
       "pres": 4
     },
-    "startPct": 55,
+    "startPct": 40,
     "status": null
   },
   "7183": {
@@ -14057,7 +14069,7 @@
       "medV": 6.0,
       "pres": 7
     },
-    "startPct": 55,
+    "startPct": 60,
     "status": {
       "kind": "doubtful",
       "text": ""
@@ -14210,7 +14222,7 @@
       "medV": 5.5,
       "pres": 8
     },
-    "startPct": 90,
+    "startPct": 85,
     "status": null
   },
   "7220": {
@@ -14240,7 +14252,7 @@
       "medV": 6.25,
       "pres": 8
     },
-    "startPct": 55,
+    "startPct": 65,
     "status": {
       "kind": "doubtful",
       "text": ""
@@ -14396,8 +14408,11 @@
       "medV": 5.75,
       "pres": 10
     },
-    "startPct": 80,
-    "status": null
+    "startPct": 60,
+    "status": {
+      "kind": "doubtful",
+      "text": ""
+    }
   },
   "7248": {
     "club": "lecce",
@@ -14427,10 +14442,7 @@
       "pres": 4
     },
     "startPct": 55,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "status": null
   },
   "7249": {
     "club": "udinese",
@@ -14852,7 +14864,7 @@
       "medV": 5.5,
       "pres": 2
     },
-    "startPct": 60,
+    "startPct": 55,
     "status": null
   },
   "7313": {
@@ -14972,7 +14984,7 @@
       "medV": 5.75,
       "pres": 2
     },
-    "startPct": 55,
+    "startPct": 50,
     "status": null
   },
   "7319": {
@@ -15789,7 +15801,10 @@
       "pres": 2
     },
     "startPct": 55,
-    "status": null
+    "status": {
+      "kind": "doubtful",
+      "text": ""
+    }
   },
   "7414": {
     "club": "como",
@@ -15818,7 +15833,7 @@
       "medV": 6.5,
       "pres": 7
     },
-    "startPct": 60,
+    "startPct": 55,
     "status": {
       "kind": "doubtful",
       "text": ""
@@ -15944,11 +15959,8 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
-    "status": {
-      "kind": "injured",
-      "text": "L'attaccante ha deciso di operarsi alla caviglia e dovrebbe tornare arruolabile dalla metà di novembre."
-    }
+    "startPct": 20,
+    "status": null
   },
   "7454": {
     "club": "venezia",
@@ -16865,11 +16877,8 @@
       "medV": 6.0,
       "pres": 3
     },
-    "startPct": 40,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": 70,
+    "status": null
   },
   "7533": {
     "club": "bologna",
@@ -17207,7 +17216,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 70,
+    "startPct": 15,
     "status": null
   },
   "7550": {
@@ -18312,7 +18321,10 @@
       "pres": 6
     },
     "startPct": 55,
-    "status": null
+    "status": {
+      "kind": "doubtful",
+      "text": ""
+    }
   },
   "7622": {
     "club": "genoa",
@@ -18464,7 +18476,7 @@
     "startPct": 0,
     "status": {
       "kind": "injured",
-      "text": "Il portiere fermo da inizio ottobre per la frattura della falange della mano destra, out nel prossimo turno di campionato. Tempi di recupero da valutare."
+      "text": "Il portiere fermo da inizio ottobre per la frattura della falange della mano destra, out nel prossimo turno di campionato. Recuperabile da dicembre."
     }
   },
   "7627": {
