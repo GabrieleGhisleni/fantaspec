@@ -3026,11 +3026,8 @@
       "medV": 5.5,
       "pres": 4
     },
-    "startPct": 0,
-    "status": {
-      "kind": "injured",
-      "text": "il difensore alle prese con uno schiacciamento di un nervo al piede, forfait anche lunedì scorso contro il Sassuolo. Da valutare il rientro tra i convocati già domenica contro la Juve al Franchi, altrimenti lo rivedremo dalla 12a di A."
-    }
+    "startPct": 15,
+    "status": null
   },
   "4387": {
     "club": "venezia",
@@ -4703,7 +4700,7 @@
       "medV": 6.0,
       "pres": 10
     },
-    "startPct": 65,
+    "startPct": 60,
     "status": {
       "kind": "doubtful",
       "text": ""
@@ -5843,11 +5840,8 @@
       "medV": 5.75,
       "pres": 6
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": 15,
+    "status": null
   },
   "5525": {
     "club": null,
@@ -6182,11 +6176,8 @@
       "medV": 6.0,
       "pres": 6
     },
-    "startPct": 0,
-    "status": {
-      "kind": "injured",
-      "text": "Il centrocampista frenato il 14 ottobre in Champions League contro il Real Madrid da una lesione di primo grado al bicipite femorale destro, tentativo di rientro tra i convocati in campionato dalla prima metà di novembre ma da valutare in settimana a Trigoria in vista di sabato sera contro il Sassuolo."
-    }
+    "startPct": 40,
+    "status": null
   },
   "5603": {
     "club": "fiorentina",
@@ -8162,11 +8153,8 @@
       "medV": 6.0,
       "pres": 3
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": 80,
+    "status": null
   },
   "6042": {
     "club": "juventus",
@@ -8411,7 +8399,7 @@
       "medV": 6.5,
       "pres": 5
     },
-    "startPct": 20,
+    "startPct": 15,
     "status": null
   },
   "6125": {
