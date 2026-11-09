@@ -2,19 +2,20 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { loadData } from "./data";
 import { defaultSquad } from "./defaultSquad";
 import { ImportScreen } from "./screens/ImportScreen";
+import { InfoScreen } from "./screens/InfoScreen";
 import { SquadEditor } from "./screens/SquadEditor";
 import { SquadScreen } from "./screens/SquadScreen";
 import { isNewBrowser, loadSelected, loadSquads, saveSelected, saveSquads, type Squad } from "./squads";
 import type { AppData } from "./types";
 
-type Route = { path: "/" | "/rose" | "/importa"; params: URLSearchParams };
+type Route = { path: "/" | "/rose" | "/importa" | "/info"; params: URLSearchParams };
 
 function parseRoute(hash: string): Route {
   const raw = hash.replace(/^#/, "");
   const q = raw.indexOf("?");
   const path = q < 0 ? raw : raw.slice(0, q);
   const params = new URLSearchParams(q < 0 ? "" : raw.slice(q + 1));
-  return { path: path === "/rose" || path === "/importa" ? path : "/", params };
+  return { path: path === "/rose" || path === "/importa" || path === "/info" ? path : "/", params };
 }
 
 function subscribeToHash(onChange: () => void) {
@@ -87,7 +88,9 @@ export default function App({ load = loadData }: Props) {
   }
 
   let screen;
-  if (path === "/importa") {
+  if (path === "/info") {
+    screen = <InfoScreen />;
+  } else if (path === "/importa") {
     screen = <ImportScreen param={route.params.get("s") ?? ""} squads={squads} onImport={importSquad} />;
   } else if (loaded.state === "loading") {
     screen = <p className="status">Caricamento…</p>;
@@ -108,7 +111,10 @@ export default function App({ load = loadData }: Props) {
     <>
       <nav className="topbar">
         <a href="#/" className="brand">fantaspec</a>
-        <a href="#/rose">Rose</a>
+        <span className="nav-links">
+          <a href="#/rose">Rose</a>
+          <a href="#/info">Info</a>
+        </span>
       </nav>
       <main>{screen}</main>
     </>

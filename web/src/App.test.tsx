@@ -146,3 +146,10 @@ test("a first visit through a share link that is cancelled gets no default squad
   expect(await screen.findByText("Crea la tua prima rosa")).toBeInTheDocument();
   expect(screen.queryByText("La mia rosa")).not.toBeInTheDocument();
 });
+
+test("info page explains how to read the data", async () => {
+  window.location.hash = "#/info";
+  render(<App load={() => new Promise(() => {})} />);
+  expect(await screen.findByRole("heading", { name: "Come leggere i dati" })).toBeInTheDocument();
+  window.location.hash = "";
+});

@@ -610,7 +610,7 @@ test("status tags and collapsed match cards", () => {
 - [x] **Step 2: Run** `npx vitest run src/screens/SquadScreen.test.tsx`. Expected: FAIL.
 - [x] **Step 3: Implement** the screen and components. `Sparkline` is an inline SVG polyline (60×16) over the `last5.fv` values with gaps for `null`; `FormPills` renders W/D/L as `V`/`N`/`P` squares (Italian). Styles in `styles.css` with CSS variables and a `prefers-color-scheme: dark` block; the page content is a single column with `max-width: 480px` centred, which is the desktop layout too.
 - [x] **Step 4: Run the tests again.** Expected: PASS.
-- [ ] **Step 5: Check at 360px.** `npm run dev`, open it in the browser pane, resize to 360×780, load `public/data` from the Task 7 backfill: no horizontal scroll, rows expand, chips and sort work. Screenshot for the user.
+- [x] **Step 5: Check at 360px.** `npm run dev`, open it in the browser pane, resize to 360×780, load `public/data` from the Task 7 backfill: no horizontal scroll, rows expand, chips and sort work. Screenshot for the user.
 - [x] **Step 6: Commit** `git commit -m "web: squad screen"`.
 
 ---
@@ -659,7 +659,7 @@ test("invalid link", () => {
 - [x] **Step 2: Run** `npx vitest run src/screens`. Expected: FAIL.
 - [x] **Step 3: Implement** both screens and wire them into `App.tsx`.
 - [x] **Step 4: Run the full suite** `npx vitest run`. Expected: PASS.
-- [ ] **Step 5: Check at 360px** in the browser pane: create a squad, add 5 players, share, open the link in a new tab, import.
+- [x] **Step 5: Check at 360px** in the browser pane: create a squad, add 5 players, share, open the link in a new tab, import.
 - [x] **Step 6: Commit** `git commit -m "web: squad editor and import"`.
 
 ---
@@ -677,10 +677,10 @@ Workflows:
 - `deploy.yml`: `on: push (branches: main, paths: web/**)`, `workflow_dispatch` and `workflow_call`. Checks out with `ref: main` (when called from `update.yml`, the event SHA is the commit *before* the data commit), builds `web/` and deploys with `actions/upload-pages-artifact` + `actions/deploy-pages`. Permissions `pages: write`, `id-token: write`, `contents: read`. Concurrency group `pages`.
 - `update.yml`: `schedule: cron "7 * * * *"` and `workflow_dispatch` with inputs `kind` (choice light/full, default full) and `backfill` (boolean). Concurrency group `update`, no cancel. Job `gate` (scheduled runs only) outputs `kind`; job `run` (if `kind != skip`) runs `python -m fantaspec run`, then commits `raw/` and `web/public/data/` as `github-actions[bot]` with message `data: <kind> <ISO time>` only if `git diff --cached --quiet` fails, and sets output `changed`. Job `deploy` calls `./.github/workflows/deploy.yml` when `changed == 'true'` (pushes made with `GITHUB_TOKEN` don't trigger other workflows, so the update workflow deploys itself). Permissions `contents: write`, plus those deploy needs.
 
-- [ ] **Step 1: Write the three workflow files.**
-- [ ] **Step 2: Lint** with `actionlint` if available (`go run github.com/rhysd/actionlint/cmd/actionlint@latest` otherwise). Expected: no errors.
-- [ ] **Step 3: Ask the user** before creating the public repo. On yes: `gh repo create fantaspec --public --source ~/projects/fantaspec --push`, then enable Pages with GitHub Actions as the source (`gh api -X POST repos/{owner}/fantaspec/pages -f build_type=workflow`).
-- [ ] **Step 4: Verify CI and deploy.** `gh run watch` on the CI and deploy runs. Expected: both green; `curl -s -o /dev/null -w "%{http_code}" https://<user>.github.io/fantaspec/data/meta.json` prints `200`.
-- [ ] **Step 5: Verify the update workflow** with `gh workflow run update.yml -f kind=light`. Expected: green; either a `data:` commit plus a deploy, or no commit when nothing changed.
-- [ ] **Step 6: Phone check.** Open the Pages URL in the browser pane at 375×812: create a squad, see rows and details with real data. Send the user the URL.
-- [ ] **Step 7: Commit and push** `git commit -m "ci: tests, Pages deploy, scheduled data update" && git push`.
+- [x] **Step 1: Write the three workflow files.**
+- [x] **Step 2: Lint** with `actionlint` if available (`go run github.com/rhysd/actionlint/cmd/actionlint@latest` otherwise). Expected: no errors.
+- [x] **Step 3: Ask the user** before creating the public repo. On yes: `gh repo create fantaspec --public --source ~/projects/fantaspec --push`, then enable Pages with GitHub Actions as the source (`gh api -X POST repos/{owner}/fantaspec/pages -f build_type=workflow`).
+- [x] **Step 4: Verify CI and deploy.** `gh run watch` on the CI and deploy runs. Expected: both green; `curl -s -o /dev/null -w "%{http_code}" https://<user>.github.io/fantaspec/data/meta.json` prints `200`.
+- [x] **Step 5: Verify the update workflow** with `gh workflow run update.yml -f kind=light`. Expected: green; either a `data:` commit plus a deploy, or no commit when nothing changed.
+- [x] **Step 6: Phone check.** Open the Pages URL in the browser pane at 375×812: create a squad, see rows and details with real data. Send the user the URL.
+- [x] **Step 7: Commit and push** `git commit -m "ci: tests, Pages deploy, scheduled data update" && git push`.

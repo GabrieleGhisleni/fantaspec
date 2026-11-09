@@ -764,3 +764,27 @@ button.row-main {
   margin: 0 0 16px;
   overflow-wrap: anywhere;
 }
+
+.nav-links {
+  display: flex;
+  gap: 12px;
+}
+
+.info {
+  padding-bottom: 32px;
+  line-height: 1.45;
+}
+
+.glossary {
+  margin: 0;
+}
+
+.glossary dt {
+  margin-top: 12px;
+  font-weight: 600;
+}
+
+.glossary dd {
+  margin: 2px 0 0;
+  color: var(--muted);
+}
