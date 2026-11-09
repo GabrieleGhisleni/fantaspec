@@ -2,10 +2,10 @@ import type { ReactNode } from "react";
 
 function Item({ term, children }: { term: string; children: ReactNode }) {
   return (
-    <>
+    <div>
       <dt>{term}</dt>
       <dd>{children}</dd>
-    </>
+    </div>
   );
 }
 
