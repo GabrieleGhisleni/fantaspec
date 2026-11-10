@@ -22,7 +22,7 @@ export function InfoScreen() {
       <h2 className="group-title">Riga del giocatore</h2>
       <dl className="glossary">
         <Item term="P · D · C · A">Ruolo: portiere, difensore, centrocampista, attaccante.</Item>
-        <Item term="Percentuale (es. 85%)">
+        <Item term="tit. 85%">
           Probabilità di giocare titolare secondo le probabili formazioni. Verde da 75% in su, rossa sotto 50%.
           Compare solo quando le formazioni sono state pubblicate (di solito a metà settimana).
         </Item>
@@ -30,7 +30,7 @@ export function InfoScreen() {
           Infortunato, squalificato, in dubbio o diffidato (un giallo dalla squalifica). Toccando la riga trovi il
           dettaglio e la data di rientro, se nota.
         </Item>
-        <Item term="vs / @ Avversario n°">
+        <Item term="vs / @ Avversario (n°)">
           Prossimo avversario: «vs» se si gioca in casa, «@» in trasferta; il numero è la sua posizione in classifica.
         </Item>
         <Item term="FV">
@@ -46,7 +46,7 @@ export function InfoScreen() {
 
       <h2 className="group-title">Dettaglio (tocca una riga)</h2>
       <dl className="glossary">
-        <Item term="Pres · Med V · Med FV">Presenze con voto, media del voto e media del fantavoto nella stagione.</Item>
+        <Item term="Pres · Mediana V · Mediana FV">Presenze con voto, mediana del voto e mediana del fantavoto nella stagione.</Item>
         <Item term="Gol · Assist · Imbattuto">
           Gol e assist segnati; per i portieri i gol subiti (in rosso, valgono come malus) e le partite a porta
           inviolata.
@@ -57,17 +57,16 @@ export function InfoScreen() {
         </Item>
         <Item term="Confronto club">
           Il club del giocatore a sinistra e l'avversario a destra: classifica, forma (V vittoria, N pareggio, P
-          sconfitta, dalla più vecchia alla più recente), gol fatti e subiti a partita. Sotto, solo il campo di questa
-          partita: il rendimento in casa di chi gioca in casa contro quello in trasferta dell'altra. In fondo i
-          precedenti.
+          sconfitta, dalla più vecchia alla più recente), gol fatti e subiti a partita sull'intera stagione. Sotto,
+          solo per questa partita: «Gol fatti» e «Gol subiti» per partita, giocando nel campo di questa sfida (il
+          club di casa in casa, quello ospite in trasferta). In fondo i precedenti.
         </Item>
       </dl>
 
       <h2 className="group-title">Schermata</h2>
       <dl className="glossary">
         <Item term="Filtri e ordine">
-          I pulsanti P D C A filtrano per ruolo. «Ordina» sceglie fra ruolo, titolarità, FV mediana e sfida (la più
-          favorevole prima).
+          I pulsanti P D C A filtrano per ruolo. «Ordina» sceglie fra ruolo, titolarità, FV mediana e avversario favorevole (il più favorevole prima).
         </Item>
         <Item term="Partite della giornata">Le partite delle squadre dei tuoi giocatori, con il confronto fra i due club.</Item>
         <Item term="Rose">Crei e modifichi le rose, le condividi con un link e importi quelle degli amici. Restano su questo dispositivo.</Item>

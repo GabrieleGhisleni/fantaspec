@@ -10,11 +10,11 @@ const STATUS: Record<PlayerStatus["kind"], string> = {
   warned: "diffidato",
 };
 
-/** Where the player's next match is: "@ Juventus 2°", or why there is none. */
+/** Where the player's next match is: "@ Juventus (2°)", or why there is none. */
 function fixtureText({ club, opponent }: Row): string {
   if (!club) return "non più in Serie A";
   if (!club.next || !opponent) return "nessuna partita";
-  return `${club.next.home ? "vs" : "@"} ${opponent.name} ${opponent.position}°`;
+  return `${club.next.home ? "vs" : "@"} ${opponent.name} (${opponent.position}°)`;
 }
 
 type Props = { row: Row; open: boolean; onToggle: () => void };
@@ -47,7 +47,7 @@ export function PlayerRow({ row, open, onToggle }: Props) {
           <span className={`role role-${player.role}`}>{player.role}</span>
           <span className="player-name">{row.name}</span>
           {player.status && <span className={`tag tag-${player.status.kind}`}>{STATUS[player.status.kind]}</span>}
-          {player.startPct !== null && <span className={`start ${startClass(player.startPct)}`}>{`${player.startPct}%`}</span>}
+          {player.startPct !== null && <span className={`start ${startClass(player.startPct)}`}>{`tit. ${player.startPct}%`}</span>}
           <span className="chevron" aria-hidden="true">▾</span>
         </span>
         <span className="line2">

@@ -29,9 +29,9 @@ export function PlayerDetail({ row, player }: { row: Row; player: PlayerData }) 
       {player.status?.text && <p className="status-note">{player.status.text}</p>}
       <dl className="stats">
         <Stat label="Pres">{season.pres}</Stat>
-        <Stat label="Med V">{num1(season.medV)}</Stat>
-        <Stat label="Med FV">{num1(season.medFV)}</Stat>
-        {keeper ? <Stat label="Gol sub."><Conceded n={season.gs} /></Stat> : <Stat label="Gol">{season.g}</Stat>}
+        <Stat label="Mediana V">{num1(season.medV)}</Stat>
+        <Stat label="Mediana FV">{num1(season.medFV)}</Stat>
+        {keeper ? <Stat label="Gol subiti"><Conceded n={season.gs} /></Stat> : <Stat label="Gol">{season.g}</Stat>}
         <Stat label="Assist">{season.a}</Stat>
         {season.cs !== null && <Stat label="Imbattuto">{season.cs}</Stat>}
       </dl>
@@ -43,7 +43,7 @@ export function PlayerDetail({ row, player }: { row: Row; player: PlayerData }) 
           <span className="last5-numbers">
             <span>pres. <strong>{`${last5.played}/${last5.fv.length}`}</strong></span>
             {keeper
-              ? <span>gol sub. <Conceded n={last5.gs} /></span>
+              ? <span>gol subiti <Conceded n={last5.gs} /></span>
               : <span>gol <strong>{last5.g}</strong></span>}
             <span>assist <strong>{last5.a}</strong></span>
           </span>

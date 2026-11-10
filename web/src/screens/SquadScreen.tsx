@@ -60,7 +60,7 @@ export function SquadScreen({ data, squads, selectedId, onSelect }: Props) {
 
   let body;
   if (visible.length === 0) {
-    body = <p className="status">Nessun giocatore</p>;
+    body = <p className="status">{chip === "Tutti" ? "Nessun giocatore" : "Nessun giocatore di questo ruolo"}</p>;
   } else if (sort === "role") {
     const ungrouped = visible.filter(r => !ROLE_GROUPS.some(g => g.role === r.player?.role));
     body = (

@@ -23,10 +23,10 @@ test("groups by role with Italian headers", () => {
   expect(screen.getAllByRole("heading").map(h => h.textContent)).toEqual(["Portieri", "Difensori", "Centrocampisti", "Attaccanti"]);
 });
 
-test("D chip + Sfida sort puts the defender facing the weakest attack first", async () => {
+test("D chip + Avversario favorevole sort puts the defender facing the weakest attack first", async () => {
   render(<SquadScreen {...props} />);
   await user.click(screen.getByRole("button", { name: "D" }));
-  await user.selectOptions(screen.getByLabelText("Ordina"), "Sfida");
+  await user.selectOptions(screen.getByLabelText("Ordina"), "Avversario favorevole");
   expect(rowNames()).toEqual(["Bastoni", "Dimarco", "Di Lorenzo"]); // per sampleData
 });
 
@@ -34,7 +34,7 @@ test("tapping a row shows the club vs opponent comparison", async () => {
   render(<SquadScreen {...props} />);
   await user.click(screen.getByText("Meret"));
   expect(screen.getByText("Gol subiti a partita")).toBeInTheDocument();
-  expect(screen.getByText("Gol sub.")).toBeInTheDocument();
+  expect(screen.getAllByText("Gol subiti")).not.toHaveLength(0);
 });
 
 test("never-voted and departed players render safely", () => {
@@ -84,14 +84,14 @@ test("the squad selector picks another squad", async () => {
 test("row lines: opponent with its position, start chance, median FV and matchup", () => {
   render(<SquadScreen {...props} />);
   const diLorenzo = within(row("Di Lorenzo"));
-  expect(diLorenzo.getByText("@ Juventus 2°")).toBeInTheDocument();
+  expect(diLorenzo.getByText("@ Juventus (2°)")).toBeInTheDocument();
   expect(diLorenzo.getByText("FV 6,8")).toBeInTheDocument();
   expect(diLorenzo.getByText("avv. segna 1,8")).toBeInTheDocument();
-  expect(diLorenzo.getByText("90%")).toHaveClass("good");
+  expect(diLorenzo.getByText("tit. 90%")).toHaveClass("good");
   const kean = within(row("Kean"));
-  expect(kean.getByText("vs Napoli 4°")).toBeInTheDocument();
+  expect(kean.getByText("vs Napoli (4°)")).toBeInTheDocument();
   expect(kean.getByText("avv. subisce 1,1")).toBeInTheDocument();
-  expect(kean.getByText("0%")).toHaveClass("bad");
+  expect(kean.getByText("tit. 0%")).toHaveClass("bad");
 });
 
 test("the matchup is green when it helps the player and red when it hurts", () => {
@@ -126,9 +126,9 @@ test("FV mediana: highest median first, never voted last", async () => {
   expect(rowNames()).toEqual(["Bernardeschi", "Senzapartita", "Panchinaro"]);
 });
 
-test("Sfida across roles ranks each matchup against all clubs, no fixture last", async () => {
+test("Avversario favorevole across roles ranks each matchup against all clubs, no fixture last", async () => {
   render(<SquadScreen {...props} />);
-  await user.selectOptions(screen.getByLabelText("Ordina"), "Sfida");
+  await user.selectOptions(screen.getByLabelText("Ordina"), "Avversario favorevole");
   // Roma's attack is weaker than 3 of 5 clubs; Napoli's defence leakier than 2; Juventus' attack weaker than 1
   // and Inter's defence leakier than 1. Ties keep the role order, then the name.
   expect(rowNames()).toEqual(["Bastoni", "Dimarco", "Bernardeschi", "Kean", "Meret", "Di Lorenzo", "Panchinaro", "Senzapartita", "Partito"]);
@@ -138,10 +138,10 @@ test("rows expand in place, several at once, and collapse on a second tap", asyn
   render(<SquadScreen {...props} />);
   await user.click(screen.getByText("Meret"));
   await user.click(screen.getByText("Kean"));
-  expect(within(row("Meret")).getByText("Gol sub.")).toBeInTheDocument();
+  expect(within(row("Meret")).getAllByText("Gol subiti")[0]).toBeInTheDocument(); // the keeper stat, before the club table
   expect(within(row("Kean")).getByText("rientro da metà novembre")).toBeInTheDocument();
   await user.click(screen.getByText("Meret"));
-  expect(within(row("Meret")).queryByText("Gol sub.")).not.toBeInTheDocument();
+  expect(within(row("Meret")).queryAllByText("Gol subiti")).toHaveLength(0);
   expect(within(row("Kean")).getByText("Gol")).toBeInTheDocument();
 });
 
@@ -157,9 +157,10 @@ test("the detail shows season, last 5 and the club vs opponent numbers", async (
   expect(detail.getByText("2° · 20 pt")).toBeInTheDocument();
   expect(detail.getByText("1,6")).toBeInTheDocument(); // Napoli scored 14 in 9
   // The venue block: Napoli's away games against Juventus' home games, per game, so nothing reads like a score.
-  expect(cellTexts(detail.getByText("In trasferta"))).toEqual(["", "In trasferta", "In casa"]);
-  expect(cellTexts(detail.getByText("Fatti a partita"))).toEqual(["Fatti a partita", "1,5", "2,0"]);
-  expect(cellTexts(detail.getByText("Subiti a partita"))).toEqual(["Subiti a partita", "1,8", "0,4"]);
+  expect(detail.getByText("in trasferta")).toBeInTheDocument();
+  expect(detail.getByText("in casa")).toBeInTheDocument();
+  expect(cellTexts(detail.getByText("Gol fatti"))).toEqual(["Gol fatti", "1,5", "2,0"]);
+  expect(cellTexts(detail.getAllByText("Gol subiti").find(el => el.tagName === "TH")!)).toEqual(["Gol subiti", "1,8", "0,4"]);
   expect(detail.queryByText(/\d–\d/)).not.toBeInTheDocument();
 });
 
@@ -167,9 +168,10 @@ test("the venue block follows where the club plays", async () => {
   render(<SquadScreen {...props} />);
   await user.click(screen.getByText("Kean"));
   const detail = within(row("Kean"));
-  expect(cellTexts(detail.getByText("In casa"))).toEqual(["", "In casa", "In trasferta"]);
-  expect(cellTexts(detail.getByText("Fatti a partita"))).toEqual(["Fatti a partita", "2,0", "1,5"]);
-  expect(cellTexts(detail.getByText("Subiti a partita"))).toEqual(["Subiti a partita", "0,4", "1,8"]);
+  expect(detail.getByText("in casa")).toBeInTheDocument();
+  expect(detail.getByText("in trasferta")).toBeInTheDocument();
+  expect(cellTexts(detail.getByText("Gol fatti"))).toEqual(["Gol fatti", "2,0", "1,5"]);
+  expect(cellTexts(detail.getAllByText("Gol subiti").find(el => el.tagName === "TH")!)).toEqual(["Gol subiti", "0,4", "1,8"]);
 });
 
 test("a never-voted player's detail shows dashes and an empty trend", async () => {
@@ -184,7 +186,7 @@ test("a departed player's detail keeps his season numbers, with no club comparis
   render(<SquadScreen {...props} />);
   await user.click(screen.getByText("Partito"));
   const detail = within(row("Partito"));
-  expect(detail.getByText("Med FV")).toBeInTheDocument();
+  expect(detail.getByText("Mediana FV")).toBeInTheDocument();
   expect(detail.getByText("6,1")).toBeInTheDocument();
   expect(detail.queryByText("Classifica")).not.toBeInTheDocument();
   expect(detail.queryByText("0/0")).not.toBeInTheDocument();

@@ -45,12 +45,23 @@ export function ClubCompare({ club, opponent, home, h2h }: Props) {
         {row("Gol fatti a partita", scored(club), scored(opponent))}
         {row("Gol subiti a partita", conceded(club), conceded(opponent))}
         <tr className="venue">
-          <td />
-          <th scope="col">{home ? "In casa" : "In trasferta"}</th>
-          <th scope="col">{home ? "In trasferta" : "In casa"}</th>
+          <th colSpan={3} scope="colgroup">Solo per questa partita (in casa / in trasferta)</th>
         </tr>
-        {row("Fatti a partita", scored(ourVenue), scored(theirVenue), "venue-stat")}
-        {row("Subiti a partita", conceded(ourVenue), conceded(theirVenue), "venue-stat")}
+        <tr>
+          <td />
+          <th scope="col">
+            {club.name}
+            <br />
+            <span className="muted">{home ? "in casa" : "in trasferta"}</span>
+          </th>
+          <th scope="col">
+            {opponent.name}
+            <br />
+            <span className="muted">{home ? "in trasferta" : "in casa"}</span>
+          </th>
+        </tr>
+        {row("Gol fatti", scored(ourVenue), scored(theirVenue), "venue-stat")}
+        {row("Gol subiti", conceded(ourVenue), conceded(theirVenue), "venue-stat")}
         {h2h.length > 0
           ? row("Precedenti", <FormPills results={h2h} />, <FormPills results={mirror(h2h)} />)
           : (

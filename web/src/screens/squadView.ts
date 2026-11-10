@@ -31,7 +31,7 @@ export const SORTS: { key: SortKey; label: string }[] = [
   { key: "role", label: "Per ruolo" },
   { key: "start", label: "Titolarità" },
   { key: "fv", label: "FV mediana" },
-  { key: "matchup", label: "Sfida" },
+  { key: "matchup", label: "Avversario favorevole" },
 ];
 
 export const ROLE_GROUPS: { role: Role; title: string }[] = [
