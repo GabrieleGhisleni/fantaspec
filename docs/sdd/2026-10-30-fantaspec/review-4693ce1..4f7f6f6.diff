@@ -1,0 +1,1607 @@
+# Review package: 4693ce1..4f7f6f6
+
+## Commits
+4f7f6f6 web: squad editor and import
+
+## Files changed
+ docs/superpowers/plans/2026-10-30-fantaspec.md |  10 +-
+ web/src/App.test.tsx                           |  70 +++++++-
+ web/src/App.tsx                                |  20 ++-
+ web/src/defaultSquad.test.ts                   |  14 ++
+ web/src/defaultSquad.ts                        |  41 +++++
+ web/src/format.test.ts                         |   8 +-
+ web/src/format.ts                              |   5 +
+ web/src/screens/ImportScreen.test.tsx          |  66 +++++++
+ web/src/screens/ImportScreen.tsx               |  25 ++-
+ web/src/screens/PlayerSearch.tsx               |  99 +++++++++++
+ web/src/screens/SquadEditor.test.tsx           | 227 +++++++++++++++++++++++++
+ web/src/screens/SquadEditor.tsx                | 222 +++++++++++++++++++++++-
+ web/src/search.test.ts                         |  38 +++++
+ web/src/search.ts                              |  34 ++++
+ web/src/squads.test.ts                         |  42 ++++-
+ web/src/squads.ts                              |  29 +++-
+ web/src/styles.css                             | 222 ++++++++++++++++++++++++
+ 17 files changed, 1142 insertions(+), 30 deletions(-)
+
+## Diff
+diff --git a/docs/superpowers/plans/2026-10-30-fantaspec.md b/docs/superpowers/plans/2026-10-30-fantaspec.md
+index 4beafae..76821d3 100644
+--- a/docs/superpowers/plans/2026-10-30-fantaspec.md
++++ b/docs/superpowers/plans/2026-10-30-fantaspec.md
+@@ -620,21 +620,21 @@ test("status tags and collapsed match cards", () => {
+ **Files:**
+ - Create: `web/src/screens/SquadEditor.tsx`, `web/src/screens/ImportScreen.tsx`
+ - Test: `web/src/screens/SquadEditor.test.tsx`, `web/src/screens/ImportScreen.test.tsx`
+ 
+ **Interfaces:**
+ - Consumes: `squads.ts`, `AppData.players`.
+ - Produces: `SquadEditor({ data, squads, onChange }: Props)`, `ImportScreen({ param, squads, onImport }: Props)`.
+ 
+ Behaviour: list squads (`Nuova rosa`, `Rinomina`, `Elimina` with a confirm), open one to edit; search over all players by name (accent-insensitive, ≥2 characters), chips to filter by role and a club select; tap a result to add, tap a squad player to remove; no size rules. `Condividi` uses `navigator.share` when available, else copies `location.origin + location.pathname + "#/importa?s=" + encodeShare(squad)` and shows `Link copiato`. Import asks `Importare «{name}» ({n} giocatori)?`; `Importa` adds it (new id; same-name squads get a ` (2)` suffix) and goes to `#/`; an invalid param shows `Link non valido`.
+ 
+-- [ ] **Step 1: Write the failing tests**
++- [x] **Step 1: Write the failing tests**
+ 
+ ```tsx
+ test("create a squad, add and remove players", async () => {
+   render(<SquadEditor data={sampleData} squads={[]} onChange={onChange} />);
+   await user.click(screen.getByText("Nuova rosa"));
+   await user.type(screen.getByLabelText("Cerca giocatore"), "mer");
+   await user.click(screen.getByText("Meret"));
+   expect(lastSaved().players).toEqual([{ id: 572, name: "Meret" }]);
+   await user.click(within(squadList()).getByText("Meret"));
+   expect(lastSaved().players).toEqual([]);
+@@ -649,25 +649,25 @@ test("import a valid link", async () => {
+   render(<ImportScreen param={encodeShare(sampleSquad)} squads={[]} onImport={onImport} />);
+   await user.click(screen.getByText("Importa"));
+   expect(onImport).toHaveBeenCalledWith(expect.objectContaining({ name: sampleSquad.name, players: sampleSquad.players }));
+ });
+ test("invalid link", () => {
+   render(<ImportScreen param="garbage" squads={[]} onImport={onImport} />);
+   expect(screen.getByText("Link non valido")).toBeInTheDocument();
+ });
+ ```
+ 
+-- [ ] **Step 2: Run** `npx vitest run src/screens`. Expected: FAIL.
+-- [ ] **Step 3: Implement** both screens and wire them into `App.tsx`.
+-- [ ] **Step 4: Run the full suite** `npx vitest run`. Expected: PASS.
++- [x] **Step 2: Run** `npx vitest run src/screens`. Expected: FAIL.
++- [x] **Step 3: Implement** both screens and wire them into `App.tsx`.
++- [x] **Step 4: Run the full suite** `npx vitest run`. Expected: PASS.
+ - [ ] **Step 5: Check at 360px** in the browser pane: create a squad, add 5 players, share, open the link in a new tab, import.
+-- [ ] **Step 6: Commit** `git commit -m "web: squad editor and import"`.
++- [x] **Step 6: Commit** `git commit -m "web: squad editor and import"`.
+ 
+ ---
+ 
+ ### Task 11: Workflows, GitHub repo and Pages
+ 
+ **Files:**
+ - Create: `.github/workflows/ci.yml`, `.github/workflows/deploy.yml`, `.github/workflows/update.yml`
+ 
+ **Interfaces:**
+ - Consumes: `python -m fantaspec gate|run`, `npm run build`.
+diff --git a/web/src/App.test.tsx b/web/src/App.test.tsx
+index 27255a0..aab4809 100644
+--- a/web/src/App.test.tsx
++++ b/web/src/App.test.tsx
+@@ -1,42 +1,44 @@
+ import { render, screen, waitFor } from "@testing-library/react";
++import userEvent from "@testing-library/user-event";
+ import App from "./App";
+ import type { AppData } from "./types";
+-import { saveSelected, saveSquads, type Squad } from "./squads";
+-import { sampleData, sampleSquad } from "./test/sampleData";
++import { encodeShare, loadSelected, loadSquads, saveSelected, saveSquads, type Squad } from "./squads";
++import { fullSquad, sampleData, sampleSquad } from "./test/sampleData";
+ 
+ function renderApp({ data, squads, load }: { data?: AppData; squads: Squad[]; load?: () => Promise<AppData> }) {
+   saveSquads(squads);
+   return render(<App load={load ?? (() => Promise.resolve(data!))} />);
+ }
+ 
+ test("no squads sends the user to the editor", async () => {
+   renderApp({ data: sampleData, squads: [] });
+   expect(await screen.findByText("Crea la tua prima rosa")).toBeInTheDocument();
+   expect(window.location.hash).toBe("#/rose");
+ });
+ 
+-// Screens 9 and 10 will replace the placeholders, so these tests only rely on the squad name and the editor title.
++// These tests only rely on the squad name, the squad selector and the editor title.
+ const squadName = new RegExp(sampleSquad.name);
+ 
+ test("with squads the home route shows the squad screen", async () => {
+   renderApp({ data: sampleData, squads: [sampleSquad] });
+   expect(await screen.findAllByText(squadName)).not.toHaveLength(0);
+   expect(screen.queryByText("Crea la tua prima rosa")).not.toBeInTheDocument();
+   expect(screen.queryByText("Le mie rose")).not.toBeInTheDocument();
+   expect(window.location.hash).toBe("");
+ });
+ 
+ test("an unknown selected squad falls back to the first one", async () => {
+   saveSelected("gone");
+-  renderApp({ data: sampleData, squads: [sampleSquad] });
+-  expect(await screen.findAllByText(squadName)).not.toHaveLength(0);
++  renderApp({ data: sampleData, squads: [sampleSquad, fullSquad] });
++  expect(await screen.findByLabelText("Rosa")).toHaveDisplayValue(sampleSquad.name);
++  expect(screen.queryByText("Bastoni")).not.toBeInTheDocument(); // only in the second squad
+ });
+ 
+ test("the hash switches between the screens", async () => {
+   window.location.hash = "#/rose";
+   renderApp({ data: sampleData, squads: [sampleSquad] });
+   expect(await screen.findAllByText("Le mie rose")).not.toHaveLength(0);
+   expect(screen.queryByText("Crea la tua prima rosa")).not.toBeInTheDocument();
+   window.location.hash = "#/";
+   await waitFor(() => expect(screen.queryByText("Le mie rose")).not.toBeInTheDocument());
+   expect(screen.getAllByText(squadName)).not.toHaveLength(0);
+@@ -51,11 +53,69 @@ test("an import link works on a first visit with no squads", async () => {
+ 
+ test("data that cannot be loaded shows a message instead of a blank page", async () => {
+   renderApp({ squads: [sampleSquad], load: () => Promise.reject(new Error("offline")) });
+   expect(await screen.findByText("Dati non disponibili. Riprova più tardi.")).toBeInTheDocument();
+ });
+ 
+ test("corrupted stored squads start the app with the first-visit editor", async () => {
+   localStorage.setItem("fantaspec.squads.v1", "{broken");
+   render(<App load={() => Promise.resolve(sampleData)} />);
+   expect(await screen.findByText("Crea la tua prima rosa")).toBeInTheDocument();
++  expect(localStorage.getItem("fantaspec.squads.v1")).toBe("{broken"); // no default squad written over it
++});
++
++test("importing a link adds the squad, selects and saves it, and goes home without a history entry", async () => {
++  const user = userEvent.setup();
++  saveSelected(fullSquad.id);
++  window.location.hash = `#/importa?s=${encodeShare(sampleSquad)}`;
++  renderApp({ data: sampleData, squads: [fullSquad] });
++  const before = history.length;
++  await user.click(await screen.findByText("Importa"));
++  expect(window.location.hash).toBe("#/");
++  expect(history.length).toBe(before);
++  expect(await screen.findByLabelText("Rosa")).toHaveDisplayValue(sampleSquad.name);
++  const stored = loadSquads();
++  expect(stored).toEqual([fullSquad, { ...sampleSquad, id: expect.any(String) }]);
++  expect(stored[1].id).not.toBe(sampleSquad.id);
++  expect(loadSelected()).toBe(stored[1].id);
++});
++
++test("squads created and edited in the editor are saved", async () => {
++  const user = userEvent.setup();
++  renderApp({ data: sampleData, squads: [] });
++  await user.click(await screen.findByText("Nuova rosa"));
++  await user.type(screen.getByLabelText("Cerca giocatore"), "mer");
++  await user.click(screen.getByText("Meret"));
++  await user.click(screen.getByText("Rinomina"));
++  const name = screen.getByLabelText("Nome della rosa");
++  await user.clear(name);
++  await user.type(name, "Titolari{Enter}");
++  expect(loadSquads()).toEqual([{ id: expect.any(String), name: "Titolari", players: [{ id: 572, name: "Meret" }] }]);
++  window.location.hash = "#/";
++  expect(await screen.findByLabelText("Rosa")).toHaveDisplayValue("Titolari");
++});
++
++// The default squad: only a browser that never saved squads gets it.
++
++test("a first visit starts with the default squad, saved and selected", async () => {
++  render(<App load={() => Promise.resolve(sampleData)} />);
++  expect(await screen.findByLabelText("Rosa")).toHaveDisplayValue("La mia rosa");
++  expect(window.location.hash).toBe("");
++  const stored = loadSquads();
++  expect(stored).toEqual([{ id: expect.any(String), name: "La mia rosa", players: expect.any(Array) }]);
++  expect(stored[0].players).toHaveLength(29);
++  expect(loadSelected()).toBe(stored[0].id);
++});
++
++test("a saved empty list stays empty: no default squad after deleting everything", async () => {
++  localStorage.setItem("fantaspec.squads.v1", "[]");
++  render(<App load={() => Promise.resolve(sampleData)} />);
++  expect(await screen.findByText("Crea la tua prima rosa")).toBeInTheDocument();
++  expect(localStorage.getItem("fantaspec.squads.v1")).toBe("[]");
++});
++
++test("blocked storage gets no default squad", async () => {
++  vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw new Error("blocked"); });
++  vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("blocked"); });
++  render(<App load={() => Promise.resolve(sampleData)} />);
++  expect(await screen.findByText("Crea la tua prima rosa")).toBeInTheDocument();
+ });
+diff --git a/web/src/App.tsx b/web/src/App.tsx
+index c939a5e..fac1e30 100644
+--- a/web/src/App.tsx
++++ b/web/src/App.tsx
+@@ -1,43 +1,57 @@
+ import { useEffect, useState, useSyncExternalStore } from "react";
+ import { loadData } from "./data";
++import { defaultSquad } from "./defaultSquad";
+ import { ImportScreen } from "./screens/ImportScreen";
+ import { SquadEditor } from "./screens/SquadEditor";
+ import { SquadScreen } from "./screens/SquadScreen";
+-import { loadSelected, loadSquads, saveSelected, saveSquads, type Squad } from "./squads";
++import { isNewBrowser, loadSelected, loadSquads, saveSelected, saveSquads, type Squad } from "./squads";
+ import type { AppData } from "./types";
+ 
+ type Route = { path: "/" | "/rose" | "/importa"; params: URLSearchParams };
+ 
+ function parseRoute(hash: string): Route {
+   const raw = hash.replace(/^#/, "");
+   const q = raw.indexOf("?");
+   const path = q < 0 ? raw : raw.slice(0, q);
+   const params = new URLSearchParams(q < 0 ? "" : raw.slice(q + 1));
+   return { path: path === "/rose" || path === "/importa" ? path : "/", params };
+ }
+ 
+ function subscribeToHash(onChange: () => void) {
+   window.addEventListener("hashchange", onChange);
+   return () => window.removeEventListener("hashchange", onChange);
+ }
+ 
++/**
++ * The saved squads. A browser that never saved any starts with the default squad, saved and selected;
++ * an emptied list, corrupted or blocked storage stay empty.
++ */
++function initialSquads(): Squad[] {
++  if (!isNewBrowser()) return loadSquads();
++  const squad = defaultSquad();
++  saveSquads([squad]);
++  saveSelected(squad.id);
++  return [squad];
++}
++
+ type Load = { state: "loading" } | { state: "failed" } | { state: "ready"; data: AppData };
+ 
+ type Props = {
+   /** Where the data comes from; tests pass their own. */
+   load?: () => Promise<AppData>;
+ };
+ 
+ export default function App({ load = loadData }: Props) {
+   const route = parseRoute(useSyncExternalStore(subscribeToHash, () => window.location.hash));
+-  const [squads, setSquads] = useState(loadSquads);
++  // In this order: seeding the default squad also saves the selection read next.
++  const [squads, setSquads] = useState(initialSquads);
+   const [selected, setSelected] = useState(loadSelected);
+   const [loaded, setLoaded] = useState<Load>({ state: "loading" });
+ 
+   useEffect(() => {
+     let current = true;
+     load().then(
+       data => current && setLoaded({ state: "ready", data }),
+       () => current && setLoaded({ state: "failed" }),
+     );
+     return () => { current = false; };
+@@ -56,21 +70,21 @@ export default function App({ load = loadData }: Props) {
+     setSquads(next);
+     saveSquads(next);
+   }
+   function select(id: string) {
+     setSelected(id);
+     saveSelected(id);
+   }
+   function importSquad(squad: Squad) {
+     changeSquads([...squads, squad]);
+     select(squad.id);
+-    window.location.hash = "#/";
++    window.location.replace("#/"); // Back must not lead to the import question again
+   }
+ 
+   let screen;
+   if (path === "/importa") {
+     screen = <ImportScreen param={route.params.get("s") ?? ""} squads={squads} onImport={importSquad} />;
+   } else if (loaded.state === "loading") {
+     screen = <p className="status">Caricamento…</p>;
+   } else if (loaded.state === "failed") {
+     screen = <p className="status" role="alert">Dati non disponibili. Riprova più tardi.</p>;
+   } else if (path === "/rose") {
+diff --git a/web/src/defaultSquad.test.ts b/web/src/defaultSquad.test.ts
+new file mode 100644
+index 0000000..fad3b48
+--- /dev/null
++++ b/web/src/defaultSquad.test.ts
+@@ -0,0 +1,14 @@
++import { defaultSquad } from "./defaultSquad";
++
++test("the default squad is the user's team, with a fresh id and its own copy each time", () => {
++  const a = defaultSquad();
++  const b = defaultSquad();
++  expect(a.name).toBe("La mia rosa");
++  expect(a.players).toHaveLength(29);
++  expect(new Set(a.players.map(p => p.id)).size).toBe(29);
++  expect(a.players.slice(0, 2)).toEqual([{ id: 7457, name: "Mascardi" }, { id: 572, name: "Meret" }]);
++  expect(a.players.at(-1)).toEqual({ id: 7484, name: "Adams A." });
++  expect(a.id).not.toBe(b.id);
++  expect(a.players).not.toBe(b.players);
++  expect(a.players[0]).not.toBe(b.players[0]);
++});
+diff --git a/web/src/defaultSquad.ts b/web/src/defaultSquad.ts
+new file mode 100644
+index 0000000..6584bcd
+--- /dev/null
++++ b/web/src/defaultSquad.ts
+@@ -0,0 +1,41 @@
++import { newId, type Squad, type SquadPlayer } from "./squads";
++
++// The user's own team: a browser that never saved squads starts with it (see App).
++// 4 P, 9 D, 9 C, 7 A, in that order.
++const NAME = "La mia rosa";
++const PLAYERS: readonly SquadPlayer[] = [
++  { id: 7457, name: "Mascardi" },
++  { id: 572, name: "Meret" },
++  { id: 2170, name: "Milinkovic-Savic V." },
++  { id: 4957, name: "Montipò" },
++  { id: 6217, name: "Bisseck" },
++  { id: 7469, name: "Bracaglia" },
++  { id: 2788, name: "Bremer" },
++  { id: 4734, name: "Miranda J." },
++  { id: 5526, name: "Scalvini" },
++  { id: 6727, name: "Couto" },
++  { id: 6664, name: "Delprato" },
++  { id: 5862, name: "Valeri" },
++  { id: 554, name: "Zappacosta" },
++  { id: 184, name: "Bernardeschi" },
++  { id: 5500, name: "Cancellieri" },
++  { id: 5559, name: "Da Cunha" },
++  { id: 2517, name: "De Bruyne" },
++  { id: 2741, name: "Pessina" },
++  { id: 536, name: "Politano" },
++  { id: 5735, name: "Volpato" },
++  { id: 1870, name: "Barella" },
++  { id: 6666, name: "Bernabè" },
++  { id: 6669, name: "Bonny" },
++  { id: 7347, name: "Bowie" },
++  { id: 5995, name: "De Ketelaere" },
++  { id: 309, name: "Dybala" },
++  { id: 7523, name: "Varela G." },
++  { id: 6434, name: "Yildiz" },
++  { id: 7484, name: "Adams A." },
++];
++
++/** A fresh copy of the default squad, with a new id. */
++export function defaultSquad(): Squad {
++  return { id: newId(), name: NAME, players: PLAYERS.map(p => ({ ...p })) };
++}
+diff --git a/web/src/format.test.ts b/web/src/format.test.ts
+index 9e52755..72b273f 100644
+--- a/web/src/format.test.ts
++++ b/web/src/format.test.ts
+@@ -1,11 +1,11 @@
+-import { dateRange, dayTime, kickoffTime, num1, perGame, startClass, tertile } from "./format";
++import { dateRange, dayTime, kickoffTime, num1, perGame, playerCount, startClass, tertile } from "./format";
+ 
+ test("italian number format", () => {
+   expect(num1(6.5)).toBe("6,5"); expect(num1(null)).toBe("–");
+ });
+ 
+ test("num1 always shows one decimal", () => {
+   expect(num1(6)).toBe("6,0");
+   expect(num1(1.666)).toBe("1,7");
+   expect(num1(0)).toBe("0,0");
+ });
+@@ -57,10 +57,16 @@ test("date and time are shown in Rome time, whatever the browser's zone", () =>
+   expect(dayTime("2026-10-31T10:07:12+01:00")).toBe("31 ott 10:07");
+   expect(dayTime("2026-10-30T18:05:00Z")).toBe("30 ott 19:05");
+   expect(dayTime("2026-07-01T08:00:00Z")).toBe("1 lug 10:00"); // summer time
+   expect(dayTime("2026-10-31T23:30:00Z")).toBe("1 nov 00:30");
+ });
+ 
+ test("kickoff with the weekday", () => {
+   expect(kickoffTime("2026-10-31T18:00:00+01:00")).toBe("sab 31 ott 18:00");
+   expect(kickoffTime("2026-11-01T19:45:00Z")).toBe("dom 1 nov 20:45");
+ });
++
++test("player counts agree in number", () => {
++  expect(playerCount(0)).toBe("0 giocatori");
++  expect(playerCount(1)).toBe("1 giocatore");
++  expect(playerCount(29)).toBe("29 giocatori");
++});
+diff --git a/web/src/format.ts b/web/src/format.ts
+index f49e46c..f7d6194 100644
+--- a/web/src/format.ts
++++ b/web/src/format.ts
+@@ -48,10 +48,15 @@ export function tertile(value: number, all: number[], higherIsGood: boolean): "g
+ export function startClass(pct: number | null): "good" | "bad" | "" {
+   if (pct === null) return "";
+   return pct >= 75 ? "good" : pct < 50 ? "bad" : "";
+ }
+ 
+ /** "2026-10-31", "2026-11-02" -> "31 ott – 2 nov". */
+ export function dateRange(from: string, to: string): string {
+   const day = (iso: string) => dayMonth.format(new Date(`${iso}T00:00:00Z`));
+   return from === to ? day(from) : `${day(from)} – ${day(to)}`;
+ }
++
++/** "1 giocatore", "3 giocatori". */
++export function playerCount(n: number): string {
++  return `${n} ${n === 1 ? "giocatore" : "giocatori"}`;
++}
+diff --git a/web/src/screens/ImportScreen.test.tsx b/web/src/screens/ImportScreen.test.tsx
+new file mode 100644
+index 0000000..2f8bcf7
+--- /dev/null
++++ b/web/src/screens/ImportScreen.test.tsx
+@@ -0,0 +1,66 @@
++import { render, screen } from "@testing-library/react";
++import userEvent, { type UserEvent } from "@testing-library/user-event";
++import type { Mock } from "vitest";
++import { ImportScreen } from "./ImportScreen";
++import { encodeShare, type Squad } from "../squads";
++import { sampleSquad } from "../test/sampleData";
++
++let user: UserEvent;
++let onImport: Mock<(squad: Squad) => void>;
++beforeEach(() => {
++  user = userEvent.setup();
++  onImport = vi.fn();
++});
++
++test("import a valid link", async () => {
++  render(<ImportScreen param={encodeShare(sampleSquad)} squads={[]} onImport={onImport} />);
++  await user.click(screen.getByText("Importa"));
++  expect(onImport).toHaveBeenCalledWith(expect.objectContaining({ name: sampleSquad.name, players: sampleSquad.players }));
++});
++
++test("invalid link", () => {
++  render(<ImportScreen param="garbage" squads={[]} onImport={onImport} />);
++  expect(screen.getByText("Link non valido")).toBeInTheDocument();
++});
++
++// Beyond the brief.
++
++test("asks first, with the squad's name, size and players", () => {
++  render(<ImportScreen param={encodeShare(sampleSquad)} squads={[]} onImport={onImport} />);
++  expect(screen.getByText("Importare «FC Ghisleni» (3 giocatori)?")).toBeInTheDocument();
++  expect(screen.getByText("Meret, Bernardeschi, Kean")).toBeInTheDocument();
++  expect(onImport).not.toHaveBeenCalled();
++});
++
++test("one player is singular", () => {
++  render(<ImportScreen param={encodeShare({ ...sampleSquad, players: [{ id: 572, name: "Meret" }] })} squads={[]} onImport={onImport} />);
++  expect(screen.getByText("Importare «FC Ghisleni» (1 giocatore)?")).toBeInTheDocument();
++});
++
++test("the imported squad gets a new id, and a numbered name when the name is taken", async () => {
++  const taken = [sampleSquad, { ...sampleSquad, id: "other", name: "FC Ghisleni (2)" }];
++  render(<ImportScreen param={encodeShare(sampleSquad)} squads={taken} onImport={onImport} />);
++  await user.click(screen.getByText("Importa"));
++  const imported = onImport.mock.lastCall![0];
++  expect(imported).toEqual({ id: expect.any(String), name: "FC Ghisleni (3)", players: sampleSquad.players });
++  expect(taken.map(s => s.id)).not.toContain(imported.id);
++});
++
++test("Annulla goes home without importing or leaving a history entry", async () => {
++  window.location.hash = `#/importa?s=${encodeShare(sampleSquad)}`;
++  const before = history.length;
++  render(<ImportScreen param={encodeShare(sampleSquad)} squads={[]} onImport={onImport} />);
++  await user.click(screen.getByText("Annulla"));
++  expect(window.location.hash).toBe("#/");
++  expect(history.length).toBe(before);
++  expect(onImport).not.toHaveBeenCalled();
++});
++
++test("a missing or tampered link is not valid", () => {
++  for (const param of ["", encodeShare({ ...sampleSquad, name: "   " })]) {
++    const { unmount } = render(<ImportScreen param={param} squads={[]} onImport={onImport} />);
++    expect(screen.getByText("Link non valido")).toBeInTheDocument();
++    expect(screen.queryByText("Importa")).not.toBeInTheDocument();
++    unmount();
++  }
++});
+diff --git a/web/src/screens/ImportScreen.tsx b/web/src/screens/ImportScreen.tsx
+index 4b9e31f..07ddf25 100644
+--- a/web/src/screens/ImportScreen.tsx
++++ b/web/src/screens/ImportScreen.tsx
+@@ -1,13 +1,30 @@
+-import { decodeShare, type Squad } from "../squads";
++import { useMemo } from "react";
++import { playerCount } from "../format";
++import { decodeShare, uniqueName, type Squad } from "../squads";
+ 
+ type Props = {
+   /** The `s` parameter of the share link. */
+   param: string;
+   squads: Squad[];
+   onImport: (squad: Squad) => void;
+ };
+ 
+-// Placeholder until Task 10.
+-export function ImportScreen({ param }: Props) {
+-  return <p>{decodeShare(param) ? "Importa" : "Link non valido"}</p>;
++/** A shared squad: ask before adding it; a taken name gets a number. */
++export function ImportScreen({ param, squads, onImport }: Props) {
++  const squad = useMemo(() => decodeShare(param), [param]);
++  if (!squad) return <p className="status" role="alert">Link non valido</p>;
++
++  return (
++    <section className="import">
++      <h1 className="page-title">{`Importare «${squad.name}» (${playerCount(squad.players.length)})?`}</h1>
++      {squad.players.length > 0 && <p className="muted">{squad.players.map(p => p.name).join(", ")}</p>}
++      <div className="actions">
++        <button type="button" className="btn primary" onClick={() => onImport({ ...squad, name: uniqueName(squad.name, squads) })}>
++          Importa
++        </button>
++        {/* replace: Back must not lead to this question again */}
++        <button type="button" className="btn" onClick={() => window.location.replace("#/")}>Annulla</button>
++      </div>
++    </section>
++  );
+ }
+diff --git a/web/src/screens/PlayerSearch.tsx b/web/src/screens/PlayerSearch.tsx
+new file mode 100644
+index 0000000..8ba632b
+--- /dev/null
++++ b/web/src/screens/PlayerSearch.tsx
+@@ -0,0 +1,99 @@
++import { useMemo, useState } from "react";
++import { searchPlayers } from "../search";
++import type { AppData, PlayerData, Role } from "../types";
++
++/** More results than this and the list asks to refine the search instead. */
++const LIMIT = 50;
++
++type Chip = "Tutti" | Role;
++const CHIPS: Chip[] = ["Tutti", "P", "D", "C", "A"];
++
++type PickProps = {
++  data: AppData;
++  /** undefined for a player gone from the data. */
++  player: PlayerData | undefined;
++  name: string;
++  /** The sign at the end of the row: what a tap does. */
++  mark: string;
++  pressed?: boolean;
++  label?: string;
++  onClick: () => void;
++};
++
++/** One tappable player line: role, name, club, and a mark. */
++export function PickButton({ data, player, name, mark, pressed, label, onClick }: PickProps) {
++  const club = player?.club ? data.clubs[player.club]?.name ?? "" : "non più in Serie A";
++  return (
++    <button type="button" className="pick" aria-pressed={pressed} aria-label={label} onClick={onClick}>
++      <span className={player ? `role role-${player.role}` : "role"}>{player?.role ?? "–"}</span>
++      <span className="player-name">{name}</span>
++      <span className="pick-club">{club}</span>
++      <span className="pick-mark" aria-hidden="true">{mark}</span>
++    </button>
++  );
++}
++
++type Props = {
++  data: AppData;
++  /** Ids already in the squad: shown as picked. */
++  picked: ReadonlySet<number>;
++  /** A tap on a result: add the player, or take him out when already picked. */
++  onToggle: (player: PlayerData) => void;
++};
++
++/** Search over every player by name, narrowed by role chips and a club select. */
++export function PlayerSearch({ data, picked, onToggle }: Props) {
++  const [query, setQuery] = useState("");
++  const [chip, setChip] = useState<Chip>("Tutti");
++  const [club, setClub] = useState("");
++
++  const clubs = useMemo(() => Object.values(data.clubs).sort((a, b) => a.name.localeCompare(b.name, "it")), [data]);
++  const found = useMemo(
++    () => searchPlayers(Object.values(data.players), { query, role: chip === "Tutti" ? null : chip, club }),
++    [data, query, chip, club],
++  );
++
++  return (
++    <div className="search">
++      <input
++        type="search"
++        className="field"
++        aria-label="Cerca giocatore"
++        placeholder="Cerca giocatore"
++        autoComplete="off"
++        enterKeyHint="search"
++        value={query}
++        onChange={e => setQuery(e.target.value)}
++      />
++      <div className="chips" role="group" aria-label="Ruolo">
++        {CHIPS.map(c => (
++          <button key={c} type="button" className="chip" aria-pressed={chip === c} onClick={() => setChip(c)}>{c}</button>
++        ))}
++      </div>
++      <select className="club-select" aria-label="Squadra" value={club} onChange={e => setClub(e.target.value)}>
++        <option value="">Tutte le squadre</option>
++        {clubs.map(c => <option key={c.key} value={c.key}>{c.name}</option>)}
++      </select>
++      {found?.length === 0 && <p className="status">Nessun giocatore</p>}
++      {found && found.length > 0 && (
++        <ul className="picks" aria-label="Risultati">
++          {found.slice(0, LIMIT).map(p => (
++            <li key={p.id}>
++              <PickButton
++                data={data}
++                player={p}
++                name={p.name}
++                mark={picked.has(p.id) ? "✓" : "+"}
++                pressed={picked.has(p.id)}
++                onClick={() => onToggle(p)}
++              />
++            </li>
++          ))}
++        </ul>
++      )}
++      {found && found.length > LIMIT && (
++        <p className="status">{`Altri ${found.length - LIMIT} giocatori: affina la ricerca`}</p>
++      )}
++    </div>
++  );
++}
+diff --git a/web/src/screens/SquadEditor.test.tsx b/web/src/screens/SquadEditor.test.tsx
+new file mode 100644
+index 0000000..5eb0e09
+--- /dev/null
++++ b/web/src/screens/SquadEditor.test.tsx
+@@ -0,0 +1,227 @@
++import { render, screen, within } from "@testing-library/react";
++import userEvent, { type UserEvent } from "@testing-library/user-event";
++import type { Mock } from "vitest";
++import { SquadEditor } from "./SquadEditor";
++import { decodeShare, encodeShare, type Squad } from "../squads";
++import type { AppData, PlayerData } from "../types";
++import { fullSquad, sampleData, sampleSquad } from "../test/sampleData";
++
++let user: UserEvent;
++let onChange: Mock<(squads: Squad[]) => void>;
++beforeEach(() => {
++  user = userEvent.setup();
++  onChange = vi.fn();
++});
++
++/** Every squad, as the editor last handed them back. */
++const saved = (): Squad[] => onChange.mock.lastCall![0];
++/** The last squad in that list (the only one when the editor started empty). */
++const lastSaved = (): Squad => saved().at(-1)!;
++/** The players of the open squad. */
++const squadList = () => screen.getByRole("list", { name: /In rosa/ });
++const results = () => screen.queryByRole("list", { name: "Risultati" });
++/** Player names in a list, in the order shown. */
++const names = (list: HTMLElement | null) => [...list!.querySelectorAll(".player-name")].map(e => e.textContent);
++const shareUrl = (squad: Squad) => `${location.origin}${location.pathname}#/importa?s=${encodeShare(squad)}`;
++
++async function openSquad(squads: Squad[], name: string, data: AppData = sampleData) {
++  render(<SquadEditor data={data} squads={squads} onChange={onChange} />);
++  await user.click(screen.getByText(name));
++}
++
++test("create a squad, add and remove players", async () => {
++  render(<SquadEditor data={sampleData} squads={[]} onChange={onChange} />);
++  await user.click(screen.getByText("Nuova rosa"));
++  await user.type(screen.getByLabelText("Cerca giocatore"), "mer");
++  await user.click(screen.getByText("Meret"));
++  expect(lastSaved().players).toEqual([{ id: 572, name: "Meret" }]);
++  await user.click(within(squadList()).getByText("Meret"));
++  expect(lastSaved().players).toEqual([]);
++});
++
++test("search ignores accents and apostrophes", async () => {
++  render(<SquadEditor data={sampleData} squads={[sampleSquad]} onChange={onChange} />);
++  await user.click(screen.getByText(sampleSquad.name));
++  await user.type(screen.getByLabelText("Cerca giocatore"), "ndicka");
++  expect(screen.getByText("N'Dicka")).toBeInTheDocument();
++});
++
++// Beyond the brief.
++
++test("lists the squads with their size", () => {
++  render(<SquadEditor data={sampleData} squads={[sampleSquad, fullSquad]} onChange={onChange} />);
++  expect(screen.getByRole("heading", { name: "Le mie rose" })).toBeInTheDocument();
++  expect(screen.getByText(sampleSquad.name).closest("li")).toHaveTextContent("3 giocatori");
++  expect(screen.getByText(fullSquad.name).closest("li")).toHaveTextContent("9 giocatori");
++  expect(screen.queryByText("Crea la tua prima rosa")).not.toBeInTheDocument(); // App shows it, not the editor
++});
++
++test("a new squad gets the first free default name, a new id and opens right away", async () => {
++  render(<SquadEditor data={sampleData} squads={[{ ...sampleSquad, name: "Rosa 2" }]} onChange={onChange} />);
++  await user.click(screen.getByText("Nuova rosa"));
++  expect(saved()).toEqual([{ ...sampleSquad, name: "Rosa 2" }, { id: expect.any(String), name: "Rosa 3", players: [] }]);
++  expect(lastSaved().id).not.toBe(sampleSquad.id);
++  expect(screen.getByRole("heading", { name: "Rosa 3" })).toBeInTheDocument();
++  expect(screen.getByLabelText("Cerca giocatore")).toBeInTheDocument();
++});
++
++test("search needs two letters; the club select alone lists that club", async () => {
++  await openSquad([sampleSquad], sampleSquad.name);
++  await user.type(screen.getByLabelText("Cerca giocatore"), "n'");
++  expect(results()).not.toBeInTheDocument();
++  expect(screen.queryByText("Nessun giocatore")).not.toBeInTheDocument();
++  await user.clear(screen.getByLabelText("Cerca giocatore"));
++  await user.selectOptions(screen.getByLabelText("Squadra"), "Roma");
++  expect(names(results())).toEqual(["N'Dicka", "Panchinaro"]);
++});
++
++test("names that start with the search come first; role chips narrow the results", async () => {
++  await openSquad([sampleSquad], sampleSquad.name);
++  await user.type(screen.getByLabelText("Cerca giocatore"), "pa");
++  expect(names(results())).toEqual(["Panchinaro", "Partito", "Senzapartita"]);
++  expect(within(results()!).getByText("Partito").closest("button")).toHaveTextContent("non più in Serie A");
++  await user.click(screen.getByRole("button", { name: "A" }));
++  expect(names(results())).toEqual(["Partito"]);
++  await user.click(screen.getByRole("button", { name: "D" }));
++  expect(screen.getByText("Nessun giocatore")).toBeInTheDocument();
++  await user.click(screen.getByRole("button", { name: "Tutti" }));
++  expect(names(results())).toHaveLength(3);
++});
++
++test("a result already in the squad is marked, and tapping it again removes it", async () => {
++  await openSquad([sampleSquad], sampleSquad.name);
++  await user.type(screen.getByLabelText("Cerca giocatore"), "mer");
++  const meret = within(results()!).getByRole("button", { name: /Meret/ });
++  expect(meret).toHaveAttribute("aria-pressed", "true");
++  expect(meret).toHaveTextContent("Napoli");
++  await user.click(meret);
++  expect(lastSaved().players.map(p => p.id)).toEqual([184, 2097]);
++  expect(within(results()!).getByRole("button", { name: /Meret/ })).toHaveAttribute("aria-pressed", "false");
++});
++
++test("long result lists show the first 50 and ask to refine", async () => {
++  const many: PlayerData[] = Array.from({ length: 120 }, (_, i) => ({ ...sampleData.players["572"], id: 10000 + i, name: `Rossi ${i + 1}` }));
++  const data: AppData = { ...sampleData, players: { ...sampleData.players, ...Object.fromEntries(many.map(p => [String(p.id), p])) } };
++  await openSquad([sampleSquad], sampleSquad.name, data);
++  await user.type(screen.getByLabelText("Cerca giocatore"), "rossi");
++  expect(within(results()!).getAllByRole("button")).toHaveLength(50);
++  expect(screen.getByText("Altri 70 giocatori: affina la ricerca")).toBeInTheDocument();
++});
++
++test("the squad shows its players by role with counts, keeps unknown ones and removes on tap", async () => {
++  const squad: Squad = { id: "mix", name: "Mista", players: [{ id: 2097, name: "Kean" }, { id: 99999, name: "Sparito" }, { id: 572, name: "Meret" }] };
++  await openSquad([squad], "Mista");
++  expect(screen.getByRole("heading", { name: "In rosa (3)" })).toBeInTheDocument();
++  expect(screen.getByText("P 1 · D 0 · C 0 · A 1")).toBeInTheDocument();
++  expect(names(squadList())).toEqual(["Meret", "Kean", "Sparito"]);
++  await user.click(within(squadList()).getByText("Sparito"));
++  expect(lastSaved().players).toEqual([{ id: 2097, name: "Kean" }, { id: 572, name: "Meret" }]);
++  expect(names(squadList())).toEqual(["Meret", "Kean"]);
++});
++
++test("Rinomina in the list renames with a trimmed, non-empty name", async () => {
++  render(<SquadEditor data={sampleData} squads={[sampleSquad]} onChange={onChange} />);
++  await user.click(screen.getByText("Rinomina"));
++  const input = screen.getByLabelText("Nome della rosa");
++  expect(input).toHaveValue(sampleSquad.name);
++  await user.clear(input);
++  await user.type(input, "   ");
++  expect(screen.getByRole("button", { name: "Salva" })).toBeDisabled();
++  await user.type(input, "Titolari  {Enter}");
++  expect(saved()).toEqual([{ ...sampleSquad, name: "Titolari" }]);
++  expect(screen.getByText("Titolari")).toBeInTheDocument();
++});
++
++test("Annulla leaves the name as it was", async () => {
++  render(<SquadEditor data={sampleData} squads={[sampleSquad]} onChange={onChange} />);
++  await user.click(screen.getByText("Rinomina"));
++  await user.type(screen.getByLabelText("Nome della rosa"), "xyz");
++  await user.click(screen.getByText("Annulla"));
++  expect(onChange).not.toHaveBeenCalled();
++  expect(screen.getByText(sampleSquad.name)).toBeInTheDocument();
++});
++
++test("the open squad can be renamed too", async () => {
++  await openSquad([sampleSquad], sampleSquad.name);
++  await user.click(screen.getByText("Rinomina"));
++  const input = screen.getByLabelText("Nome della rosa");
++  await user.clear(input);
++  await user.type(input, "Titolari{Enter}");
++  expect(lastSaved()).toEqual({ ...sampleSquad, name: "Titolari" });
++  expect(screen.getByRole("heading", { name: "Titolari" })).toBeInTheDocument();
++});
++
++test("Elimina asks inside the page before deleting", async () => {
++  render(<SquadEditor data={sampleData} squads={[sampleSquad, fullSquad]} onChange={onChange} />);
++  const row = screen.getByText(sampleSquad.name).closest("li")!;
++  await user.click(within(row).getByText("Elimina"));
++  expect(within(row).getByText("Eliminare «FC Ghisleni»?")).toBeInTheDocument();
++  await user.click(within(row).getByText("Annulla"));
++  expect(onChange).not.toHaveBeenCalled();
++  expect(within(row).getByText(sampleSquad.name)).toBeInTheDocument();
++  await user.click(within(row).getByText("Elimina"));
++  await user.click(within(row).getByRole("button", { name: "Elimina" }));
++  expect(saved()).toEqual([fullSquad]);
++  expect(screen.queryByText(sampleSquad.name)).not.toBeInTheDocument();
++});
++
++test("the back button returns to the list", async () => {
++  await openSquad([sampleSquad], sampleSquad.name);
++  await user.click(screen.getByRole("button", { name: "Le mie rose" }));
++  expect(screen.getByRole("heading", { name: "Le mie rose" })).toBeInTheDocument();
++  expect(screen.queryByLabelText("Cerca giocatore")).not.toBeInTheDocument();
++});
++
++test("Condividi copies the import link and says so", async () => {
++  await openSquad([sampleSquad], sampleSquad.name);
++  await user.click(screen.getByText("Condividi"));
++  expect(await screen.findByText("Link copiato")).toBeInTheDocument();
++  const url = await navigator.clipboard.readText();
++  expect(url).toBe(shareUrl(sampleSquad));
++  expect(decodeShare(url.split("?s=")[1])).toEqual({ ...sampleSquad, id: expect.any(String) });
++  await user.click(within(squadList()).getByText("Kean"));
++  expect(screen.queryByText("Link copiato")).not.toBeInTheDocument(); // that link holds the old squad
++});
++
++describe("with the phone's share sheet", () => {
++  let share: Mock<(data: ShareData) => Promise<void>>;
++  beforeEach(() => {
++    share = vi.fn();
++    Object.defineProperty(navigator, "share", { value: share, configurable: true });
++  });
++  afterEach(() => {
++    delete (navigator as { share?: unknown }).share;
++  });
++
++  test("Condividi opens it with the import link", async () => {
++    share.mockResolvedValue(undefined);
++    await openSquad([sampleSquad], sampleSquad.name);
++    await user.click(screen.getByText("Condividi"));
++    expect(share).toHaveBeenCalledWith({ title: sampleSquad.name, url: shareUrl(sampleSquad) });
++    expect(screen.queryByText("Link copiato")).not.toBeInTheDocument();
++  });
++
++  test("closing it copies nothing", async () => {
++    share.mockRejectedValue(new DOMException("cancelled", "AbortError"));
++    await openSquad([sampleSquad], sampleSquad.name);
++    await user.click(screen.getByText("Condividi"));
++    expect(screen.queryByText("Link copiato")).not.toBeInTheDocument();
++    expect(await navigator.clipboard.readText()).toBe("");
++  });
++
++  test("when it fails the link is copied instead", async () => {
++    share.mockRejectedValue(new DOMException("not allowed", "NotAllowedError"));
++    await openSquad([sampleSquad], sampleSquad.name);
++    await user.click(screen.getByText("Condividi"));
++    expect(await screen.findByText("Link copiato")).toBeInTheDocument();
++    expect(await navigator.clipboard.readText()).toBe(shareUrl(sampleSquad));
++  });
++});
++
++test("when copying is not allowed the link is shown to copy by hand", async () => {
++  vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(new Error("denied"));
++  await openSquad([sampleSquad], sampleSquad.name);
++  await user.click(screen.getByText("Condividi"));
++  expect(await screen.findByLabelText("Link della rosa")).toHaveValue(shareUrl(sampleSquad));
++  expect(screen.queryByText("Link copiato")).not.toBeInTheDocument();
++});
+diff --git a/web/src/screens/SquadEditor.tsx b/web/src/screens/SquadEditor.tsx
+index 065f034..7f9e5ce 100644
+--- a/web/src/screens/SquadEditor.tsx
++++ b/web/src/screens/SquadEditor.tsx
+@@ -1,18 +1,224 @@
+-import type { AppData } from "../types";
+-import type { Squad } from "../squads";
++import { useId, useState } from "react";
++import { playerCount } from "../format";
++import { ROLE_ORDER } from "../search";
++import { encodeShare, newId, type Squad } from "../squads";
++import type { AppData, PlayerData, Role } from "../types";
++import { PickButton, PlayerSearch } from "./PlayerSearch";
+ 
+ type Props = {
+   data: AppData;
+   squads: Squad[];
+   onChange: (squads: Squad[]) => void;
+ };
+ 
+-// Placeholder until Task 10.
+-export function SquadEditor({ squads }: Props) {
++const NAME_MAX = 50;
++
++/** Role order, with players gone from the data last. */
++const rank = (player: PlayerData | undefined) => (player ? ROLE_ORDER[player.role] : 4);
++
++/** "Rosa 3": the first free number, counting on from the number of squads. */
++function newName(squads: Squad[]): string {
++  const taken = new Set(squads.map(s => s.name));
++  let n = squads.length + 1;
++  while (taken.has(`Rosa ${n}`)) n++;
++  return `Rosa ${n}`;
++}
++
++/** Le mie rose: the list of squads (create, rename, delete) and, once one is opened, its editor. */
++export function SquadEditor({ data, squads, onChange }: Props) {
++  // A working copy, so the editor keeps up even when the parent does not hand the change back;
++  // a new list from the parent replaces it.
++  const [list, setList] = useState(squads);
++  const [fromParent, setFromParent] = useState(squads);
++  if (squads !== fromParent) {
++    setFromParent(squads);
++    setList(squads);
++  }
++  const [openId, setOpenId] = useState<string | null>(null);
++  // At most one squad row shows the rename form or the delete question.
++  const [pending, setPending] = useState<{ id: string; kind: "rename" | "delete" } | null>(null);
++
++  function commit(next: Squad[]) {
++    setList(next);
++    onChange(next);
++  }
++  function update(squad: Squad) {
++    commit(list.map(s => (s.id === squad.id ? squad : s)));
++  }
++  function create() {
++    const squad: Squad = { id: newId(), name: newName(list), players: [] };
++    commit([...list, squad]);
++    setPending(null);
++    setOpenId(squad.id);
++  }
++
++  const open = list.find(s => s.id === openId);
++  if (open) {
++    return <SquadForm key={open.id} data={data} squad={open} onChange={update} onBack={() => setOpenId(null)} />;
++  }
++
++  return (
++    <section className="editor">
++      <h1 className="page-title">Le mie rose</h1>
++      <button type="button" className="btn primary wide" onClick={create}>Nuova rosa</button>
++      <ul className="squad-list">
++        {list.map(s => (
++          <li key={s.id} className="squad-item">
++            {pending?.id === s.id && pending.kind === "rename" ? (
++              <NameForm
++                name={s.name}
++                onSave={name => { update({ ...s, name }); setPending(null); }}
++                onCancel={() => setPending(null)}
++              />
++            ) : pending?.id === s.id ? (
++              <>
++                <p className="confirm">{`Eliminare «${s.name}»?`}</p>
++                <div className="actions">
++                  <button
++                    type="button"
++                    className="btn danger"
++                    onClick={() => { commit(list.filter(x => x.id !== s.id)); setPending(null); }}
++                  >
++                    Elimina
++                  </button>
++                  <button type="button" className="btn" onClick={() => setPending(null)}>Annulla</button>
++                </div>
++              </>
++            ) : (
++              <>
++                <button type="button" className="squad-open" onClick={() => { setPending(null); setOpenId(s.id); }}>
++                  <span className="squad-name">{s.name}</span>
++                  <span className="muted">{playerCount(s.players.length)}</span>
++                </button>
++                <div className="actions">
++                  <button type="button" className="btn" onClick={() => setPending({ id: s.id, kind: "rename" })}>Rinomina</button>
++                  <button type="button" className="btn" onClick={() => setPending({ id: s.id, kind: "delete" })}>Elimina</button>
++                </div>
++              </>
++            )}
++          </li>
++        ))}
++      </ul>
++    </section>
++  );
++}
++
++type NameFormProps = { name: string; onSave: (name: string) => void; onCancel: () => void };
++
++/** Inline rename: the trimmed name, never empty. */
++function NameForm({ name, onSave, onCancel }: NameFormProps) {
++  const [value, setValue] = useState(name);
++  const trimmed = value.trim();
++  return (
++    <form className="name-form" onSubmit={e => { e.preventDefault(); if (trimmed) onSave(trimmed); }}>
++      <input
++        className="field"
++        aria-label="Nome della rosa"
++        maxLength={NAME_MAX}
++        autoFocus
++        value={value}
++        onChange={e => setValue(e.target.value)}
++      />
++      <div className="actions">
++        <button type="submit" className="btn primary" disabled={!trimmed}>Salva</button>
++        <button type="button" className="btn" onClick={onCancel}>Annulla</button>
++      </div>
++    </form>
++  );
++}
++
++/** "copied", or the link to copy by hand when the clipboard refused it. */
++type Shared = "copied" | { url: string } | null;
++
++type FormProps = { data: AppData; squad: Squad; onChange: (squad: Squad) => void; onBack: () => void };
++
++/** One open squad: search to add players, tap one in the squad to take him out, rename, share. */
++function SquadForm({ data, squad, onChange, onBack }: FormProps) {
++  const [renaming, setRenaming] = useState(false);
++  const [shared, setShared] = useState<Shared>(null);
++  const listId = useId();
++
++  const ids = new Set(squad.players.map(p => p.id));
++  const members = squad.players
++    .map(({ id, name }) => {
++      const player = data.players[String(id)] as PlayerData | undefined;
++      return { id, player, name: player?.name ?? name };
++    })
++    .sort((a, b) => rank(a.player) - rank(b.player) || a.name.localeCompare(b.name, "it"));
++  const counts = (Object.keys(ROLE_ORDER) as Role[])
++    .map(role => `${role} ${members.filter(m => m.player?.role === role).length}`)
++    .join(" · ");
++
++  function change(next: Squad) {
++    setShared(null); // a link shown before the change would share the old squad
++    onChange(next);
++  }
++  function toggle(player: PlayerData) {
++    change({
++      ...squad,
++      players: ids.has(player.id)
++        ? squad.players.filter(p => p.id !== player.id)
++        : [...squad.players, { id: player.id, name: player.name }],
++    });
++  }
++
++  async function share() {
++    const url = `${location.origin}${location.pathname}#/importa?s=${encodeShare(squad)}`;
++    if (typeof navigator.share === "function") {
++      try {
++        await navigator.share({ title: squad.name, url });
++        return;
++      } catch (e) {
++        if (e instanceof DOMException && e.name === "AbortError") return; // closed by the user
++      }
++    }
++    try {
++      await navigator.clipboard.writeText(url);
++      setShared("copied");
++    } catch {
++      setShared({ url });
++    }
++  }
++
+   return (
+-    <>
+-      <h1>Le mie rose</h1>
+-      <ul>{squads.map(s => <li key={s.id}>{s.name}</li>)}</ul>
+-    </>
++    <section className="editor">
++      <button type="button" className="back" onClick={onBack}><span aria-hidden="true">‹ </span>Le mie rose</button>
++      {renaming ? (
++        <NameForm
++          name={squad.name}
++          onSave={name => { change({ ...squad, name }); setRenaming(false); }}
++          onCancel={() => setRenaming(false)}
++        />
++      ) : (
++        <>
++          <h1 className="page-title">{squad.name}</h1>
++          <div className="actions">
++            <button type="button" className="btn" onClick={() => setRenaming(true)}>Rinomina</button>
++            <button type="button" className="btn" onClick={share}>Condividi</button>
++          </div>
++        </>
++      )}
++      {shared === "copied" && <p className="note" role="status">Link copiato</p>}
++      {shared && shared !== "copied" && (
++        <input readOnly className="field" aria-label="Link della rosa" value={shared.url} onFocus={e => e.currentTarget.select()} />
++      )}
++      <PlayerSearch data={data} picked={ids} onToggle={toggle} />
++      <h2 id={listId} className="group-title">{`In rosa (${squad.players.length})`}</h2>
++      <p className="counts">{counts}</p>
++      <ul className="picks" aria-labelledby={listId}>
++        {members.map(m => (
++          <li key={m.id}>
++            <PickButton
++              data={data}
++              player={m.player}
++              name={m.name}
++              mark="✕"
++              label={`Togli ${m.name}`}
++              onClick={() => change({ ...squad, players: squad.players.filter(p => p.id !== m.id) })}
++            />
++          </li>
++        ))}
++      </ul>
++    </section>
+   );
+ }
+diff --git a/web/src/search.test.ts b/web/src/search.test.ts
+new file mode 100644
+index 0000000..165fc99
+--- /dev/null
++++ b/web/src/search.test.ts
+@@ -0,0 +1,38 @@
++import { normalize, searchPlayers, type Filters } from "./search";
++import { sampleData } from "./test/sampleData";
++
++const all = Object.values(sampleData.players);
++const find = (filters: Partial<Filters>) =>
++  searchPlayers(all, { query: "", role: null, club: "", ...filters })?.map(p => p.name) ?? null;
++
++test("normalize keeps only lower-case letters and digits, without accents", () => {
++  expect(normalize("N'Dicka")).toBe("ndicka");
++  expect(normalize("N’Dicka")).toBe("ndicka");
++  expect(normalize("Montipò")).toBe("montipo");
++  expect(normalize("Milinković-Savić V.")).toBe("milinkovicsavicv");
++  expect(normalize("Da Cunha")).toBe("dacunha");
++});
++
++test("nothing is searched below two letters unless a club is picked", () => {
++  expect(find({})).toBeNull();
++  expect(find({ query: "m" })).toBeNull();
++  expect(find({ query: "n'" })).toBeNull();
++  expect(find({ role: "D" })).toBeNull();
++  expect(find({ club: "roma" })).toEqual(["N'Dicka", "Panchinaro"]);
++});
++
++test("matches anywhere in the name, ignoring accents, apostrophes and case", () => {
++  expect(find({ query: "NDÌCKA" })).toEqual(["N'Dicka"]);
++  expect(find({ query: "di lo" })).toEqual(["Di Lorenzo"]);
++});
++
++test("names that start with the search come first, then by role and name", () => {
++  expect(find({ query: "pa" })).toEqual(["Panchinaro", "Partito", "Senzapartita"]);
++  expect(find({ club: "inter" })).toEqual(["Bastoni", "Dimarco"]);
++});
++
++test("role and club narrow the search", () => {
++  expect(find({ query: "pa", role: "A" })).toEqual(["Partito"]);
++  expect(find({ query: "di", club: "inter" })).toEqual(["Dimarco"]);
++  expect(find({ query: "pa", role: "P" })).toEqual([]);
++});
+diff --git a/web/src/search.ts b/web/src/search.ts
+new file mode 100644
+index 0000000..afc779d
+--- /dev/null
++++ b/web/src/search.ts
+@@ -0,0 +1,34 @@
++import type { PlayerData, Role } from "./types";
++
++export type Filters = {
++  query: string;
++  /** null for every role. */
++  role: Role | null;
++  /** Club key; "" for every club. */
++  club: string;
++};
++
++const MIN_QUERY = 2;
++export const ROLE_ORDER: Record<Role, number> = { P: 0, D: 1, C: 2, A: 3 };
++
++/** Lower-case letters and digits only, accents removed: "N'Dicka" -> "ndicka", "Montipò" -> "montipo". */
++export function normalize(text: string): string {
++  return text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]/g, "");
++}
++
++/**
++ * The players matching the filters: names that start with the query first, then by role and name.
++ * null (no search yet) until the query has two letters or a club is picked.
++ */
++export function searchPlayers(players: PlayerData[], { query, role, club }: Filters): PlayerData[] | null {
++  const q = normalize(query);
++  if (q.length < MIN_QUERY && !club) return null;
++  return players
++    .map(player => ({ player, name: normalize(player.name) }))
++    .filter(({ player, name }) => (!role || player.role === role) && (!club || player.club === club) && name.includes(q))
++    .map(({ player, name }) => ({ player, starts: name.startsWith(q) }))
++    .sort((a, b) => Number(b.starts) - Number(a.starts)
++      || ROLE_ORDER[a.player.role] - ROLE_ORDER[b.player.role]
++      || a.player.name.localeCompare(b.player.name, "it"))
++    .map(({ player }) => player);
++}
+diff --git a/web/src/squads.test.ts b/web/src/squads.test.ts
+index f4ea1aa..332b865 100644
+--- a/web/src/squads.test.ts
++++ b/web/src/squads.test.ts
+@@ -1,48 +1,86 @@
+-import { decodeShare, encodeShare, loadSelected, loadSquads, saveSelected, saveSquads } from "./squads";
++import { decodeShare, encodeShare, isNewBrowser, loadSelected, loadSquads, saveSelected, saveSquads, uniqueName } from "./squads";
++
++/** A share param built by hand (ASCII only). */
++const b64 = (v: unknown) => btoa(JSON.stringify(v));
+ 
+ test("share link round trip keeps names and order", () => {
+   const s = { id: "x", name: "FC Ghisleni", players: [{ id: 572, name: "Meret" }, { id: 184, name: "Bernardeschi" }] };
+   expect(decodeShare(encodeShare(s))).toEqual({ ...s, id: expect.any(String) });
+ });
+ 
+ test("share link keeps accents, apostrophes and emoji, and is URL safe", () => {
+   const s = { id: "x", name: "Rosa d'Ōro ⚽", players: [{ id: 4317, name: "N'Dicka" }, { id: 1, name: "Milinković-Savić" }] };
+   const param = encodeShare(s);
+   expect(param).toMatch(/^[A-Za-z0-9_-]+$/);
+   expect(decodeShare(param)).toEqual({ ...s, id: expect.any(String) });
+ });
+ 
+ test("every decoded share link gets a fresh id", () => {
+   const s = { id: "x", name: "A", players: [] };
+   expect(decodeShare(encodeShare(s))!.id).not.toBe(decodeShare(encodeShare(s))!.id);
+ });
+ 
+ test("bad share links return null", () => {
+-  const b64 = (v: unknown) => btoa(JSON.stringify(v));
+   const bad = [
+     "",
+     "%%%",
+     btoa("not json"),
+     b64({ n: "x" }),
+     b64({ n: 3, p: [] }),
+     b64({ n: "x", p: [[1]] }),
+     b64({ n: "x", p: [["1", "Meret"]] }),
+     b64({ n: "x", p: [[1.5, "Meret"]] }),
+     b64({ n: "x", p: "Meret" }),
+     b64(null),
+     b64([]),
+     "/w", // not valid UTF-8 once decoded
+   ];
+   for (const param of bad) expect(decodeShare(param)).toBeNull();
+ });
+ 
++test("share links: the name is trimmed and must not be empty or absurdly long", () => {
++  expect(decodeShare(b64({ n: "  FC Ghisleni ", p: [] }))).toEqual({ id: expect.any(String), name: "FC Ghisleni", players: [] });
++  expect(decodeShare(b64({ n: "x".repeat(100), p: [] }))).not.toBeNull();
++  for (const n of ["", "   ", "x".repeat(101)]) expect(decodeShare(b64({ n, p: [] }))).toBeNull();
++});
++
++test("share links: a repeated player is kept once, where he first appears", () => {
++  const squad = decodeShare(b64({ n: "A", p: [[1, "Meret"], [2, "Kean"], [1, "Altro"]] }));
++  expect(squad!.players).toEqual([{ id: 1, name: "Meret" }, { id: 2, name: "Kean" }]);
++});
++
++test("share links: more than 100 players is not a squad", () => {
++  const players = (n: number) => Array.from({ length: n }, (_, i) => [i + 1, `G${i + 1}`]);
++  expect(decodeShare(b64({ n: "A", p: players(100) }))!.players).toHaveLength(100);
++  expect(decodeShare(b64({ n: "A", p: players(101) }))).toBeNull();
++});
++
++test("uniqueName adds the first free number to a taken name", () => {
++  const squads = (...names: string[]) => names.map(name => ({ id: name, name, players: [] }));
++  expect(uniqueName("A", [])).toBe("A");
++  expect(uniqueName("A", squads("B", "A (2)"))).toBe("A");
++  expect(uniqueName("A", squads("A"))).toBe("A (2)");
++  expect(uniqueName("A", squads("A", "A (2)", "A (4)"))).toBe("A (3)");
++});
++
++test("a new browser is one that never saved squads and can read its storage", () => {
++  expect(isNewBrowser()).toBe(true);
++  saveSquads([]);
++  expect(isNewBrowser()).toBe(false);
++  localStorage.setItem("fantaspec.squads.v1", "{broken");
++  expect(isNewBrowser()).toBe(false);
++  localStorage.clear();
++  vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw new Error("blocked"); });
++  expect(isNewBrowser()).toBe(false);
++});
++
+ test("squads and selection survive a reload", () => {
+   const squads = [{ id: "a", name: "Uno", players: [{ id: 1, name: "Meret" }] }];
+   saveSquads(squads);
+   saveSelected("a");
+   expect(loadSquads()).toEqual(squads);
+   expect(loadSelected()).toBe("a");
+   expect(localStorage.getItem("fantaspec.squads.v1")).not.toBeNull();
+   expect(localStorage.getItem("fantaspec.selected")).toBe("a");
+ });
+ 
+diff --git a/web/src/squads.ts b/web/src/squads.ts
+index e25db29..59cd5db 100644
+--- a/web/src/squads.ts
++++ b/web/src/squads.ts
+@@ -33,20 +33,29 @@ function isSquad(v: unknown): v is Squad {
+     && Array.isArray(s.players) && s.players.every(isSquadPlayer);
+ }
+ 
+ export function newId(): string {
+   // randomUUID only exists in secure contexts (not on a phone opening the dev server over http).
+   return typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+     ? crypto.randomUUID()
+     : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+ }
+ 
++/** True when this browser never saved squads: storage can be read and the key is absent. */
++export function isNewBrowser(): boolean {
++  try {
++    return localStorage.getItem(SQUADS_KEY) === null;
++  } catch {
++    return false;
++  }
++}
++
+ export function loadSquads(): Squad[] {
+   try {
+     const parsed: unknown = JSON.parse(readStorage(SQUADS_KEY) ?? "[]");
+     return Array.isArray(parsed) ? parsed.filter(isSquad) : [];
+   } catch {
+     return [];
+   }
+ }
+ 
+ export function saveSquads(squads: Squad[]): void {
+@@ -54,39 +63,55 @@ export function saveSquads(squads: Squad[]): void {
+ }
+ 
+ export function loadSelected(): string | null {
+   return readStorage(SELECTED_KEY);
+ }
+ 
+ export function saveSelected(id: string): void {
+   writeStorage(SELECTED_KEY, id);
+ }
+ 
++/** `name`, or `name (2)`, `name (3)`... the first one no squad uses yet. */
++export function uniqueName(name: string, squads: Squad[]): string {
++  const taken = new Set(squads.map(s => s.name));
++  let candidate = name;
++  for (let n = 2; taken.has(candidate); n++) candidate = `${name} (${n})`;
++  return candidate;
++}
++
+ // Share link payload: base64url of the UTF-8 JSON {"n": name, "p": [[id, name], ...]}.
++// A link is someone else's input: names are trimmed, repeated players dropped, absurd sizes refused.
++const MAX_SHARED_NAME = 100;
++const MAX_SHARED_PLAYERS = 100;
+ 
+ export function encodeShare(squad: Squad): string {
+   const json = JSON.stringify({ n: squad.name, p: squad.players.map(p => [p.id, p.name]) });
+   let binary = "";
+   for (const byte of new TextEncoder().encode(json)) binary += String.fromCharCode(byte);
+   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+ }
+ 
+ /** The squad in a share link (with a fresh id), or null when the link is not one of ours. */
+ export function decodeShare(param: string): Squad | null {
+   try {
+     const base64 = param.replace(/-/g, "+").replace(/_/g, "/");
+     const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+     const payload: unknown = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+     const { n, p } = payload as { n?: unknown; p?: unknown };
+-    if (typeof n !== "string" || !Array.isArray(p)) return null;
++    if (typeof n !== "string" || !Array.isArray(p) || p.length > MAX_SHARED_PLAYERS) return null;
++    const name = n.trim();
++    if (name === "" || name.length > MAX_SHARED_NAME) return null;
+     const players: SquadPlayer[] = [];
++    const seen = new Set<number>();
+     for (const entry of p) {
+       if (!Array.isArray(entry)) return null;
+       const player = { id: entry[0], name: entry[1] };
+       if (!isSquadPlayer(player)) return null;
++      if (seen.has(player.id)) continue;
++      seen.add(player.id);
+       players.push(player);
+     }
+-    return { id: newId(), name: n, players };
++    return { id: newId(), name, players };
+   } catch {
+     return null;
+   }
+ }
+diff --git a/web/src/styles.css b/web/src/styles.css
+index f9d4487..003ddb6 100644
+--- a/web/src/styles.css
++++ b/web/src/styles.css
+@@ -465,10 +465,232 @@ button.row-main {
+ 
+ .pill.good {
+   background: var(--good);
+   color: var(--card);
+ }
+ 
+ .pill.bad {
+   background: var(--bad);
+   color: var(--card);
+ }
++
++/* Squad editor and import */
++
++.page-title {
++  margin: 8px 0 12px;
++  font-size: 22px;
++  line-height: 1.25;
++  overflow-wrap: anywhere;
++}
++
++.btn {
++  min-height: 44px;
++  padding: 0 14px;
++  border: 1px solid var(--line);
++  border-radius: 8px;
++  background: var(--card);
++  color: var(--fg);
++  font: inherit;
++  font-weight: 600;
++  cursor: pointer;
++}
++
++.btn.primary {
++  border-color: var(--accent);
++  background: var(--accent);
++  color: var(--on-accent);
++}
++
++.btn.danger {
++  border-color: var(--bad);
++  background: var(--bad);
++  color: var(--card);
++}
++
++.btn:disabled {
++  opacity: 0.5;
++  cursor: default;
++}
++
++.btn.wide {
++  width: 100%;
++}
++
++.actions {
++  display: flex;
++  flex-wrap: wrap;
++  gap: 8px;
++}
++
++/* 16px text: phones do not zoom in on focus. */
++.field {
++  width: 100%;
++  min-width: 0;
++  min-height: 44px;
++  padding: 0 12px;
++  border: 1px solid var(--line);
++  border-radius: 8px;
++  background: var(--card);
++  color: var(--fg);
++  font: inherit;
++}
++
++.squad-list {
++  display: grid;
++  gap: 8px;
++  margin: 12px 0 0;
++  padding: 0;
++  list-style: none;
++}
++
++.squad-item {
++  display: flex;
++  flex-wrap: wrap;
++  align-items: center;
++  gap: 8px;
++  padding: 8px;
++  border: 1px solid var(--line);
++  border-radius: var(--radius);
++  background: var(--card);
++}
++
++.squad-open {
++  display: flex;
++  flex: 1 1 160px;
++  flex-direction: column;
++  align-items: flex-start;
++  min-width: 0;
++  min-height: 44px;
++  padding: 4px;
++  border: 0;
++  background: transparent;
++  color: inherit;
++  font: inherit;
++  text-align: left;
++  cursor: pointer;
++}
++
++.squad-name {
++  font-weight: 600;
++  overflow-wrap: anywhere;
++}
++
++.squad-open .muted {
++  font-size: 14px;
++}
++
++.confirm {
++  flex: 1 1 160px;
++  min-width: 0;
++  margin: 0;
++  padding: 4px;
++  font-weight: 600;
++  overflow-wrap: anywhere;
++}
++
++.name-form {
++  display: flex;
++  flex: 1 1 100%;
++  flex-wrap: wrap;
++  gap: 8px;
++  min-width: 0;
++}
++
++.back {
++  min-height: 44px;
++  padding: 0 4px;
++  border: 0;
++  background: transparent;
++  color: var(--accent);
++  font: inherit;
++  font-weight: 600;
++  cursor: pointer;
++}
++
++.note {
++  margin: 8px 0 0;
++  color: var(--good);
++  font-weight: 600;
++}
++
++.editor > .field {
++  margin-top: 8px;
++}
++
++.search {
++  display: grid;
++  gap: 8px;
++  margin-top: 16px;
++}
++
++.search .chips {
++  margin: 0;
++}
++
++.club-select {
++  width: 100%;
++}
++
++.search .status {
++  margin: 4px;
++}
++
++.picks {
++  display: grid;
++  gap: 4px;
++  margin: 0;
++  padding: 0;
++  list-style: none;
++}
++
++.pick {
++  display: flex;
++  align-items: center;
++  gap: 8px;
++  width: 100%;
++  min-height: 44px;
++  padding: 6px 10px;
++  border: 1px solid var(--line);
++  border-radius: var(--radius);
++  background: var(--card);
++  color: inherit;
++  font: inherit;
++  text-align: left;
++  cursor: pointer;
++}
++
++.pick[aria-pressed="true"] {
++  border-color: var(--accent);
++}
++
++.pick-club {
++  flex: 0 1 auto;
++  max-width: 45%;
++  color: var(--muted);
++  font-size: 13px;
++  text-align: right;
++  overflow-wrap: anywhere;
++}
++
++.pick-mark {
++  flex: none;
++  width: 16px;
++  color: var(--muted);
++  font-weight: 700;
++  text-align: center;
++}
++
++.pick[aria-pressed="true"] .pick-mark {
++  color: var(--accent);
++}
++
++.counts {
++  margin: 0 4px 6px;
++  color: var(--muted);
++  font-size: 14px;
++  font-variant-numeric: tabular-nums;
++}
++
++.import .muted {
++  margin: 0 0 16px;
++  overflow-wrap: anywhere;
++}

@@ -1,0 +1,351 @@
+# Review package: 8c866df..HEAD
+
+## Commits
+056880f pipeline: once-a-day gate fallback
+a3d7b98 pipeline: guard ESPN fixtures, tolerate unpublished votes, auto-backfill on empty raw
+
+## Files changed
+ pipeline/fantaspec/run.py  | 55 ++++++++++++++++++++++-------
+ pipeline/tests/test_run.py | 88 ++++++++++++++++++++++++++++++++++++++++++----
+ 2 files changed, 124 insertions(+), 19 deletions(-)
+
+## Diff
+diff --git a/pipeline/fantaspec/run.py b/pipeline/fantaspec/run.py
+index 5b34e5d..0300b14 100644
+--- a/pipeline/fantaspec/run.py
++++ b/pipeline/fantaspec/run.py
+@@ -5,23 +5,24 @@ raw/ layout (one record per line, so diffs stay small):
+   calendar.json     {"<matchday>": [CalendarFixture, ...]}
+   espn.json         {"<club key>": [EspnMatch, ...]}  the club's results and upcoming pages, by kickoff
+   standings.json    [StandingRow, ...]
+   roster.json       [RosterPlayer, ...]
+   votes.json        {"<matchday>": [VoteRow, ...]}
+   lineups.json      {"entries": [LineupEntry, ...], "pairs": [[home, away], ...]}
+   unavailable.json  [Unavailable, ...]
+   history.json      [EspnMatch, ...]  completed matches of past seasons, once each, by kickoff
+ """
+ import json
++from collections import defaultdict
+ from collections.abc import Callable
+ from dataclasses import asdict, dataclass
+-from datetime import datetime, timedelta
++from datetime import datetime, time, timedelta
+ 
+ from fantaspec import config
+ from fantaspec.build import meta, validate, write_if_changed
+ from fantaspec.clubs import load_clubs
+ from fantaspec.config import TZ
+ from fantaspec.fixtures import join_fixtures
+ from fantaspec.models import (CalendarFixture, Club, EspnMatch, Fixture, LineupEntry, RosterPlayer, StandingRow,
+                               Unavailable, VoteRow)
+ from fantaspec.schedule import FULL, LIGHT, due, slots
+ from fantaspec.sources.espn import parse_schedule, parse_standings
+@@ -30,61 +31,71 @@ from fantaspec.sources.fc_lineups import parse_lineups
+ from fantaspec.sources.fc_roster import parse_roster
+ from fantaspec.sources.fc_unavailable import parse_unavailable
+ from fantaspec.sources.fc_votes import parse_votes
+ from fantaspec.stats import club_stats, player_stats
+ 
+ Fetcher = Callable[[str], str]
+ 
+ SKIP = "skip"
+ MATCHDAYS = 38
+ RECENT = timedelta(days=4)  # a full run refetches the votes of matchdays with a match completed this recently
++MATCH_LENGTH = timedelta(hours=2)  # kickoff to final whistle, roughly
++VOTES_DUE = timedelta(hours=24)  # after a matchday's last completed match ends, its votes page can't be empty
+ 
+ 
+ @dataclass(frozen=True)
+ class RunResult:
+     ok: bool  # every source refreshed and the site data validated
+     errors: list[str]  # "<source>: <message>"
+     wrote: bool  # site data changed and was written
+     valid: bool = True  # site data could be computed and passed validation; when False nothing was written
+ 
+ 
+ def run(kind: str, fetch: Fetcher, now: datetime, backfill: bool = False) -> RunResult:
+     """A light or full run at `now` (aware); a backfill is a full run that also fetches every calendar page,
+-    every played matchday's votes and the past seasons for head to head.
++    every played matchday's votes and the past seasons for head to head. A full run with no calendar in
++    raw/ yet (the season's first run) is a backfill.
+ 
+     A source that fails to fetch or parse (or parses to nothing where that can't be right) is reported as
+     "<source>: <message>" and keeps its previous raw/ data. Site data that doesn't validate is not written.
+     """
+     if kind not in (LIGHT, FULL) or (backfill and kind != FULL):
+         raise ValueError(f"no such run: kind={kind!r}, backfill={backfill}")
+     clubs = load_clubs()
+     errors: list[str] = []
++    backfill = backfill or (kind == FULL and not _load("calendar", {}))
+     if kind == FULL:
+         _refresh_calendar(fetch, errors, every=backfill)
+         _refresh_espn(fetch, clubs, errors)
+         _refresh("standings", errors, lambda: _standings_rows(fetch(config.espn_standings_url()), clubs))
+         _refresh("roster", errors, lambda: _rows(parse_roster(fetch(config.fc_roster_url()))))
+         _refresh_votes(fetch, clubs, now, errors, every=backfill)
+         if backfill:
+             _refresh_history(fetch, clubs, errors)
+     _refresh("lineups", errors, lambda: _lineups_rows(parse_lineups(fetch(config.fc_lineups_url()))))
+     _refresh("unavailable", errors,
+              lambda: [_record(u) for u in parse_unavailable(fetch(config.fc_unavailable_url()))])
+     return _publish(kind, clubs, now, errors)
+ 
+ 
+ def gate(now: datetime) -> tuple[str, str]:
+     """(kind, slot) for an hourly trigger at `now` (aware): the due slot's kind and its Europe/Rome ISO time,
+-    or ("skip", "") outside every slot. With no fixture dates in raw/ yet: a full run, slot = this hour."""
++    or ("skip", "") outside every slot.
++
++    When raw/ can't drive the slots, a full run whose slot is today's local midnight, so the workflow runs
++    it once a day: no fixtures yet (empty raw/), or fixtures still to play none of which has a kickoff
++    after `now` (their dates were lost, or a postponed match has no new date yet).
++    """
+     fixtures = _fixtures(load_clubs())
+-    if not any(f.kickoff for f in fixtures):
+-        return FULL, now.astimezone(TZ).replace(minute=0, second=0, microsecond=0).isoformat()
++    pending = [f for f in fixtures if not f.completed]
++    if not fixtures or (pending and not any(f.kickoff is not None and f.kickoff > now for f in pending)):
++        return FULL, datetime.combine(now.astimezone(TZ).date(), time(0), tzinfo=TZ).isoformat()
+     slot = due(now, slots(fixtures))
+     return (slot.kind, slot.at.isoformat()) if slot else (SKIP, "")
+ 
+ 
+ # --- refreshing raw/ --------------------------------------------------------------------------------------
+ 
+ def _attempt(source: str, errors: list[str], step: Callable[[], object]):
+     """step() or, when it raises, None with "<source>: <error>" added to errors."""
+     try:
+         return step()
+@@ -107,46 +118,60 @@ def _refresh_calendar(fetch: Fetcher, errors: list[str], every: bool) -> None:
+     for md in wanted:
+         rows = _attempt(f"calendar: matchday {md}", errors,
+                         lambda: _rows(parse_calendar(fetch(config.fc_calendar_url(md)), md)))
+         if rows is not None:
+             fetched[str(md)] = rows
+     if fetched:
+         _save("calendar", _by_matchday({**stored, **fetched}))
+ 
+ 
+ def _refresh_espn(fetch: Fetcher, clubs: list[Club], errors: list[str]) -> None:
+-    """Each club's results and upcoming fixtures; a club whose pages fail keeps its previous matches."""
++    """Each club's results and upcoming fixtures; a club whose pages fail, or don't hold all its MATCHDAYS
++    matches between them, keeps its previous matches (at season end the upcoming page is empty, rightly)."""
+     def pages(club: Club) -> list[dict]:
+         results = parse_schedule(json.loads(fetch(config.espn_schedule_url(club.espn_id, config.ESPN_SEASON))))
+         upcoming = parse_schedule(json.loads(fetch(config.espn_fixtures_url(club.espn_id))))
++        found = len({m.espn_id for m in results + upcoming})
++        if found < MATCHDAYS:
++            raise ValueError(f"only {found} of {MATCHDAYS} matches")
+         return _rows(sorted(results + upcoming, key=lambda m: (m.kickoff, m.espn_id)))
+ 
+     stored = _load("espn", {})
+     fetched = {}
+     for club in clubs:
+         rows = _attempt(f"espn: {club.key}", errors, lambda: pages(club))
+         if rows is not None:
+             fetched[club.key] = rows
+     if fetched:
+         merged = stored | fetched
+         _save("espn", {c.key: merged[c.key] for c in clubs if c.key in merged})
+ 
+ 
+ def _refresh_votes(fetch: Fetcher, clubs: list[Club], now: datetime, errors: list[str], every: bool) -> None:
+     """The votes of every matchday with a match completed in the last RECENT (every played matchday when
+-    `every`), including a postponed match finally played: its votes are on its own matchday's page."""
+-    played = [f for f in _fixtures(clubs) if f.completed]
+-    wanted = sorted({f.matchday for f in played if every or now - f.kickoff <= RECENT})
++    `every`), including a postponed match finally played: its votes are on its own matchday's page.
++
++    An empty page keeps the matchday's previous votes. It is an error only once every completed match of
++    the matchday ended more than VOTES_DUE ago; before that the votes may simply not be out yet.
++    """
++    kickoffs: dict[int, list[datetime]] = defaultdict(list)
++    for f in _fixtures(clubs):
++        if f.completed:
++            kickoffs[f.matchday].append(f.kickoff)
+     fetched = {}
+-    for md in wanted:
+-        rows = _attempt(f"votes: matchday {md}", errors, lambda: _rows(parse_votes(fetch(config.fc_votes_url(md)), md)))
+-        if rows is not None:
++    for md, times in sorted(kickoffs.items()):
++        if not (every or any(now - k <= RECENT for k in times)):
++            continue
++        overdue = now - (max(times) + MATCH_LENGTH) > VOTES_DUE
++        rows = _attempt(f"votes: matchday {md}", errors,
++                        lambda: _votes_rows(fetch(config.fc_votes_url(md)), md, overdue))
++        if rows:
+             fetched[str(md)] = rows
+     if fetched:
+         _save("votes", _by_matchday({**_load("votes", {}), **fetched}))
+ 
+ 
+ def _refresh_history(fetch: Fetcher, clubs: list[Club], errors: list[str]) -> None:
+     """Completed matches of the past H2H_SEASONS seasons, added to what raw/ already holds."""
+     stored = {m["espn_id"]: m for m in _load("history", [])}
+     fetched = False
+     for season in range(config.ESPN_SEASON - config.H2H_SEASONS, config.ESPN_SEASON):
+@@ -160,20 +185,26 @@ def _refresh_history(fetch: Fetcher, clubs: list[Club], errors: list[str]) -> No
+         _save("history", sorted(stored.values(), key=lambda m: (m["kickoff"], m["espn_id"])))
+ 
+ 
+ def _rows(items: list) -> list[dict]:
+     """Records of a page that must list something."""
+     if not items:
+         raise ValueError("no rows")
+     return [_record(item) for item in items]
+ 
+ 
++def _votes_rows(html: str, md: int, overdue: bool) -> list[dict]:
++    """The page's votes; [] for an empty page while the votes may not be out yet."""
++    rows = parse_votes(html, md)
++    return _rows(rows) if rows or overdue else []
++
++
+ def _standings_rows(text: str, clubs: list[Club]) -> list[dict]:
+     rows = parse_standings(json.loads(text))
+     missing = sorted(c.key for c in clubs if c.espn_id not in {r.espn_id for r in rows})
+     if missing:
+         raise ValueError(f"missing {', '.join(missing)}")
+     return _rows(rows)
+ 
+ 
+ def _lineups_rows(page: tuple[list[LineupEntry], set[tuple[str, str]]]) -> dict:
+     entries, pairs = page
+diff --git a/pipeline/tests/test_run.py b/pipeline/tests/test_run.py
+index 5657bed..9f9ad9d 100644
+--- a/pipeline/tests/test_run.py
++++ b/pipeline/tests/test_run.py
+@@ -1,19 +1,20 @@
+-from datetime import datetime, timedelta
++from dataclasses import replace
++from datetime import datetime, timedelta, timezone
+ 
+ import pytest
+-from league import (CLUBS, NOW, SEEDED_LINEUPS, current, fake_fetcher, read_out, read_raw, reset, seed_raw,
+-                    write_raw)
++from league import (CLUBS, NOW, SEEDED_LINEUPS, current, espn_page, fake_fetcher, read_out, read_raw, reset,
++                    seed_raw, write_raw)
+ 
+ from fantaspec import __main__ as cli
+-from fantaspec.config import (ESPN_SEASON, H2H_SEASONS, TZ, espn_schedule_url, fc_calendar_url, fc_lineups_url,
+-                              fc_roster_url, fc_unavailable_url, fc_votes_url)
++from fantaspec.config import (ESPN_SEASON, H2H_SEASONS, TZ, espn_fixtures_url, espn_schedule_url, fc_calendar_url,
++                              fc_lineups_url, fc_roster_url, fc_unavailable_url, fc_votes_url)
+ from fantaspec.run import RunResult, gate, run
+ 
+ 
+ @pytest.fixture(autouse=True)
+ def fresh_season():
+     reset()
+ 
+ 
+ def seed_out(repo) -> None:
+     """web/public/data as a good full run on the seeded raw/ writes it."""
+@@ -103,32 +104,105 @@ def test_backfill_fills_raw_from_scratch(tmp_repo):
+             assert espn_schedule_url(club.espn_id, season) in fetch.requested
+     assert len(read_raw(tmp_repo, "calendar")) == 38
+     assert [m["espn_id"] for m in read_raw(tmp_repo, "history")] == ["h1", "h2", "h3", "h4"]   # once each
+     lazio = read_out(tmp_repo, "clubs")["lazio"]
+     assert lazio["next"]["opponent"] == current().rival and lazio["next"]["matchday"] == 10
+     assert lazio["next"]["h2h"] == ["W", "D", "L"]
+     assert read_out(tmp_repo, "meta")["nextMatchday"] == {"number": 10, "from": "2026-10-31", "to": "2026-10-31"}
+     assert read_out(tmp_repo, "players")["572"]["season"]["pres"] > 0
+ 
+ 
+-def test_gate_without_raw_runs_full_this_hour(tmp_repo):
+-    assert gate(datetime(2026, 10, 30, 12, 20, tzinfo=TZ)) == ("full", "2026-10-30T12:00:00+01:00")
++def test_espn_pages_must_cover_the_whole_season(tmp_repo):
++    seed_raw(tmp_repo); seed_out(tmp_repo)
++    espn, clubs, meta = read_raw(tmp_repo, "espn"), read_out(tmp_repo, "clubs"), read_out(tmp_repo, "meta")
++    napoli = [m for m in current().matches if 114 in (m.home_espn, m.away_espn)]
++    pages = {espn_fixtures_url(c.espn_id): espn_page([]) for c in CLUBS}     # upcoming pages come back empty
++    # Napoli's upcoming page lists a played match instead of its first upcoming one: 38 events, 37 different
++    pages[espn_fixtures_url(114)] = espn_page(napoli[:1] + [m for m in napoli if not m.completed][1:])
++    result = run("full", fake_fetcher(override=pages), now=NOW + timedelta(minutes=5))
++    assert result.errors == [f"espn: {c.key}: ValueError: only {37 if c.key == 'napoli' else 9} of 38 matches"
++                             for c in CLUBS]
++    assert result.wrote is False
++    assert read_raw(tmp_repo, "espn") == espn
++    assert read_out(tmp_repo, "clubs") == clubs
++    assert read_out(tmp_repo, "meta")["nextMatchday"] == meta["nextMatchday"] == {
++        "number": 10, "from": "2026-10-31", "to": "2026-10-31"}
++
++
++def test_a_club_with_its_season_over_needs_no_upcoming_page(tmp_repo):
++    seed_raw(tmp_repo)
++    # as if Napoli had played its whole season: its 29 unplayed matches moved a year back and completed
++    napoli = [m if m.completed else replace(m, kickoff=m.kickoff - timedelta(days=365), completed=True,
++                                            home_goals=1, away_goals=0)
++              for m in current().matches if 114 in (m.home_espn, m.away_espn)]
++    pages = {espn_schedule_url(114, ESPN_SEASON): espn_page(napoli), espn_fixtures_url(114): espn_page([])}
++    result = run("full", fake_fetcher(override=pages), now=NOW)
++    assert result.errors == []
++    assert len(read_raw(tmp_repo, "espn")["napoli"]) == 38
++    assert read_out(tmp_repo, "clubs")["napoli"]["next"] is None
++
++
++def test_votes_not_out_yet_are_skipped_silently(tmp_repo):
++    seed_raw(tmp_repo, completed_yesterday=[("lazio", "roma", 3)])   # ended yesterday at 22:45, 13 h ago
++    fetch = fake_fetcher(override={fc_votes_url(3): "<html><body></body></html>"})
++    result = run("full", fetch, now=NOW)
++    assert fc_votes_url(3) in fetch.requested
++    assert result.ok and result.errors == []
++    assert read_raw(tmp_repo, "votes").keys() == {"8", "9"}    # matchday 3 keeps what raw/ had (nothing)
++
++
++def test_votes_still_missing_a_day_after_the_matchday_are_an_error(tmp_repo):
++    seed_raw(tmp_repo)                                             # matchday 9 ended Wednesday at 22:45
++    votes = read_raw(tmp_repo, "votes")
++    result = run("full", fake_fetcher(override={fc_votes_url(9): "<html><body></body></html>"}), now=NOW)
++    assert result.errors == ["votes: matchday 9: ValueError: no rows"]
++    assert read_raw(tmp_repo, "votes") == votes
++
++
++def test_first_full_run_on_empty_raw_is_a_backfill(tmp_repo):
++    fetch = fake_fetcher()
++    result = run("full", fetch, now=NOW)
++    assert result.ok and result.wrote, result.errors
++    for club in CLUBS:
++        assert espn_schedule_url(club.espn_id, ESPN_SEASON - 1) in fetch.requested
++    assert [u for u in fetch.requested if "voti" in u] == [fc_votes_url(md) for md in range(1, 10)]
++    assert [m["espn_id"] for m in read_raw(tmp_repo, "history")] == ["h1", "h2", "h3", "h4"]
++    assert read_out(tmp_repo, "meta")["lastRun"]["kind"] == "full"
++
++
++def test_gate_without_raw_runs_full_once_a_day(tmp_repo):
++    assert gate(datetime(2026, 10, 30, 12, 20, tzinfo=TZ)) == ("full", "2026-10-30T00:00:00+01:00")
++    assert gate(datetime(2026, 10, 30, 23, 59, tzinfo=TZ)) == ("full", "2026-10-30T00:00:00+01:00")   # same slot
+ 
+ 
+ def test_gate_follows_the_slots(tmp_repo):
+     seed_raw(tmp_repo)
+     assert gate(NOW + timedelta(minutes=7)) == ("full", "2026-10-30T12:00:00+01:00")   # 2nd day after matchday 9
+     assert gate(datetime(2026, 10, 30, 19, 7, tzinfo=TZ)) == ("light", "2026-10-30T19:00:00+01:00")
+     assert gate(datetime(2026, 10, 30, 15, 7, tzinfo=TZ)) == ("skip", "")
+     assert gate(datetime(2026, 11, 1, 0, 59, tzinfo=TZ)) == ("full", "2026-10-31T23:30:00+01:00")   # late trigger
+ 
+ 
++def test_gate_runs_full_when_no_fixture_left_has_a_date(tmp_repo):
++    seed_raw(tmp_repo)
++    espn = read_raw(tmp_repo, "espn")
++    write_raw(tmp_repo, "espn", {k: [m for m in v if m["completed"]] for k, v in espn.items()})   # dates lost
++    # once a day: the slot is the local date, so the workflow runs it once
++    assert gate(datetime(2026, 10, 30, 15, 7, tzinfo=TZ)) == ("full", "2026-10-30T00:00:00+01:00")
++    assert gate(datetime(2026, 10, 30, 16, 7, tzinfo=TZ)) == ("full", "2026-10-30T00:00:00+01:00")
++    assert gate(datetime(2026, 10, 30, 23, 30, tzinfo=timezone.utc)) == ("full", "2026-10-31T00:00:00+01:00")
++    # season over: every fixture completed, no fallback
++    write_raw(tmp_repo, "espn", {k: [{**m, "completed": True, "home_goals": 1, "away_goals": 1} for m in v]
++                                 for k, v in espn.items()})
++    assert gate(datetime(2027, 6, 1, 15, 7, tzinfo=TZ)) == ("skip", "")
++
++
+ def test_cli_gate_prints_and_appends_to_github_output(tmp_repo, monkeypatch, capsys):
+     output = tmp_repo / "github_output"
+     output.write_text("before=1\n")
+     monkeypatch.setenv("GITHUB_OUTPUT", str(output))
+     assert cli.main(["gate"]) == 0
+     printed = capsys.readouterr().out
+     assert printed.startswith("kind=full\nslot=20") and printed.count("\n") == 2   # no raw/ yet
+     assert output.read_text() == "before=1\n" + printed
+ 
+ 

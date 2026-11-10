@@ -1,0 +1,1466 @@
+# Review package: d02e1fb..4693ce1
+
+## Commits
+4693ce1 web: squad screen
+
+## Files changed
+ docs/superpowers/plans/2026-10-30-fantaspec.md |  10 +-
+ web/src/components/ClubCompare.tsx             |  58 ++++
+ web/src/components/ErrorBoundary.test.tsx      |  19 ++
+ web/src/components/ErrorBoundary.tsx           |  17 ++
+ web/src/components/FormPills.test.tsx          |  10 +
+ web/src/components/FormPills.tsx               |  13 +
+ web/src/components/MatchCards.tsx              |  45 +++
+ web/src/components/PlayerDetail.tsx            |  75 +++++
+ web/src/components/PlayerRow.tsx               |  62 ++++
+ web/src/components/Sparkline.test.tsx          |  22 ++
+ web/src/components/Sparkline.tsx               |  35 +++
+ web/src/format.test.ts                         |  14 +-
+ web/src/format.ts                              |  19 ++
+ web/src/screens/SquadScreen.test.tsx           | 205 +++++++++++++
+ web/src/screens/SquadScreen.tsx                | 106 ++++++-
+ web/src/screens/squadView.ts                   | 108 +++++++
+ web/src/styles.css                             | 393 +++++++++++++++++++++++++
+ 17 files changed, 1201 insertions(+), 10 deletions(-)
+
+## Diff
+diff --git a/docs/superpowers/plans/2026-10-30-fantaspec.md b/docs/superpowers/plans/2026-10-30-fantaspec.md
+index 378bc55..4beafae 100644
+--- a/docs/superpowers/plans/2026-10-30-fantaspec.md
++++ b/docs/superpowers/plans/2026-10-30-fantaspec.md
+@@ -561,21 +561,21 @@ test("no squads sends the user to the editor", async () => {
+ **Files:**
+ - Create: `web/src/screens/SquadScreen.tsx`, `web/src/components/{PlayerRow,PlayerDetail,MatchCards,FormPills,Sparkline}.tsx`
+ - Test: `web/src/screens/SquadScreen.test.tsx`
+ 
+ **Interfaces:**
+ - Consumes: `AppData`, `Squad`, `format.ts` helpers, copy table above.
+ - Produces: `SquadScreen({ data, squads, selectedId, onSelect }: Props)`.
+ 
+ Layout (spec "Squad screen"): header (squad select, sort select, `Giornata …`, `Aggiornato …`, red banner when `lastRun.ok` is false), collapsed match cards (`<details>`), role chips, rows. Row line 1: role, name, status tag, Start % (`startClass`), chevron. Line 2: `vs`/`@` opponent and its position, `FV {medFV}`, matchup text. Tap toggles the detail (several can be open). Matchup value: opponent `gf/played` for P and D, `ga/played` for C and A, coloured with `tertile` across all 20 clubs. Sorting: `Per ruolo` (P, D, C, A, then name), `Titolarità` (desc, null last), `FV mediana` (desc, null last), `Sfida` (best matchup first: lowest opponent GF/game for P/D, highest opponent GA/game for C/A).
+ 
+-- [ ] **Step 1: Write the failing tests**
++- [x] **Step 1: Write the failing tests**
+ 
+ ```tsx
+ test("groups by role with Italian headers", () => {
+   render(<SquadScreen {...props} />);
+   expect(screen.getAllByRole("heading").map(h => h.textContent)).toEqual(["Portieri", "Difensori", "Centrocampisti", "Attaccanti"]);
+ });
+ test("D chip + Sfida sort puts the defender facing the weakest attack first", async () => {
+   render(<SquadScreen {...props} />);
+   await user.click(screen.getByRole("button", { name: "D" }));
+   await user.selectOptions(screen.getByLabelText("Ordina"), "Sfida");
+@@ -600,25 +600,25 @@ test("club with no next match", () => {
+   render(<SquadScreen {...props} />);
+   expect(within(row("Senzapartita")).getByText("nessuna partita")).toBeInTheDocument();
+ });
+ test("status tags and collapsed match cards", () => {
+   render(<SquadScreen {...props} />);
+   expect(within(row("Kean")).getByText("infortunato")).toBeInTheDocument();
+   expect(screen.getByText(/Partite della giornata/).closest("details")).not.toHaveAttribute("open");
+ });
+ ```
+ 
+-- [ ] **Step 2: Run** `npx vitest run src/screens/SquadScreen.test.tsx`. Expected: FAIL.
+-- [ ] **Step 3: Implement** the screen and components. `Sparkline` is an inline SVG polyline (60×16) over the `last5.fv` values with gaps for `null`; `FormPills` renders W/D/L as `V`/`N`/`P` squares (Italian). Styles in `styles.css` with CSS variables and a `prefers-color-scheme: dark` block; the page content is a single column with `max-width: 480px` centred, which is the desktop layout too.
+-- [ ] **Step 4: Run the tests again.** Expected: PASS.
++- [x] **Step 2: Run** `npx vitest run src/screens/SquadScreen.test.tsx`. Expected: FAIL.
++- [x] **Step 3: Implement** the screen and components. `Sparkline` is an inline SVG polyline (60×16) over the `last5.fv` values with gaps for `null`; `FormPills` renders W/D/L as `V`/`N`/`P` squares (Italian). Styles in `styles.css` with CSS variables and a `prefers-color-scheme: dark` block; the page content is a single column with `max-width: 480px` centred, which is the desktop layout too.
++- [x] **Step 4: Run the tests again.** Expected: PASS.
+ - [ ] **Step 5: Check at 360px.** `npm run dev`, open it in the browser pane, resize to 360×780, load `public/data` from the Task 7 backfill: no horizontal scroll, rows expand, chips and sort work. Screenshot for the user.
+-- [ ] **Step 6: Commit** `git commit -m "web: squad screen"`.
++- [x] **Step 6: Commit** `git commit -m "web: squad screen"`.
+ 
+ ---
+ 
+ ### Task 10: Squad editor and import
+ 
+ **Files:**
+ - Create: `web/src/screens/SquadEditor.tsx`, `web/src/screens/ImportScreen.tsx`
+ - Test: `web/src/screens/SquadEditor.test.tsx`, `web/src/screens/ImportScreen.test.tsx`
+ 
+ **Interfaces:**
+diff --git a/web/src/components/ClubCompare.tsx b/web/src/components/ClubCompare.tsx
+new file mode 100644
+index 0000000..8defead
+--- /dev/null
++++ b/web/src/components/ClubCompare.tsx
+@@ -0,0 +1,58 @@
++import type { ReactNode } from "react";
++import { num1, perGame } from "../format";
++import { mirror } from "../screens/squadView";
++import type { ClubData, Result, Split } from "../types";
++import { FormPills } from "./FormPills";
++
++type Props = {
++  club: ClubData;
++  opponent: ClubData;
++  /** Whether `club` plays the match at home. */
++  home: boolean;
++  /** Last meetings from `club`'s side, oldest first. */
++  h2h: Result[];
++  /** Squad players on each side, when the table sits in a match card. */
++  players?: [string[], string[]];
++};
++
++const splitText = (s: Split) => `${s.gf}–${s.ga} in ${s.played}`;
++
++/** Club and opponent side by side; the venue row uses the club's home and the opponent's away numbers, or the reverse. */
++export function ClubCompare({ club, opponent, home, h2h, players }: Props) {
++  const row = (label: string, ours: ReactNode, theirs: ReactNode) => (
++    <tr>
++      <th scope="row">{label}</th>
++      <td>{ours}</td>
++      <td>{theirs}</td>
++    </tr>
++  );
++  return (
++    <table className="compare">
++      <thead>
++        <tr>
++          <td />
++          <th scope="col">{club.name}</th>
++          <th scope="col">{opponent.name}</th>
++        </tr>
++      </thead>
++      <tbody>
++        {row("Classifica", `${club.position}° · ${club.points} pt`, `${opponent.position}° · ${opponent.points} pt`)}
++        {row("Forma", <FormPills results={club.form} />, <FormPills results={opponent.form} />)}
++        {row("Gol fatti a partita", num1(perGame(club.gf, club.played)), num1(perGame(opponent.gf, opponent.played)))}
++        {row("Gol subiti a partita", num1(perGame(club.ga, club.played)), num1(perGame(opponent.ga, opponent.played)))}
++        {home
++          ? row("In casa / In trasferta", splitText(club.home), splitText(opponent.away))
++          : row("In trasferta / In casa", splitText(club.away), splitText(opponent.home))}
++        {h2h.length > 0
++          ? row("Precedenti", <FormPills results={h2h} />, <FormPills results={mirror(h2h)} />)
++          : (
++            <tr>
++              <th scope="row">Precedenti</th>
++              <td colSpan={2}>nessun precedente</td>
++            </tr>
++          )}
++        {players && row("In rosa", players[0].join(", "), players[1].join(", "))}
++      </tbody>
++    </table>
++  );
++}
+diff --git a/web/src/components/ErrorBoundary.test.tsx b/web/src/components/ErrorBoundary.test.tsx
+new file mode 100644
+index 0000000..322c1ef
+--- /dev/null
++++ b/web/src/components/ErrorBoundary.test.tsx
+@@ -0,0 +1,19 @@
++import { render, screen } from "@testing-library/react";
++import { ErrorBoundary } from "./ErrorBoundary";
++
++function Broken(): never {
++  throw new Error("bad data");
++}
++
++test("a child that throws while rendering is replaced by the fallback", () => {
++  vi.spyOn(console, "error").mockImplementation(() => {});
++  render(
++    <ul>
++      <ErrorBoundary fallback={<li>Meret: dati non disponibili</li>}><Broken /></ErrorBoundary>
++      <ErrorBoundary fallback={<li>Kean: dati non disponibili</li>}><li>Kean</li></ErrorBoundary>
++    </ul>,
++  );
++  expect(screen.getByText("Meret: dati non disponibili")).toBeInTheDocument();
++  expect(screen.getByText("Kean")).toBeInTheDocument();
++  expect(screen.queryByText("Kean: dati non disponibili")).not.toBeInTheDocument();
++});
+diff --git a/web/src/components/ErrorBoundary.tsx b/web/src/components/ErrorBoundary.tsx
+new file mode 100644
+index 0000000..aeb7887
+--- /dev/null
++++ b/web/src/components/ErrorBoundary.tsx
+@@ -0,0 +1,17 @@
++import { Component, type ReactNode } from "react";
++
++type Props = { fallback: ReactNode; children: ReactNode };
++type State = { failed: boolean };
++
++/** Shows `fallback` in place of children that threw while rendering, so one bad entry never blanks the page. */
++export class ErrorBoundary extends Component<Props, State> {
++  state: State = { failed: false };
++
++  static getDerivedStateFromError(): State {
++    return { failed: true };
++  }
++
++  render() {
++    return this.state.failed ? this.props.fallback : this.props.children;
++  }
++}
+diff --git a/web/src/components/FormPills.test.tsx b/web/src/components/FormPills.test.tsx
+new file mode 100644
+index 0000000..a706e3c
+--- /dev/null
++++ b/web/src/components/FormPills.test.tsx
+@@ -0,0 +1,10 @@
++import { render, screen } from "@testing-library/react";
++import { FormPills } from "./FormPills";
++
++test("results read as Italian letters, oldest first, coloured by outcome", () => {
++  render(<FormPills results={["W", "D", "L"]} />);
++  const pills = screen.getAllByText(/^[VNP]$/);
++  expect(pills.map(p => p.textContent)).toEqual(["V", "N", "P"]);
++  expect(pills[0]).toHaveClass("good");
++  expect(pills[2]).toHaveClass("bad");
++});
+diff --git a/web/src/components/FormPills.tsx b/web/src/components/FormPills.tsx
+new file mode 100644
+index 0000000..d967c65
+--- /dev/null
++++ b/web/src/components/FormPills.tsx
+@@ -0,0 +1,13 @@
++import type { Result } from "../types";
++
++const LETTER: Record<Result, string> = { W: "V", D: "N", L: "P" };
++const TONE: Record<Result, string> = { W: "good", D: "", L: "bad" };
++
++/** Results as small squares, oldest first, in Italian: V vinta, N pareggiata, P persa. */
++export function FormPills({ results }: { results: Result[] }) {
++  return (
++    <span className="pills">
++      {results.map((r, i) => <span key={i} className={`pill ${TONE[r]}`}>{LETTER[r]}</span>)}
++    </span>
++  );
++}
+diff --git a/web/src/components/MatchCards.tsx b/web/src/components/MatchCards.tsx
+new file mode 100644
+index 0000000..7e443fe
+--- /dev/null
++++ b/web/src/components/MatchCards.tsx
+@@ -0,0 +1,45 @@
++import { useState } from "react";
++import { kickoffTime } from "../format";
++import { mirror, type Row } from "../screens/squadView";
++import type { ClubData, Result } from "../types";
++import { ClubCompare } from "./ClubCompare";
++
++type Match = { key: string; kickoff: string; home: ClubData; away: ClubData; h2h: Result[] };
++
++/** Each squad club's next match, once per pairing, soonest first. h2h is from the home side. */
++function upcomingMatches(rows: Row[]): Match[] {
++  const matches = new Map<string, Match>();
++  for (const { club, opponent } of rows) {
++    if (!club?.next || !opponent) continue;
++    const { home: atHome, kickoff, h2h } = club.next;
++    const [home, away] = atHome ? [club, opponent] : [opponent, club];
++    const key = `${home.key}|${away.key}|${kickoff}`;
++    if (!matches.has(key)) matches.set(key, { key, kickoff, home, away, h2h: atHome ? h2h : mirror(h2h) });
++  }
++  return [...matches.values()].sort((a, b) => Date.parse(a.kickoff) - Date.parse(b.kickoff));
++}
++
++/** A collapsed section with one card per upcoming match involving the squad. */
++export function MatchCards({ rows }: { rows: Row[] }) {
++  // The cards are only built once the section is opened.
++  const [open, setOpen] = useState(false);
++  const matches = upcomingMatches(rows);
++  if (matches.length === 0) return null;
++  const names = (club: ClubData) => rows.filter(r => r.club?.key === club.key).map(r => r.name);
++  return (
++    <details className="matches" onToggle={e => setOpen(e.currentTarget.open)}>
++      <summary>
++        Partite della giornata <span className="muted">({matches.length})</span>
++      </summary>
++      {open && matches.map(m => (
++        <article className="match-card" key={m.key}>
++          <p className="match-title">
++            <strong>{`${m.home.name} – ${m.away.name}`}</strong>
++            <span className="muted">{kickoffTime(m.kickoff)}</span>
++          </p>
++          <ClubCompare club={m.home} opponent={m.away} home h2h={m.h2h} players={[names(m.home), names(m.away)]} />
++        </article>
++      ))}
++    </details>
++  );
++}
+diff --git a/web/src/components/PlayerDetail.tsx b/web/src/components/PlayerDetail.tsx
+new file mode 100644
+index 0000000..a9451bf
+--- /dev/null
++++ b/web/src/components/PlayerDetail.tsx
+@@ -0,0 +1,75 @@
++import { num1 } from "../format";
++import type { Row } from "../screens/squadView";
++import type { PlayerData } from "../types";
++import { ClubCompare } from "./ClubCompare";
++import { Sparkline } from "./Sparkline";
++
++/** A keeper's goals conceded count against him: shown negative, in red. */
++function Conceded({ n }: { n: number }) {
++  return n > 0 ? <span className="bad">−{n}</span> : <span>0</span>;
++}
++
++/** The expanded part of a row: season and last-5 numbers, the trend, then the club against its next opponent. */
++export function PlayerDetail({ row, player }: { row: Row; player: PlayerData }) {
++  const { season, last5 } = player;
++  const keeper = player.role === "P";
++  const next = row.club?.next;
++  return (
++    <div className="detail">
++      {player.status?.text && <p className="status-note">{player.status.text}</p>}
++      <table className="stats">
++        <thead>
++          <tr>
++            <td />
++            <th scope="col">Stagione</th>
++            <th scope="col">Ultime 5</th>
++          </tr>
++        </thead>
++        <tbody>
++          <tr>
++            <th scope="row">Pres</th>
++            <td>{season.pres}</td>
++            <td>{last5.fv.length > 0 ? `${last5.played}/${last5.fv.length}` : "–"}</td>
++          </tr>
++          <tr>
++            <th scope="row">Med V</th>
++            <td>{num1(season.medV)}</td>
++            <td />
++          </tr>
++          <tr>
++            <th scope="row">Med FV</th>
++            <td>{num1(season.medFV)}</td>
++            <td />
++          </tr>
++          <tr>
++            <th scope="row">{keeper ? "Gol sub." : "Gol"}</th>
++            <td>{keeper ? <Conceded n={season.gs} /> : season.g}</td>
++            <td>{keeper ? <Conceded n={last5.gs} /> : last5.g}</td>
++          </tr>
++          <tr>
++            <th scope="row">Assist</th>
++            <td>{season.a}</td>
++            <td>{last5.a}</td>
++          </tr>
++          {season.cs !== null && (
++            <tr>
++              <th scope="row">Imbattuto</th>
++              <td>{season.cs}</td>
++              <td />
++            </tr>
++          )}
++        </tbody>
++      </table>
++      {last5.fv.length > 0 && (
++        <p className="trend">
++          <span className="muted">FV ultime 5</span>
++          <Sparkline values={last5.fv} />
++          <span className="trend-values">{last5.fv.map(num1).join(" ")}</span>
++        </p>
++      )}
++      {row.club && row.opponent && next && (
++        <ClubCompare club={row.club} opponent={row.opponent} home={next.home} h2h={next.h2h} />
++      )}
++    </div>
++  );
++}
+diff --git a/web/src/components/PlayerRow.tsx b/web/src/components/PlayerRow.tsx
+new file mode 100644
+index 0000000..dcb347d
+--- /dev/null
++++ b/web/src/components/PlayerRow.tsx
+@@ -0,0 +1,62 @@
++import { num1, startClass } from "../format";
++import type { Row } from "../screens/squadView";
++import type { PlayerStatus } from "../types";
++import { PlayerDetail } from "./PlayerDetail";
++
++const STATUS: Record<PlayerStatus["kind"], string> = {
++  suspended: "squalificato",
++  injured: "infortunato",
++  doubtful: "in dubbio",
++  warned: "diffidato",
++};
++
++/** Where the player's next match is: "@ Juventus 2°", or why there is none. */
++function fixtureText({ club, opponent }: Row): string {
++  if (!club) return "non più in Serie A";
++  if (!club.next || !opponent) return "nessuna partita";
++  return `${club.next.home ? "vs" : "@"} ${opponent.name} ${opponent.position}°`;
++}
++
++type Props = { row: Row; open: boolean; onToggle: () => void };
++
++/** One player: two compact lines; a tap expands the detail in place. */
++export function PlayerRow({ row, open, onToggle }: Props) {
++  const { player, matchup } = row;
++
++  if (!player) {
++    // Gone from the data altogether: only the name the squad stored is left.
++    return (
++      <li className="row">
++        <div className="row-main">
++          <span className="line1">
++            <span className="role">–</span>
++            <span className="player-name">{row.name}</span>
++          </span>
++          <span className="line2">
++            <span>{fixtureText(row)}</span>
++          </span>
++        </div>
++      </li>
++    );
++  }
++
++  return (
++    <li className="row">
++      <button type="button" className="row-main" aria-expanded={open} onClick={onToggle}>
++        <span className="line1">
++          <span className={`role role-${player.role}`}>{player.role}</span>
++          <span className="player-name">{row.name}</span>
++          {player.status && <span className={`tag tag-${player.status.kind}`}>{STATUS[player.status.kind]}</span>}
++          {player.startPct !== null && <span className={`start ${startClass(player.startPct)}`}>{`${player.startPct}%`}</span>}
++          <span className="chevron" aria-hidden="true">▾</span>
++        </span>
++        <span className="line2">
++          <span>{fixtureText(row)}</span>
++          <span>{`FV ${num1(player.season.medFV)}`}</span>
++          {matchup && <span className={`matchup ${matchup.tone}`}>{`${matchup.label} ${num1(matchup.value)}`}</span>}
++        </span>
++      </button>
++      {open && <PlayerDetail row={row} player={player} />}
++    </li>
++  );
++}
+diff --git a/web/src/components/Sparkline.test.tsx b/web/src/components/Sparkline.test.tsx
+new file mode 100644
+index 0000000..28f08ca
+--- /dev/null
++++ b/web/src/components/Sparkline.test.tsx
+@@ -0,0 +1,22 @@
++import { render } from "@testing-library/react";
++import { Sparkline } from "./Sparkline";
++
++test("a 60x16 chart with one line per run of votes and a dot for a lone vote", () => {
++  const { container } = render(<Sparkline values={[6.5, 7, null, 6, null]} />);
++  const svg = container.querySelector("svg")!;
++  expect(svg).toHaveAttribute("width", "60");
++  expect(svg).toHaveAttribute("height", "16");
++  expect(svg.querySelectorAll("polyline")).toHaveLength(1);
++  expect(svg.querySelector("polyline")!.getAttribute("points")!.split(" ")).toHaveLength(2);
++  expect(svg.querySelectorAll("circle")).toHaveLength(1);
++});
++
++test("missing votes leave a gap instead of joining across it", () => {
++  const { container } = render(<Sparkline values={[6, 7, null, 6, 8]} />);
++  expect(container.querySelectorAll("polyline")).toHaveLength(2);
++});
++
++test("no votes draw nothing", () => {
++  const { container } = render(<Sparkline values={[null, null, null]} />);
++  expect(container.querySelectorAll("polyline, circle")).toHaveLength(0);
++});
+diff --git a/web/src/components/Sparkline.tsx b/web/src/components/Sparkline.tsx
+new file mode 100644
+index 0000000..7c22d07
+--- /dev/null
++++ b/web/src/components/Sparkline.tsx
+@@ -0,0 +1,35 @@
++const WIDTH = 60;
++const HEIGHT = 16;
++const PAD = 2;
++
++/** Fantavote trend over the club's last matches: a line per run of votes, a dot for a lone one, gaps where none. */
++export function Sparkline({ values }: { values: (number | null)[] }) {
++  const present = values.filter((v): v is number => v !== null);
++  const min = Math.min(...present);
++  const span = Math.max(...present) - min;
++  const x = (i: number) => (values.length > 1 ? PAD + (i * (WIDTH - 2 * PAD)) / (values.length - 1) : WIDTH / 2);
++  const y = (v: number) => (span > 0 ? HEIGHT - PAD - ((v - min) * (HEIGHT - 2 * PAD)) / span : HEIGHT / 2);
++
++  // Split into runs of consecutive votes.
++  const runs: [number, number][][] = [];
++  let run: [number, number][] = [];
++  values.forEach((v, i) => {
++    if (v === null) {
++      if (run.length) runs.push(run);
++      run = [];
++    } else {
++      run.push([x(i), y(v)]);
++    }
++  });
++  if (run.length) runs.push(run);
++
++  return (
++    <svg className="sparkline" width={WIDTH} height={HEIGHT} viewBox={`0 0 ${WIDTH} ${HEIGHT}`} aria-hidden="true">
++      {runs.map((points, i) =>
++        points.length === 1
++          ? <circle key={i} cx={points[0][0]} cy={points[0][1]} r={1.5} />
++          : <polyline key={i} points={points.map(([px, py]) => `${px},${py}`).join(" ")} />,
++      )}
++    </svg>
++  );
++}
+diff --git a/web/src/format.test.ts b/web/src/format.test.ts
+index 2521171..9e52755 100644
+--- a/web/src/format.test.ts
++++ b/web/src/format.test.ts
+@@ -1,11 +1,11 @@
+-import { dateRange, num1, perGame, startClass, tertile } from "./format";
++import { dateRange, dayTime, kickoffTime, num1, perGame, startClass, tertile } from "./format";
+ 
+ test("italian number format", () => {
+   expect(num1(6.5)).toBe("6,5"); expect(num1(null)).toBe("–");
+ });
+ 
+ test("num1 always shows one decimal", () => {
+   expect(num1(6)).toBe("6,0");
+   expect(num1(1.666)).toBe("1,7");
+   expect(num1(0)).toBe("0,0");
+ });
+@@ -45,10 +45,22 @@ test("start percentage classes", () => {
+   expect(startClass(74)).toBe(""); expect(startClass(50)).toBe("");
+   expect(startClass(49)).toBe("bad"); expect(startClass(0)).toBe("bad");
+   expect(startClass(null)).toBe("");
+ });
+ 
+ test("matchday date range", () => {
+   expect(dateRange("2026-10-31", "2026-11-02")).toBe("31 ott – 2 nov");
+   expect(dateRange("2026-12-29", "2027-01-01")).toBe("29 dic – 1 gen");
+   expect(dateRange("2026-10-31", "2026-10-31")).toBe("31 ott");
+ });
++
++test("date and time are shown in Rome time, whatever the browser's zone", () => {
++  expect(dayTime("2026-10-31T10:07:12+01:00")).toBe("31 ott 10:07");
++  expect(dayTime("2026-10-30T18:05:00Z")).toBe("30 ott 19:05");
++  expect(dayTime("2026-07-01T08:00:00Z")).toBe("1 lug 10:00"); // summer time
++  expect(dayTime("2026-10-31T23:30:00Z")).toBe("1 nov 00:30");
++});
++
++test("kickoff with the weekday", () => {
++  expect(kickoffTime("2026-10-31T18:00:00+01:00")).toBe("sab 31 ott 18:00");
++  expect(kickoffTime("2026-11-01T19:45:00Z")).toBe("dom 1 nov 20:45");
++});
+diff --git a/web/src/format.ts b/web/src/format.ts
+index 30c9e32..f49e46c 100644
+--- a/web/src/format.ts
++++ b/web/src/format.ts
+@@ -1,12 +1,31 @@
+ const oneDecimal = new Intl.NumberFormat("it-IT", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+ const dayMonth = new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "short", timeZone: "UTC" });
++// Times are always shown in Italian time, whatever zone the phone is in.
++const romeTime = new Intl.DateTimeFormat("it-IT", {
++  timeZone: "Europe/Rome", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
++});
++
++function romeParts(iso: string): Record<string, string> {
++  return Object.fromEntries(romeTime.formatToParts(new Date(iso)).map(p => [p.type, p.value]));
++}
++
++/** "2026-10-31T10:07:12+01:00" -> "31 ott 10:07", in Europe/Rome. */
++export function dayTime(iso: string): string {
++  const p = romeParts(iso);
++  return `${p.day} ${p.month} ${p.hour}:${p.minute}`;
++}
++
++/** "2026-10-31T18:00:00+01:00" -> "sab 31 ott 18:00", in Europe/Rome. */
++export function kickoffTime(iso: string): string {
++  return `${romeParts(iso).weekday} ${dayTime(iso)}`;
++}
+ 
+ /** One decimal, Italian style: 6,5. A missing number shows as an en dash. */
+ export function num1(n: number | null): string {
+   return n === null ? "–" : oneDecimal.format(n);
+ }
+ 
+ /** Average per game; 0 for a club that has not played yet. */
+ export function perGame(total: number, played: number): number {
+   return played > 0 ? total / played : 0;
+ }
+diff --git a/web/src/screens/SquadScreen.test.tsx b/web/src/screens/SquadScreen.test.tsx
+new file mode 100644
+index 0000000..9d11a32
+--- /dev/null
++++ b/web/src/screens/SquadScreen.test.tsx
+@@ -0,0 +1,205 @@
++import { render, screen, within } from "@testing-library/react";
++import userEvent, { type UserEvent } from "@testing-library/user-event";
++import { SquadScreen } from "./SquadScreen";
++import type { PlayerData } from "../types";
++import { fullSquad, sampleData, sampleSquad } from "../test/sampleData";
++
++const props = { data: sampleData, squads: [fullSquad], selectedId: fullSquad.id, onSelect: () => {} };
++
++let user: UserEvent;
++beforeEach(() => {
++  user = userEvent.setup();
++});
++
++/** The list row of the player shown under `name`. */
++const row = (name: string) => screen.getByText(name).closest("li")!;
++/** Player names in the order the rows are shown. */
++const rowNames = () => screen.getAllByRole("listitem").map(li => li.querySelector(".player-name")?.textContent);
++
++test("groups by role with Italian headers", () => {
++  render(<SquadScreen {...props} />);
++  expect(screen.getAllByRole("heading").map(h => h.textContent)).toEqual(["Portieri", "Difensori", "Centrocampisti", "Attaccanti"]);
++});
++
++test("D chip + Sfida sort puts the defender facing the weakest attack first", async () => {
++  render(<SquadScreen {...props} />);
++  await user.click(screen.getByRole("button", { name: "D" }));
++  await user.selectOptions(screen.getByLabelText("Ordina"), "Sfida");
++  expect(rowNames()).toEqual(["Bastoni", "Dimarco", "Di Lorenzo"]); // per sampleData
++});
++
++test("tapping a row shows the club vs opponent comparison", async () => {
++  render(<SquadScreen {...props} />);
++  await user.click(screen.getByText("Meret"));
++  expect(screen.getByText("Gol subiti a partita")).toBeInTheDocument();
++  expect(screen.getByText("Gol sub.")).toBeInTheDocument();
++});
++
++test("never-voted and departed players render safely", () => {
++  render(<SquadScreen {...props} />);
++  expect(within(row("Panchinaro")).getByText("FV –")).toBeInTheDocument();
++  expect(within(row("Partito")).getByText("non più in Serie A")).toBeInTheDocument();
++});
++
++test("failed last run shows the banner", () => {
++  render(<SquadScreen {...props} data={{ ...sampleData, meta: { ...sampleData.meta, lastRun: { ...sampleData.meta.lastRun, ok: false } } }} />);
++  expect(screen.getByText(/Ultimo aggiornamento non riuscito/)).toBeInTheDocument();
++});
++
++test("club with no next match", () => {
++  render(<SquadScreen {...props} />);
++  expect(within(row("Senzapartita")).getByText("nessuna partita")).toBeInTheDocument();
++});
++
++test("status tags and collapsed match cards", () => {
++  render(<SquadScreen {...props} />);
++  expect(within(row("Kean")).getByText("infortunato")).toBeInTheDocument();
++  expect(screen.getByText(/Partite della giornata/).closest("details")).not.toHaveAttribute("open");
++});
++
++// Beyond the brief: the rest of the layout and the edge cases.
++
++test("header shows the matchday and the update time in Rome time, no banner after a good run", () => {
++  render(<SquadScreen {...props} />);
++  expect(screen.getByText("Giornata 10 · 31 ott – 2 nov")).toBeInTheDocument();
++  expect(screen.getByText("Aggiornato 31 ott 10:07")).toBeInTheDocument();
++  expect(screen.queryByText(/Ultimo aggiornamento non riuscito/)).not.toBeInTheDocument();
++});
++
++test("the failed-run banner dates the data in Rome time", () => {
++  const meta = { ...sampleData.meta, updatedAt: "2026-10-30T18:05:00Z", lastRun: { ...sampleData.meta.lastRun, ok: false } };
++  render(<SquadScreen {...props} data={{ ...sampleData, meta }} />);
++  expect(screen.getByText("Ultimo aggiornamento non riuscito: dati del 30 ott 19:05")).toBeInTheDocument();
++});
++
++test("the squad selector picks another squad", async () => {
++  const onSelect = vi.fn();
++  render(<SquadScreen {...props} squads={[fullSquad, sampleSquad]} onSelect={onSelect} />);
++  await user.selectOptions(screen.getByLabelText("Rosa"), sampleSquad.name);
++  expect(onSelect).toHaveBeenCalledWith(sampleSquad.id);
++});
++
++test("row lines: opponent with its position, start chance, median FV and matchup", () => {
++  render(<SquadScreen {...props} />);
++  const diLorenzo = within(row("Di Lorenzo"));
++  expect(diLorenzo.getByText("@ Juventus 2°")).toBeInTheDocument();
++  expect(diLorenzo.getByText("FV 6,8")).toBeInTheDocument();
++  expect(diLorenzo.getByText("avv. segna 1,8")).toBeInTheDocument();
++  expect(diLorenzo.getByText("90%")).toHaveClass("good");
++  const kean = within(row("Kean"));
++  expect(kean.getByText("vs Napoli 4°")).toBeInTheDocument();
++  expect(kean.getByText("avv. subisce 1,1")).toBeInTheDocument();
++  expect(kean.getByText("0%")).toHaveClass("bad");
++});
++
++test("the matchup is green when it helps the player and red when it hurts", () => {
++  // Roma become the weakest attack (Bastoni's opponent), Inter the meanest defence (Panchinaro's opponent).
++  const clubs = { ...sampleData.clubs, roma: { ...sampleData.clubs.roma, gf: 3 }, inter: { ...sampleData.clubs.inter, ga: 3 } };
++  render(<SquadScreen {...props} data={{ ...sampleData, clubs }} />);
++  expect(within(row("Bastoni")).getByText("avv. segna 0,3")).toHaveClass("good");
++  expect(within(row("Panchinaro")).getByText("avv. subisce 0,3")).toHaveClass("bad");
++});
++
++test("role chips filter the rows", async () => {
++  render(<SquadScreen {...props} />);
++  await user.click(screen.getByRole("button", { name: "D" }));
++  expect(rowNames()).toEqual(["Bastoni", "Di Lorenzo", "Dimarco"]);
++  expect(screen.getAllByRole("heading").map(h => h.textContent)).toEqual(["Difensori"]);
++  expect(screen.getByRole("button", { name: "D" })).toHaveAttribute("aria-pressed", "true");
++  await user.click(screen.getByRole("button", { name: "Tutti" }));
++  expect(rowNames()).toHaveLength(fullSquad.players.length);
++});
++
++test("Titolarità: highest start chance first, unknown last, one list without role headers", async () => {
++  render(<SquadScreen {...props} />);
++  await user.selectOptions(screen.getByLabelText("Ordina"), "Titolarità");
++  expect(rowNames()).toEqual(["Meret", "Di Lorenzo", "Bastoni", "Bernardeschi", "Dimarco", "Panchinaro", "Kean", "Senzapartita", "Partito"]);
++  expect(screen.queryAllByRole("heading")).toHaveLength(0);
++});
++
++test("FV mediana: highest median first, never voted last", async () => {
++  render(<SquadScreen {...props} />);
++  await user.click(screen.getByRole("button", { name: "C" }));
++  await user.selectOptions(screen.getByLabelText("Ordina"), "FV mediana");
++  expect(rowNames()).toEqual(["Bernardeschi", "Senzapartita", "Panchinaro"]);
++});
++
++test("Sfida across roles ranks each matchup against all clubs, no fixture last", async () => {
++  render(<SquadScreen {...props} />);
++  await user.selectOptions(screen.getByLabelText("Ordina"), "Sfida");
++  // Roma's attack is weaker than 3 of 5 clubs; Napoli's defence leakier than 2; Juventus' attack weaker than 1
++  // and Inter's defence leakier than 1. Ties keep the role order, then the name.
++  expect(rowNames()).toEqual(["Bastoni", "Dimarco", "Bernardeschi", "Kean", "Meret", "Di Lorenzo", "Panchinaro", "Senzapartita", "Partito"]);
++});
++
++test("rows expand in place, several at once, and collapse on a second tap", async () => {
++  render(<SquadScreen {...props} />);
++  await user.click(screen.getByText("Meret"));
++  await user.click(screen.getByText("Kean"));
++  expect(within(row("Meret")).getByText("Gol sub.")).toBeInTheDocument();
++  expect(within(row("Kean")).getByText("rientro da metà novembre")).toBeInTheDocument();
++  await user.click(screen.getByText("Meret"));
++  expect(within(row("Meret")).queryByText("Gol sub.")).not.toBeInTheDocument();
++  expect(within(row("Kean")).getByText("Gol")).toBeInTheDocument();
++});
++
++test("the detail shows season, last 5 and the club vs opponent numbers", async () => {
++  render(<SquadScreen {...props} />);
++  await user.click(screen.getByText("Meret"));
++  const detail = within(row("Meret"));
++  expect(detail.getByText("−10")).toHaveClass("bad"); // a keeper's goals conceded: negative and red
++  expect(detail.getByText("5/5")).toBeInTheDocument();
++  expect(detail.getByText("5,0 6,0 7,0 4,0 6,0")).toBeInTheDocument();
++  expect(detail.getByText("4° · 17 pt")).toBeInTheDocument();
++  expect(detail.getByText("2° · 20 pt")).toBeInTheDocument();
++  expect(detail.getByText("1,6")).toBeInTheDocument(); // Napoli scored 14 in 9
++  expect(detail.getByText("In trasferta / In casa")).toBeInTheDocument();
++  expect(detail.getByText("6–7 in 4")).toBeInTheDocument(); // Napoli away
++  expect(detail.getByText("10–2 in 5")).toBeInTheDocument(); // Juventus at home
++});
++
++test("a never-voted player's detail shows dashes and an empty trend", async () => {
++  render(<SquadScreen {...props} />);
++  await user.click(screen.getByText("Panchinaro"));
++  const detail = within(row("Panchinaro"));
++  expect(detail.getByText("0/5")).toBeInTheDocument();
++  expect(detail.getByText("– – – – –")).toBeInTheDocument();
++});
++
++test("a departed player's detail keeps his season numbers, with no club comparison", async () => {
++  render(<SquadScreen {...props} />);
++  await user.click(screen.getByText("Partito"));
++  const detail = within(row("Partito"));
++  expect(detail.getByText("Med FV")).toBeInTheDocument();
++  expect(detail.getByText("6,1")).toBeInTheDocument();
++  expect(detail.queryByText("Classifica")).not.toBeInTheDocument();
++  expect(detail.queryByText("0/0")).not.toBeInTheDocument();
++});
++
++test("a squad player missing from the data keeps the stored name", () => {
++  const squad = { ...fullSquad, players: [...fullSquad.players, { id: 123456, name: "Sparito" }] };
++  render(<SquadScreen {...props} squads={[squad]} selectedId={squad.id} />);
++  expect(within(row("Sparito")).getByText("non più in Serie A")).toBeInTheDocument();
++  expect(screen.getAllByRole("heading")).toHaveLength(4);
++});
++
++test("a player whose data breaks the row shows a fallback line and the rest still renders", () => {
++  vi.spyOn(console, "error").mockImplementation(() => {});
++  const broken = { ...sampleData.players["572"], season: null } as unknown as PlayerData;
++  render(<SquadScreen {...props} data={{ ...sampleData, players: { ...sampleData.players, 572: broken } }} />);
++  expect(within(row("Meret")).getByText("dati non disponibili")).toBeInTheDocument();
++  expect(within(row("Kean")).getByText("infortunato")).toBeInTheDocument();
++});
++
++test("match cards: one per upcoming match of the squad's clubs, with the squad players involved", async () => {
++  render(<SquadScreen {...props} />);
++  await user.click(screen.getByText(/Partite della giornata/));
++  const cards = await screen.findAllByRole("article");
++  expect(cards).toHaveLength(2);
++  const first = within(cards[0]);
++  expect(first.getByText("Juventus – Napoli")).toBeInTheDocument();
++  expect(first.getByText("sab 31 ott 18:00")).toBeInTheDocument();
++  expect(first.getByText("Bernardeschi, Kean")).toBeInTheDocument();
++  expect(first.getByText("Meret, Di Lorenzo")).toBeInTheDocument();
++  expect(within(cards[1]).getByText("Inter – Roma")).toBeInTheDocument();
++});
+diff --git a/web/src/screens/SquadScreen.tsx b/web/src/screens/SquadScreen.tsx
+index ff662b7..7ab226e 100644
+--- a/web/src/screens/SquadScreen.tsx
++++ b/web/src/screens/SquadScreen.tsx
+@@ -1,15 +1,113 @@
+-import type { AppData } from "../types";
++import { Fragment, useId, useState } from "react";
++import { ErrorBoundary } from "../components/ErrorBoundary";
++import { MatchCards } from "../components/MatchCards";
++import { PlayerRow } from "../components/PlayerRow";
++import { dateRange, dayTime } from "../format";
+ import type { Squad } from "../squads";
++import type { AppData, Role } from "../types";
++import { buildRows, ROLE_GROUPS, SORTS, sortRows, type Row, type SortKey } from "./squadView";
+ 
+ type Props = {
+   data: AppData;
+   squads: Squad[];
+   selectedId: string;
+   onSelect: (id: string) => void;
+ };
+ 
+-// Placeholder until Task 9.
+-export function SquadScreen({ squads, selectedId }: Props) {
++type Chip = "Tutti" | Role;
++const CHIPS: Chip[] = ["Tutti", "P", "D", "C", "A"];
++
++/** Home: the selected squad's players with their next match, filtered by role and sorted. */
++export function SquadScreen({ data, squads, selectedId, onSelect }: Props) {
++  const [chip, setChip] = useState<Chip>("Tutti");
++  const [sort, setSort] = useState<SortKey>("role");
++  const [expanded, setExpanded] = useState<ReadonlySet<number>>(new Set());
++  const sortId = useId();
++
+   const squad = squads.find(s => s.id === selectedId) ?? squads[0];
+-  return <p>{squad.name} ({squad.players.length})</p>;
++  if (!squad) return null;
++
++  const { meta } = data;
++  const rows = sortRows(buildRows(squad, data), "role");
++  const visible = sortRows(rows.filter(r => chip === "Tutti" || r.player?.role === chip), sort);
++
++  function toggle(id: number) {
++    setExpanded(prev => {
++      const next = new Set(prev);
++      if (!next.delete(id)) next.add(id);
++      return next;
++    });
++  }
++
++  const list = (items: Row[]) => (
++    <ul className="rows">
++      {items.map(r => (
++        <ErrorBoundary
++          key={r.id}
++          fallback={(
++            <li className="row">
++              <div className="row-main">
++                <span className="player-name">{r.name}</span> <span className="muted">dati non disponibili</span>
++              </div>
++            </li>
++          )}
++        >
++          <PlayerRow row={r} open={expanded.has(r.id)} onToggle={() => toggle(r.id)} />
++        </ErrorBoundary>
++      ))}
++    </ul>
++  );
++
++  let body;
++  if (visible.length === 0) {
++    body = <p className="status">Nessun giocatore</p>;
++  } else if (sort === "role") {
++    const ungrouped = visible.filter(r => !ROLE_GROUPS.some(g => g.role === r.player?.role));
++    body = (
++      <>
++        {ROLE_GROUPS.map(({ role, title }) => {
++          const items = visible.filter(r => r.player?.role === role);
++          return items.length > 0 && (
++            <Fragment key={role}>
++              <h2 className="group-title">{title}</h2>
++              {list(items)}
++            </Fragment>
++          );
++        })}
++        {ungrouped.length > 0 && list(ungrouped)}
++      </>
++    );
++  } else {
++    body = list(visible);
++  }
++
++  return (
++    <div className="squad-screen">
++      <header className="squad-header">
++        <div className="controls">
++          <select className="squad-select" aria-label="Rosa" value={squad.id} onChange={e => onSelect(e.target.value)}>
++            {squads.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
++          </select>
++          <label className="sort-label" htmlFor={sortId}>Ordina</label>
++          <select id={sortId} className="sort-select" value={sort} onChange={e => setSort(e.target.value as SortKey)}>
++            {SORTS.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
++          </select>
++        </div>
++        {meta.nextMatchday && (
++          <p className="matchday">{`Giornata ${meta.nextMatchday.number} · ${dateRange(meta.nextMatchday.from, meta.nextMatchday.to)}`}</p>
++        )}
++        <p className="updated">{`Aggiornato ${dayTime(meta.updatedAt)}`}</p>
++        {!meta.lastRun.ok && (
++          <p className="banner" role="alert">{`Ultimo aggiornamento non riuscito: dati del ${dayTime(meta.updatedAt)}`}</p>
++        )}
++      </header>
++      <MatchCards rows={rows} />
++      <div className="chips" role="group" aria-label="Ruolo">
++        {CHIPS.map(c => (
++          <button key={c} type="button" className="chip" aria-pressed={chip === c} onClick={() => setChip(c)}>{c}</button>
++        ))}
++      </div>
++      {body}
++    </div>
++  );
+ }
+diff --git a/web/src/screens/squadView.ts b/web/src/screens/squadView.ts
+new file mode 100644
+index 0000000..5ef9240
+--- /dev/null
++++ b/web/src/screens/squadView.ts
+@@ -0,0 +1,108 @@
++// Pure helpers behind the Squad screen: what each row shows and how rows are ordered.
++import { perGame, tertile } from "../format";
++import type { Squad } from "../squads";
++import type { AppData, ClubData, PlayerData, Result, Role } from "../types";
++
++export type Matchup = {
++  label: "avv. segna" | "avv. subisce";
++  /** Opponent goals scored (P, D) or conceded (C, A) per game. */
++  value: number;
++  tone: "good" | "bad" | "";
++  /** Share of all clubs the opponent is easier than (0-1, higher is better), so roles can be compared. */
++  score: number;
++};
++
++export type Row = {
++  id: number;
++  /** The data name, or the name stored in the squad when the player is gone from the data. */
++  name: string;
++  /** null when the id is no longer in players.json. */
++  player: PlayerData | null;
++  /** null when the player left Serie A (or is gone from the data). */
++  club: ClubData | null;
++  /** The club's next opponent; null when there is no fixture left. */
++  opponent: ClubData | null;
++  matchup: Matchup | null;
++};
++
++export type SortKey = "role" | "start" | "fv" | "matchup";
++
++export const SORTS: { key: SortKey; label: string }[] = [
++  { key: "role", label: "Per ruolo" },
++  { key: "start", label: "Titolarità" },
++  { key: "fv", label: "FV mediana" },
++  { key: "matchup", label: "Sfida" },
++];
++
++export const ROLE_GROUPS: { role: Role; title: string }[] = [
++  { role: "P", title: "Portieri" },
++  { role: "D", title: "Difensori" },
++  { role: "C", title: "Centrocampisti" },
++  { role: "A", title: "Attaccanti" },
++];
++
++/** Goalkeepers and defenders care about the opponent's attack, midfielders and forwards about its defence. */
++export function matchup(role: Role, opponent: ClubData, clubs: ClubData[]): Matchup {
++  const attack = role === "P" || role === "D";
++  const perMatch = (c: ClubData) => perGame(attack ? c.gf : c.ga, c.played);
++  const value = perMatch(opponent);
++  const all = clubs.map(perMatch);
++  const easierThan = all.filter(v => (attack ? v > value : v < value)).length;
++  return {
++    label: attack ? "avv. segna" : "avv. subisce",
++    value,
++    // A weak attack helps a defender; a leaky defence helps a forward.
++    tone: tertile(value, all, !attack),
++    score: easierThan / all.length,
++  };
++}
++
++export function buildRows(squad: Squad, data: AppData): Row[] {
++  const clubs = Object.values(data.clubs);
++  return squad.players.map(({ id, name }) => {
++    const player = data.players[String(id)] ?? null;
++    const club = (player?.club && data.clubs[player.club]) || null;
++    const opponent = (club?.next && data.clubs[club.next.opponent]) || null;
++    return {
++      id,
++      name: player?.name ?? name,
++      player,
++      club,
++      opponent,
++      matchup: player && opponent ? matchup(player.role, opponent, clubs) : null,
++    };
++  });
++}
++
++const roleIndex = (r: Row) => {
++  const i = ROLE_GROUPS.findIndex(g => g.role === r.player?.role);
++  return i < 0 ? ROLE_GROUPS.length : i;
++};
++
++const byRoleThenName = (a: Row, b: Row) => roleIndex(a) - roleIndex(b) || a.name.localeCompare(b.name, "it");
++
++const SORT_VALUE: Record<Exclude<SortKey, "role">, (r: Row) => number | null> = {
++  start: r => r.player?.startPct ?? null,
++  fv: r => r.player?.season.medFV ?? null,
++  matchup: r => r.matchup?.score ?? null,
++};
++
++/** Highest first with missing values last; ties keep the role order, then the name. */
++export function sortRows(rows: Row[], sort: SortKey): Row[] {
++  const sorted = [...rows].sort(byRoleThenName);
++  if (sort === "role") return sorted;
++  const value = SORT_VALUE[sort];
++  return sorted.sort((a, b) => {
++    const va = value(a);
++    const vb = value(b);
++    if (va === null || vb === null) return va === vb ? 0 : va === null ? 1 : -1;
++    return vb - va;
++  });
++}
++
++const MIRROR: Record<Result, Result> = { W: "L", D: "D", L: "W" };
++
++/** The same results seen from the other club's side. */
++export function mirror(results: Result[]): Result[] {
++  return results.map(r => MIRROR[r]);
++}
+diff --git a/web/src/styles.css b/web/src/styles.css
+index f0332f8..f9d4487 100644
+--- a/web/src/styles.css
++++ b/web/src/styles.css
+@@ -3,35 +3,57 @@
+   --bg: #f4f5f7;
+   --card: #ffffff;
+   --fg: #16191f;
+   --muted: #5a6370;
+   --line: #dde1e7;
+   --accent: #0b6b4d;
+   --good: #1b7f3b;
+   --bad: #c0302c;
+   --banner-bg: #fbe4e2;
+   --banner-fg: #7a1511;
++  --warn: #8a5a00;
++  --warn-bg: #fff0cc;
++  --bad-bg: #fbe4e2;
++  --chip-bg: #e9ecf0;
++  --on-accent: #ffffff;
++  --role-p: #f0b429;
++  --role-d: #2e8b57;
++  --role-c: #2f6fd6;
++  --role-a: #c9423b;
++  --on-role-p: #2a1d00;
++  --on-role: #ffffff;
+   --radius: 10px;
+ }
+ 
+ @media (prefers-color-scheme: dark) {
+   :root {
+     --bg: #101317;
+     --card: #1a1f26;
+     --fg: #eceff3;
+     --muted: #9aa4b2;
+     --line: #2b323c;
+     --accent: #4cc39a;
+     --good: #52c47a;
+     --bad: #f0706b;
+     --banner-bg: #4a1f1d;
+     --banner-fg: #ffd9d6;
++    --warn: #f2c063;
++    --warn-bg: #3d2f12;
++    --bad-bg: #4a1f1d;
++    --chip-bg: #2b323c;
++    --on-accent: #0b1a14;
++    --role-p: #e0a526;
++    --role-d: #3fa66c;
++    --role-c: #4f86e0;
++    --role-a: #d9574f;
++    --on-role-p: #2a1d00;
++    --on-role: #ffffff;
+   }
+ }
+ 
+ * {
+   box-sizing: border-box;
+ }
+ 
+ html {
+   -webkit-text-size-adjust: 100%;
+ }
+@@ -72,10 +94,381 @@ a {
+ 
+ .topbar .brand {
+   color: var(--fg);
+   letter-spacing: 0.02em;
+ }
+ 
+ .status {
+   margin: 24px 0;
+   color: var(--muted);
+ }
++
++.muted {
++  color: var(--muted);
++}
++
++.good {
++  color: var(--good);
++}
++
++.bad {
++  color: var(--bad);
++}
++
++/* Squad screen */
++
++select {
++  min-height: 44px;
++  min-width: 0;
++  padding: 0 8px;
++  border: 1px solid var(--line);
++  border-radius: 8px;
++  background: var(--card);
++  color: var(--fg);
++  font: inherit;
++}
++
++.controls {
++  display: flex;
++  flex-wrap: wrap;
++  align-items: center;
++  gap: 8px;
++}
++
++.squad-select {
++  flex: 1 1 140px;
++  font-weight: 600;
++}
++
++.sort-label {
++  color: var(--muted);
++  font-size: 14px;
++}
++
++.matchday {
++  margin: 10px 0 0;
++  font-weight: 600;
++}
++
++.updated {
++  margin: 2px 0 0;
++  color: var(--muted);
++  font-size: 14px;
++}
++
++.banner {
++  margin: 8px 0 0;
++  padding: 8px 10px;
++  border-radius: var(--radius);
++  background: var(--banner-bg);
++  color: var(--banner-fg);
++  font-size: 14px;
++}
++
++.matches {
++  margin: 12px 0 0;
++  border: 1px solid var(--line);
++  border-radius: var(--radius);
++  background: var(--card);
++}
++
++.matches summary {
++  padding: 11px 12px;
++  font-weight: 600;
++  cursor: pointer;
++}
++
++.match-card {
++  padding: 8px 12px 12px;
++  border-top: 1px solid var(--line);
++}
++
++.match-title {
++  display: flex;
++  flex-wrap: wrap;
++  justify-content: space-between;
++  gap: 2px 8px;
++  margin: 0 0 6px;
++  font-size: 14px;
++}
++
++.chips {
++  display: flex;
++  gap: 6px;
++  margin: 12px 0 4px;
++}
++
++.chip {
++  flex: 1 1 0;
++  min-width: 0;
++  min-height: 40px;
++  border: 1px solid var(--line);
++  border-radius: 999px;
++  background: var(--card);
++  color: var(--fg);
++  font: inherit;
++  font-weight: 600;
++  cursor: pointer;
++}
++
++.chip[aria-pressed="true"] {
++  border-color: var(--accent);
++  background: var(--accent);
++  color: var(--on-accent);
++}
++
++.group-title {
++  margin: 16px 4px 6px;
++  color: var(--muted);
++  font-size: 13px;
++  font-weight: 700;
++  letter-spacing: 0.06em;
++  text-transform: uppercase;
++}
++
++.rows {
++  display: grid;
++  gap: 6px;
++  margin: 8px 0 0;
++  padding: 0;
++  list-style: none;
++}
++
++.group-title + .rows {
++  margin-top: 0;
++}
++
++.row {
++  min-width: 0;
++  border: 1px solid var(--line);
++  border-radius: var(--radius);
++  background: var(--card);
++}
++
++.row-main {
++  display: block;
++  width: 100%;
++  min-height: 48px;
++  padding: 8px 10px;
++  border: 0;
++  border-radius: var(--radius);
++  background: transparent;
++  color: inherit;
++  font: inherit;
++  text-align: left;
++}
++
++button.row-main {
++  cursor: pointer;
++}
++
++.line1 {
++  display: flex;
++  align-items: center;
++  gap: 8px;
++  min-width: 0;
++}
++
++.role {
++  display: inline-grid;
++  flex: none;
++  place-items: center;
++  width: 24px;
++  height: 24px;
++  border-radius: 6px;
++  background: var(--chip-bg);
++  color: var(--fg);
++  font-size: 13px;
++  font-weight: 700;
++}
++
++.role-P {
++  background: var(--role-p);
++  color: var(--on-role-p);
++}
++
++.role-D {
++  background: var(--role-d);
++  color: var(--on-role);
++}
++
++.role-C {
++  background: var(--role-c);
++  color: var(--on-role);
++}
++
++.role-A {
++  background: var(--role-a);
++  color: var(--on-role);
++}
++
++.player-name {
++  flex: 1 1 auto;
++  min-width: 0;
++  font-weight: 600;
++  overflow-wrap: anywhere;
++}
++
++.tag {
++  flex: none;
++  padding: 3px 7px;
++  border-radius: 999px;
++  background: var(--chip-bg);
++  color: var(--muted);
++  font-size: 12px;
++  line-height: 1.2;
++}
++
++.tag-injured,
++.tag-suspended {
++  background: var(--bad-bg);
++  color: var(--bad);
++}
++
++.tag-doubtful,
++.tag-warned {
++  background: var(--warn-bg);
++  color: var(--warn);
++}
++
++.start {
++  flex: none;
++  font-weight: 700;
++  font-variant-numeric: tabular-nums;
++}
++
++.chevron {
++  flex: none;
++  color: var(--muted);
++  transition: transform 0.15s;
++}
++
++.row-main[aria-expanded="true"] .chevron {
++  transform: rotate(180deg);
++}
++
++.line2 {
++  display: flex;
++  flex-wrap: wrap;
++  gap: 2px 12px;
++  min-width: 0;
++  margin-top: 4px;
++  padding-left: 32px;
++  color: var(--muted);
++  font-size: 14px;
++  font-variant-numeric: tabular-nums;
++}
++
++.matchup.good,
++.matchup.bad,
++.start.good,
++.start.bad {
++  font-weight: 700;
++}
++
++.detail {
++  display: grid;
++  gap: 10px;
++  padding: 8px 10px 12px;
++  border-top: 1px solid var(--line);
++  font-size: 14px;
++}
++
++.status-note {
++  margin: 0;
++}
++
++.stats,
++.compare {
++  width: 100%;
++  border-collapse: collapse;
++  table-layout: fixed;
++  font-variant-numeric: tabular-nums;
++}
++
++.stats th,
++.stats td,
++.compare th,
++.compare td {
++  padding: 4px 2px;
++  text-align: left;
++  vertical-align: middle;
++  overflow-wrap: anywhere;
++}
++
++.stats tr > :first-child,
++.compare tr > :first-child {
++  width: 36%;
++}
++
++.stats thead th,
++.compare thead th {
++  font-size: 13px;
++}
++
++.stats tbody th,
++.compare tbody th {
++  color: var(--muted);
++  font-weight: 400;
++}
++
++.stats tbody tr + tr,
++.compare tbody tr + tr {
++  border-top: 1px solid var(--line);
++}
++
++.trend {
++  display: flex;
++  flex-wrap: wrap;
++  align-items: center;
++  gap: 4px 8px;
++  margin: 0;
++}
++
++.trend-values {
++  font-variant-numeric: tabular-nums;
++}
++
++.sparkline {
++  flex: none;
++}
++
++.sparkline polyline {
++  fill: none;
++  stroke: var(--accent);
++  stroke-width: 1.5;
++  stroke-linecap: round;
++  stroke-linejoin: round;
++}
++
++.sparkline circle {
++  fill: var(--accent);
++}
++
++.pills {
++  display: inline-flex;
++  flex-wrap: wrap;
++  gap: 2px;
++  vertical-align: middle;
++}
++
++.pill {
++  display: inline-grid;
++  place-items: center;
++  width: 16px;
++  height: 16px;
++  border-radius: 3px;
++  background: var(--chip-bg);
++  color: var(--muted);
++  font-size: 10px;
++  font-weight: 700;
++}
++
++.pill.good {
++  background: var(--good);
++  color: var(--card);
++}
++
++.pill.bad {
++  background: var(--bad);
++  color: var(--card);
++}

@@ -1,0 +1,425 @@
+# Review package: f2cbcb7..HEAD
+
+## Commits
+8e01ef7 pipeline: package skeleton, club mapping, ESPN parsers
+
+## Files changed
+ docs/superpowers/plans/2026-10-30-fantaspec.md | 12 +++---
+ pipeline/fantaspec/__init__.py                 |  1 +
+ pipeline/fantaspec/clubs.json                  | 22 +++++++++++
+ pipeline/fantaspec/clubs.py                    | 17 +++++++++
+ pipeline/fantaspec/config.py                   | 51 ++++++++++++++++++++++++++
+ pipeline/fantaspec/http.py                     | 34 +++++++++++++++++
+ pipeline/fantaspec/models.py                   | 28 ++++++++++++++
+ pipeline/fantaspec/sources/__init__.py         |  1 +
+ pipeline/fantaspec/sources/espn.py             | 50 +++++++++++++++++++++++++
+ pipeline/pyproject.toml                        | 22 +++++++++++
+ pipeline/tests/conftest.py                     | 17 +++++++++
+ pipeline/tests/test_clubs.py                   | 11 ++++++
+ pipeline/tests/test_espn.py                    | 19 ++++++++++
+ 13 files changed, 279 insertions(+), 6 deletions(-)
+
+## Diff
+diff --git a/docs/superpowers/plans/2026-10-30-fantaspec.md b/docs/superpowers/plans/2026-10-30-fantaspec.md
+index df03a2c..03b760a 100644
+--- a/docs/superpowers/plans/2026-10-30-fantaspec.md
++++ b/docs/superpowers/plans/2026-10-30-fantaspec.md
+@@ -175,22 +175,22 @@ Done on 2026-10-30 in the planning session. The spec and plan moved into this re
+ 
+ **Interfaces:**
+ - Produces:
+   - `config.py`: `SEASON = "2026-27"`, `ESPN_SEASON = 2026`, `TZ = ZoneInfo("Europe/Rome")`, `H2H_SEASONS = 10`, `REPO_ROOT`, `RAW_DIR = REPO_ROOT / "raw"`, `OUT_DIR = REPO_ROOT / "web/public/data"`, and URL helpers `espn_teams_url()`, `espn_schedule_url(espn_id: int, season: int) -> str` (`.../ita.1/teams/{id}/schedule?season={season}`), `espn_fixtures_url(espn_id: int) -> str` (`...?fixture=true`), `espn_standings_url()`, `fc_votes_url(matchday: int)`, `fc_roster_url()`, `fc_calendar_url(matchday: int)` (`https://www.fantacalcio.it/serie-a/calendario/{matchday}`), `fc_lineups_url()`, `fc_unavailable_url()`.
+   - `models.py` (frozen dataclasses): `Club(key: str, name: str, espn_id: int)`; `EspnMatch(espn_id: str, kickoff: datetime, home_espn: int, away_espn: int, home_goals: int | None, away_goals: int | None, completed: bool)`; `StandingRow(espn_id: int, position: int, points: int, played: int)`.
+   - `clubs.load_clubs() -> list[Club]`, `clubs.by_espn() -> dict[int, Club]`, `clubs.by_key() -> dict[str, Club]`.
+   - `http.fetch_text(url: str) -> str`, `http.fetch_json(url: str) -> dict`.
+   - `espn.parse_teams(doc: dict) -> dict[int, str]` (espn id → display name), `espn.parse_schedule(doc: dict) -> list[EspnMatch]`, `espn.parse_standings(doc: dict) -> list[StandingRow]`.
+ 
+ - [x] **Step 1: Save the ESPN fixtures.** Already saved on 2026-10-30: `espn_teams.json`, `espn_schedule_napoli_2026.json`, `espn_standings.json` in `pipeline/tests/fixtures/`.
+-- [ ] **Step 2: Write `clubs.json`**: 20 rows `{"key", "name", "espn_id"}` for keys `atalanta bologna cagliari como fiorentina frosinone genoa inter juventus lazio lecce milan monza napoli parma roma sassuolo torino udinese venezia`, Italian display names, espn ids from the saved teams file (known: milan 103, roma 104, atalanta 105, bologna 107, napoli 114, como 2572, cagliari 2925, monza 4007).
+-- [ ] **Step 3: Write the failing tests**
++- [x] **Step 2: Write `clubs.json`**: 20 rows `{"key", "name", "espn_id"}` for keys `atalanta bologna cagliari como fiorentina frosinone genoa inter juventus lazio lecce milan monza napoli parma roma sassuolo torino udinese venezia`, Italian display names, espn ids from the saved teams file (known: milan 103, roma 104, atalanta 105, bologna 107, napoli 114, como 2572, cagliari 2925, monza 4007).
++- [x] **Step 3: Write the failing tests**
+ 
+ ```python
+ def test_clubs_mapping_complete():
+     clubs = load_clubs()
+     assert len(clubs) == 20
+     assert len({c.espn_id for c in clubs}) == 20
+     assert set(by_espn()) == set(parse_teams(load_fixture("espn_teams.json")))
+ 
+ def test_parse_schedule_napoli():
+     ms = parse_schedule(load_fixture("espn_schedule_napoli_2026.json"))
+@@ -199,24 +199,24 @@ def test_parse_schedule_napoli():
+     frosinone = next(m for m in ms if m.kickoff.date() == date(2026, 10, 10))
+     assert (frosinone.home_espn, frosinone.home_goals, frosinone.away_goals) == (114, 3, 0)
+ 
+ def test_parse_standings():
+     rows = parse_standings(load_fixture("espn_standings.json"))
+     assert len(rows) == 20
+     assert sorted(r.position for r in rows) == list(range(1, 21))
+ ```
+ `load_fixture(name)` lives in `tests/conftest.py` and reads `.json`, `.html` or `.html.gz` from `tests/fixtures/`.
+ 
+-- [ ] **Step 4: Run** `cd pipeline && python -m pytest tests/test_espn.py tests/test_clubs.py -v`. Expected: FAIL (imports missing).
+-- [ ] **Step 5: Implement** `pyproject.toml` (package `fantaspec`, dependencies `requests`, `beautifulsoup4`, optional group `test = ["pytest"]`, package data `clubs.json`), `config.py` (`REPO_ROOT = Path(__file__).resolve().parents[2]`), `models.py`, `clubs.py`, `http.py` and `sources/espn.py`. Goals come from `competitors[].score.value`; `home_goals`/`away_goals` are `None` unless `status.type.completed`. Kickoff is the event `date` parsed as UTC.
+-- [ ] **Step 6: Run the tests again.** Expected: PASS.
+-- [ ] **Step 7: Commit** `git commit -m "pipeline: package skeleton, club mapping, ESPN parsers"`.
++- [x] **Step 4: Run** `cd pipeline && python -m pytest tests/test_espn.py tests/test_clubs.py -v`. Expected: FAIL (imports missing).
++- [x] **Step 5: Implement** `pyproject.toml` (package `fantaspec`, dependencies `requests`, `beautifulsoup4`, optional group `test = ["pytest"]`, package data `clubs.json`), `config.py` (`REPO_ROOT = Path(__file__).resolve().parents[2]`), `models.py`, `clubs.py`, `http.py` and `sources/espn.py`. Goals come from `competitors[].score.value`; `home_goals`/`away_goals` are `None` unless `status.type.completed`. Kickoff is the event `date` parsed as UTC.
++- [x] **Step 6: Run the tests again.** Expected: PASS.
++- [x] **Step 7: Commit** `git commit -m "pipeline: package skeleton, club mapping, ESPN parsers"`.
+ 
+ ---
+ 
+ ### Task 3: fantacalcio.it parsers with ids (votes, roster, calendar)
+ 
+ **Files:**
+ - Create: `pipeline/fantaspec/sources/fc_votes.py`, `fc_roster.py`, `fc_calendar.py`; extend `models.py`
+ - Test: `pipeline/tests/test_fc_votes.py`, `test_fc_roster.py`, `test_fc_calendar.py`; fixtures `fc_votes_8.html.gz`, `fc_roster.html.gz`, `fc_calendar_10.html.gz`
+ 
+ **Interfaces:**
+diff --git a/pipeline/fantaspec/__init__.py b/pipeline/fantaspec/__init__.py
+new file mode 100644
+index 0000000..376a930
+--- /dev/null
++++ b/pipeline/fantaspec/__init__.py
+@@ -0,0 +1 @@
++"""fantaspec pipeline: scrape fantacalcio.it and ESPN, compute the site's JSON."""
+diff --git a/pipeline/fantaspec/clubs.json b/pipeline/fantaspec/clubs.json
+new file mode 100644
+index 0000000..b0e760a
+--- /dev/null
++++ b/pipeline/fantaspec/clubs.json
+@@ -0,0 +1,22 @@
++[
++  {"key": "atalanta", "name": "Atalanta", "espn_id": 105},
++  {"key": "bologna", "name": "Bologna", "espn_id": 107},
++  {"key": "cagliari", "name": "Cagliari", "espn_id": 2925},
++  {"key": "como", "name": "Como", "espn_id": 2572},
++  {"key": "fiorentina", "name": "Fiorentina", "espn_id": 109},
++  {"key": "frosinone", "name": "Frosinone", "espn_id": 4057},
++  {"key": "genoa", "name": "Genoa", "espn_id": 3263},
++  {"key": "inter", "name": "Inter", "espn_id": 110},
++  {"key": "juventus", "name": "Juventus", "espn_id": 111},
++  {"key": "lazio", "name": "Lazio", "espn_id": 112},
++  {"key": "lecce", "name": "Lecce", "espn_id": 113},
++  {"key": "milan", "name": "Milan", "espn_id": 103},
++  {"key": "monza", "name": "Monza", "espn_id": 4007},
++  {"key": "napoli", "name": "Napoli", "espn_id": 114},
++  {"key": "parma", "name": "Parma", "espn_id": 115},
++  {"key": "roma", "name": "Roma", "espn_id": 104},
++  {"key": "sassuolo", "name": "Sassuolo", "espn_id": 3997},
++  {"key": "torino", "name": "Torino", "espn_id": 239},
++  {"key": "udinese", "name": "Udinese", "espn_id": 118},
++  {"key": "venezia", "name": "Venezia", "espn_id": 17530}
++]
+diff --git a/pipeline/fantaspec/clubs.py b/pipeline/fantaspec/clubs.py
+new file mode 100644
+index 0000000..be24f95
+--- /dev/null
++++ b/pipeline/fantaspec/clubs.py
+@@ -0,0 +1,17 @@
++import json
++from importlib.resources import files
++
++from fantaspec.models import Club
++
++
++def load_clubs() -> list[Club]:
++    rows = json.loads(files("fantaspec").joinpath("clubs.json").read_text(encoding="utf-8"))
++    return [Club(key=r["key"], name=r["name"], espn_id=r["espn_id"]) for r in rows]
++
++
++def by_espn() -> dict[int, Club]:
++    return {c.espn_id: c for c in load_clubs()}
++
++
++def by_key() -> dict[str, Club]:
++    return {c.key: c for c in load_clubs()}
+diff --git a/pipeline/fantaspec/config.py b/pipeline/fantaspec/config.py
+new file mode 100644
+index 0000000..ef6f104
+--- /dev/null
++++ b/pipeline/fantaspec/config.py
+@@ -0,0 +1,51 @@
++from pathlib import Path
++from zoneinfo import ZoneInfo
++
++SEASON = "2026-27"
++ESPN_SEASON = 2026
++TZ = ZoneInfo("Europe/Rome")
++H2H_SEASONS = 10
++
++REPO_ROOT = Path(__file__).resolve().parents[2]
++RAW_DIR = REPO_ROOT / "raw"
++OUT_DIR = REPO_ROOT / "web/public/data"
++
++_ESPN_SITE = "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1"
++_ESPN_STANDINGS = "https://site.api.espn.com/apis/v2/sports/soccer/ita.1/standings"
++_FC = "https://www.fantacalcio.it"
++
++
++def espn_teams_url() -> str:
++    return f"{_ESPN_SITE}/teams"
++
++
++def espn_schedule_url(espn_id: int, season: int) -> str:
++    return f"{_ESPN_SITE}/teams/{espn_id}/schedule?season={season}"
++
++
++def espn_fixtures_url(espn_id: int) -> str:
++    return f"{_ESPN_SITE}/teams/{espn_id}/schedule?fixture=true"
++
++
++def espn_standings_url() -> str:
++    return _ESPN_STANDINGS
++
++
++def fc_votes_url(matchday: int) -> str:
++    return f"{_FC}/voti-fantacalcio-serie-a/{SEASON}/{matchday}"
++
++
++def fc_roster_url() -> str:
++    return f"{_FC}/quotazioni-fantacalcio"
++
++
++def fc_calendar_url(matchday: int) -> str:
++    return f"{_FC}/serie-a/calendario/{matchday}"
++
++
++def fc_lineups_url() -> str:
++    return f"{_FC}/probabili-formazioni-serie-a"
++
++
++def fc_unavailable_url() -> str:
++    return f"{_FC}/indisponibili-serie-a"
+diff --git a/pipeline/fantaspec/http.py b/pipeline/fantaspec/http.py
+new file mode 100644
+index 0000000..47c043e
+--- /dev/null
++++ b/pipeline/fantaspec/http.py
+@@ -0,0 +1,34 @@
++import time
++
++import requests
++
++USER_AGENT = (
++    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
++    "Chrome/130.0.0.0 Safari/537.36"
++)
++TIMEOUT = 30  # seconds
++ATTEMPTS = 3
++BACKOFF = 2  # seconds before the second attempt, doubled before each later one
++
++
++def _get_once(url: str) -> requests.Response:
++    response = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT)
++    response.raise_for_status()
++    return response
++
++
++def _get(url: str) -> requests.Response:
++    for attempt in range(ATTEMPTS - 1):
++        try:
++            return _get_once(url)
++        except requests.RequestException:
++            time.sleep(BACKOFF * 2**attempt)
++    return _get_once(url)  # last attempt: let the error propagate
++
++
++def fetch_text(url: str) -> str:
++    return _get(url).text
++
++
++def fetch_json(url: str) -> dict:
++    return _get(url).json()
+diff --git a/pipeline/fantaspec/models.py b/pipeline/fantaspec/models.py
+new file mode 100644
+index 0000000..3cedb57
+--- /dev/null
++++ b/pipeline/fantaspec/models.py
+@@ -0,0 +1,28 @@
++from dataclasses import dataclass
++from datetime import datetime
++
++
++@dataclass(frozen=True)
++class Club:
++    key: str  # fantacalcio.it club slug, e.g. "napoli"
++    name: str  # Italian display name
++    espn_id: int
++
++
++@dataclass(frozen=True)
++class EspnMatch:
++    espn_id: str
++    kickoff: datetime  # UTC
++    home_espn: int
++    away_espn: int
++    home_goals: int | None  # None unless completed
++    away_goals: int | None
++    completed: bool
++
++
++@dataclass(frozen=True)
++class StandingRow:
++    espn_id: int
++    position: int
++    points: int
++    played: int
+diff --git a/pipeline/fantaspec/sources/__init__.py b/pipeline/fantaspec/sources/__init__.py
+new file mode 100644
+index 0000000..c7984a9
+--- /dev/null
++++ b/pipeline/fantaspec/sources/__init__.py
+@@ -0,0 +1 @@
++"""Parsers for the pages and JSON documents fetched from each source."""
+diff --git a/pipeline/fantaspec/sources/espn.py b/pipeline/fantaspec/sources/espn.py
+new file mode 100644
+index 0000000..4dcb026
+--- /dev/null
++++ b/pipeline/fantaspec/sources/espn.py
+@@ -0,0 +1,50 @@
++from datetime import UTC, datetime
++
++from fantaspec.models import EspnMatch, StandingRow
++
++
++def parse_teams(doc: dict) -> dict[int, str]:
++    """ESPN teams document -> {espn id: display name}."""
++    teams = doc["sports"][0]["leagues"][0]["teams"]
++    return {int(t["team"]["id"]): t["team"]["displayName"] for t in teams}
++
++
++def parse_schedule(doc: dict) -> list[EspnMatch]:
++    """ESPN team schedule (results or upcoming fixtures) -> one EspnMatch per event."""
++    return [_parse_event(event) for event in doc["events"]]
++
++
++def _parse_event(event: dict) -> EspnMatch:
++    competition = event["competitions"][0]
++    sides = {c["homeAway"]: c for c in competition["competitors"]}
++    completed = bool(competition["status"]["type"]["completed"])
++    return EspnMatch(
++        espn_id=str(event["id"]),
++        kickoff=datetime.fromisoformat(event["date"]).astimezone(UTC),
++        home_espn=int(sides["home"]["id"]),
++        away_espn=int(sides["away"]["id"]),
++        home_goals=_goals(sides["home"]) if completed else None,
++        away_goals=_goals(sides["away"]) if completed else None,
++        completed=completed,
++    )
++
++
++def _goals(competitor: dict) -> int:
++    return int(competitor["score"]["value"])
++
++
++def parse_standings(doc: dict) -> list[StandingRow]:
++    """ESPN standings document -> one StandingRow per club."""
++    rows = []
++    for group in doc["children"]:
++        for entry in group["standings"]["entries"]:
++            stats = {s["name"]: s.get("value") for s in entry["stats"]}
++            rows.append(
++                StandingRow(
++                    espn_id=int(entry["team"]["id"]),
++                    position=int(stats["rank"]),
++                    points=int(stats["points"]),
++                    played=int(stats["gamesPlayed"]),
++                )
++            )
++    return rows
+diff --git a/pipeline/pyproject.toml b/pipeline/pyproject.toml
+new file mode 100644
+index 0000000..f28ae12
+--- /dev/null
++++ b/pipeline/pyproject.toml
+@@ -0,0 +1,22 @@
++[build-system]
++requires = ["setuptools>=68"]
++build-backend = "setuptools.build_meta"
++
++[project]
++name = "fantaspec"
++version = "0.1.0"
++description = "Scrapes fantacalcio.it and ESPN into the JSON files served by the fantaspec site"
++requires-python = ">=3.12"
++dependencies = ["requests", "beautifulsoup4"]
++
++[project.optional-dependencies]
++test = ["pytest"]
++
++[tool.setuptools]
++packages = ["fantaspec", "fantaspec.sources"]
++
++[tool.setuptools.package-data]
++fantaspec = ["clubs.json"]
++
++[tool.pytest.ini_options]
++testpaths = ["tests"]
+diff --git a/pipeline/tests/conftest.py b/pipeline/tests/conftest.py
+new file mode 100644
+index 0000000..b5df29d
+--- /dev/null
++++ b/pipeline/tests/conftest.py
+@@ -0,0 +1,17 @@
++import gzip
++import json
++from pathlib import Path
++
++FIXTURES = Path(__file__).parent / "fixtures"
++
++
++def load_fixture(name: str):
++    """Read a saved page from tests/fixtures: .json -> dict, .html -> str, .html.gz -> str."""
++    path = FIXTURES / name
++    if name.endswith(".json"):
++        return json.loads(path.read_text(encoding="utf-8"))
++    if name.endswith(".html.gz"):
++        return gzip.decompress(path.read_bytes()).decode("utf-8")
++    if name.endswith(".html"):
++        return path.read_text(encoding="utf-8")
++    raise ValueError(f"unsupported fixture type: {name}")
+diff --git a/pipeline/tests/test_clubs.py b/pipeline/tests/test_clubs.py
+new file mode 100644
+index 0000000..fb05b07
+--- /dev/null
++++ b/pipeline/tests/test_clubs.py
+@@ -0,0 +1,11 @@
++from conftest import load_fixture
++
++from fantaspec.clubs import by_espn, load_clubs
++from fantaspec.sources.espn import parse_teams
++
++
++def test_clubs_mapping_complete():
++    clubs = load_clubs()
++    assert len(clubs) == 20
++    assert len({c.espn_id for c in clubs}) == 20
++    assert set(by_espn()) == set(parse_teams(load_fixture("espn_teams.json")))
+diff --git a/pipeline/tests/test_espn.py b/pipeline/tests/test_espn.py
+new file mode 100644
+index 0000000..3402b21
+--- /dev/null
++++ b/pipeline/tests/test_espn.py
+@@ -0,0 +1,19 @@
++from datetime import UTC, date, datetime
++
++from conftest import load_fixture
++
++from fantaspec.sources.espn import parse_schedule, parse_standings
++
++
++def test_parse_schedule_napoli():
++    ms = parse_schedule(load_fixture("espn_schedule_napoli_2026.json"))
++    monza = next(m for m in ms if m.kickoff == datetime(2026, 10, 28, 19, 45, tzinfo=UTC))
++    assert (monza.home_espn, monza.away_espn, monza.home_goals, monza.completed) == (4007, 114, 1, True)
++    frosinone = next(m for m in ms if m.kickoff.date() == date(2026, 10, 10))
++    assert (frosinone.home_espn, frosinone.home_goals, frosinone.away_goals) == (114, 3, 0)
++
++
++def test_parse_standings():
++    rows = parse_standings(load_fixture("espn_standings.json"))
++    assert len(rows) == 20
++    assert sorted(r.position for r in rows) == list(range(1, 21))

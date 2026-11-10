@@ -1,0 +1,1227 @@
+2c1d70d web: skeleton, data loading, squad storage
+
+ docs/superpowers/plans/2026-10-30-fantaspec.md |   12 +-
+ web/index.html                                 |   12 +
+ web/package-lock.json                          | 2627 ++++++++++++++++++++++++
+ web/package.json                               |   30 +
+ web/src/App.test.tsx                           |   61 +
+ web/src/App.tsx                                |   96 +
+ web/src/data.test.ts                           |   28 +
+ web/src/data.ts                                |   17 +
+ web/src/format.test.ts                         |   54 +
+ web/src/format.ts                              |   38 +
+ web/src/main.tsx                               |   10 +
+ web/src/screens/ImportScreen.tsx               |   13 +
+ web/src/screens/SquadEditor.tsx                |   18 +
+ web/src/screens/SquadScreen.tsx                |   15 +
+ web/src/squads.test.ts                         |   83 +
+ web/src/squads.ts                              |   92 +
+ web/src/styles.css                             |   81 +
+ web/src/test/sampleData.test.ts                |   67 +
+ web/src/test/sampleData.ts                     |  108 +
+ web/src/test/setup.ts                          |   15 +
+ web/src/types.ts                               |   94 +
+ web/tsconfig.app.json                          |   26 +
+ web/tsconfig.json                              |    7 +
+ web/tsconfig.node.json                         |   23 +
+ web/vite.config.ts                             |   13 +
+ 25 files changed, 3634 insertions(+), 6 deletions(-)
+
+(package-lock.json omitted from the diff below)
+diff --git a/docs/superpowers/plans/2026-10-30-fantaspec.md b/docs/superpowers/plans/2026-10-30-fantaspec.md
+index dc913b7..557ed49 100644
+--- a/docs/superpowers/plans/2026-10-30-fantaspec.md
++++ b/docs/superpowers/plans/2026-10-30-fantaspec.md
+@@ -511,22 +511,22 @@ def test_same_slot_twice_writes_once(tmp_repo):
+ - Test: `web/src/squads.test.ts`, `web/src/format.test.ts`, `web/src/App.test.tsx`
+ 
+ **Interfaces:**
+ - Produces:
+   - `types.ts`: `Meta`, `ClubData`, `PlayerData`, `AppData = { meta: Meta; clubs: Record<string, ClubData>; players: Record<string, PlayerData> }` exactly mirroring the data contract.
+   - `data.ts`: `loadData(): Promise<AppData>` fetching `${import.meta.env.BASE_URL}data/{meta,clubs,players}.json` with `cache: "no-cache"`.
+   - `squads.ts`: `type SquadPlayer = { id: number; name: string }`, `type Squad = { id: string; name: string; players: SquadPlayer[] }`; `loadSquads(): Squad[]`, `saveSquads(s: Squad[]): void` (key `fantaspec.squads.v1`), `loadSelected(): string | null`, `saveSelected(id: string): void` (key `fantaspec.selected`), `encodeShare(s: Squad): string`, `decodeShare(param: string): Squad | null`.
+   - `format.ts`: `num1(n: number | null): string` (`6,5`, `–` for null), `perGame(total: number, played: number): number`, `tertile(value: number, all: number[], higherIsGood: boolean): "good" | "bad" | ""`, `startClass(pct: number | null): "good" | "bad" | ""` (≥75 good, <50 bad), `dateRange(from: string, to: string): string` (`31 ott – 2 nov`).
+   - `App.tsx`: hash routes `#/` → `SquadScreen`, `#/rose` → `SquadEditor`, `#/importa?s=…` → `ImportScreen` (placeholders in this task, filled by Tasks 9–10). No squads → redirect to `#/rose`.
+ 
+-- [ ] **Step 1: Scaffold** with `npm create vite@latest web -- --template react-ts`, add `vitest`, `jsdom`, `@testing-library/react`, `@testing-library/user-event`. In `vite.config.ts` set `base: "/fantaspec/"` and `test: { environment: "jsdom" }`. `index.html`: `lang="it"`, viewport meta, title `fantaspec`.
+-- [ ] **Step 2: Write the failing tests**
++- [x] **Step 1: Scaffold** with `npm create vite@latest web -- --template react-ts`, add `vitest`, `jsdom`, `@testing-library/react`, `@testing-library/user-event`. In `vite.config.ts` set `base: "/fantaspec/"` and `test: { environment: "jsdom" }`. `index.html`: `lang="it"`, viewport meta, title `fantaspec`.
++- [x] **Step 2: Write the failing tests**
+ 
+ ```ts
+ test("share link round trip keeps names and order", () => {
+   const s = { id: "x", name: "FC Ghisleni", players: [{ id: 572, name: "Meret" }, { id: 184, name: "Bernardeschi" }] };
+   expect(decodeShare(encodeShare(s))).toEqual({ ...s, id: expect.any(String) });
+ });
+ test("bad share links return null", () => {
+   for (const bad of ["", "%%%", btoa("not json"), btoa(JSON.stringify({ n: "x" }))]) expect(decodeShare(bad)).toBeNull();
+ });
+ test("corrupted or blocked storage gives no squads", () => {
+@@ -542,24 +542,24 @@ test("tertile colouring", () => {
+   const all = [0.8, 1.0, 1.2, 1.4, 1.6, 2.0];
+   expect(tertile(2.0, all, true)).toBe("good"); expect(tertile(0.8, all, true)).toBe("bad"); expect(tertile(2.0, all, false)).toBe("bad");
+ });
+ test("no squads sends the user to the editor", async () => {
+   renderApp({ data: sampleData, squads: [] });
+   expect(await screen.findByText("Crea la tua prima rosa")).toBeInTheDocument();
+ });
+ ```
+ `sampleData.ts` holds a small `AppData` (4 clubs, ~10 players covering every role, one injured, one never voted, one with `club: null`).
+ 
+-- [ ] **Step 3: Run** `cd web && npx vitest run`. Expected: FAIL.
+-- [ ] **Step 4: Implement** the modules. Share payload: base64url of `JSON.stringify({ n: name, p: [[id, name], ...] })`. Every localStorage access wrapped in try/catch.
+-- [ ] **Step 5: Run the tests again.** Expected: PASS. Also `npm run build` succeeds.
+-- [ ] **Step 6: Commit** `git commit -m "web: skeleton, data loading, squad storage"`.
++- [x] **Step 3: Run** `cd web && npx vitest run`. Expected: FAIL.
++- [x] **Step 4: Implement** the modules. Share payload: base64url of `JSON.stringify({ n: name, p: [[id, name], ...] })`. Every localStorage access wrapped in try/catch.
++- [x] **Step 5: Run the tests again.** Expected: PASS. Also `npm run build` succeeds.
++- [x] **Step 6: Commit** `git commit -m "web: skeleton, data loading, squad storage"`.
+ 
+ ---
+ 
+ ### Task 9: Squad screen
+ 
+ **Files:**
+ - Create: `web/src/screens/SquadScreen.tsx`, `web/src/components/{PlayerRow,PlayerDetail,MatchCards,FormPills,Sparkline}.tsx`
+ - Test: `web/src/screens/SquadScreen.test.tsx`
+ 
+ **Interfaces:**
+diff --git a/web/index.html b/web/index.html
+new file mode 100644
+index 0000000..7184ade
+--- /dev/null
++++ b/web/index.html
+@@ -0,0 +1,12 @@
++<!doctype html>
++<html lang="it">
++  <head>
++    <meta charset="UTF-8" />
++    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
++    <title>fantaspec</title>
++  </head>
++  <body>
++    <div id="root"></div>
++    <script type="module" src="/src/main.tsx"></script>
++  </body>
++</html>
+diff --git a/web/package.json b/web/package.json
+new file mode 100644
+index 0000000..a921df3
+--- /dev/null
++++ b/web/package.json
+@@ -0,0 +1,30 @@
++{
++  "name": "fantaspec-web",
++  "private": true,
++  "version": "0.0.0",
++  "type": "module",
++  "scripts": {
++    "dev": "vite",
++    "build": "tsc -b && vite build",
++    "preview": "vite preview",
++    "test": "vitest run"
++  },
++  "dependencies": {
++    "react": "^18.3.1",
++    "react-dom": "^18.3.1"
++  },
++  "devDependencies": {
++    "@testing-library/dom": "^10.4.2",
++    "@testing-library/jest-dom": "^6.9.1",
++    "@testing-library/react": "^16.3.3",
++    "@testing-library/user-event": "^14.6.8",
++    "@types/node": "^24.19.2",
++    "@types/react": "^18.3.31",
++    "@types/react-dom": "^18.3.7",
++    "@vitejs/plugin-react": "^6.1.2",
++    "jsdom": "^27.4.0",
++    "typescript": "~7.0.2",
++    "vite": "^8.3.5",
++    "vitest": "^4.1.12"
++  }
++}
+diff --git a/web/src/App.test.tsx b/web/src/App.test.tsx
+new file mode 100644
+index 0000000..27255a0
+--- /dev/null
++++ b/web/src/App.test.tsx
+@@ -0,0 +1,61 @@
++import { render, screen, waitFor } from "@testing-library/react";
++import App from "./App";
++import type { AppData } from "./types";
++import { saveSelected, saveSquads, type Squad } from "./squads";
++import { sampleData, sampleSquad } from "./test/sampleData";
++
++function renderApp({ data, squads, load }: { data?: AppData; squads: Squad[]; load?: () => Promise<AppData> }) {
++  saveSquads(squads);
++  return render(<App load={load ?? (() => Promise.resolve(data!))} />);
++}
++
++test("no squads sends the user to the editor", async () => {
++  renderApp({ data: sampleData, squads: [] });
++  expect(await screen.findByText("Crea la tua prima rosa")).toBeInTheDocument();
++  expect(window.location.hash).toBe("#/rose");
++});
++
++// Screens 9 and 10 will replace the placeholders, so these tests only rely on the squad name and the editor title.
++const squadName = new RegExp(sampleSquad.name);
++
++test("with squads the home route shows the squad screen", async () => {
++  renderApp({ data: sampleData, squads: [sampleSquad] });
++  expect(await screen.findAllByText(squadName)).not.toHaveLength(0);
++  expect(screen.queryByText("Crea la tua prima rosa")).not.toBeInTheDocument();
++  expect(screen.queryByText("Le mie rose")).not.toBeInTheDocument();
++  expect(window.location.hash).toBe("");
++});
++
++test("an unknown selected squad falls back to the first one", async () => {
++  saveSelected("gone");
++  renderApp({ data: sampleData, squads: [sampleSquad] });
++  expect(await screen.findAllByText(squadName)).not.toHaveLength(0);
++});
++
++test("the hash switches between the screens", async () => {
++  window.location.hash = "#/rose";
++  renderApp({ data: sampleData, squads: [sampleSquad] });
++  expect(await screen.findAllByText("Le mie rose")).not.toHaveLength(0);
++  expect(screen.queryByText("Crea la tua prima rosa")).not.toBeInTheDocument();
++  window.location.hash = "#/";
++  await waitFor(() => expect(screen.queryByText("Le mie rose")).not.toBeInTheDocument());
++  expect(screen.getAllByText(squadName)).not.toHaveLength(0);
++});
++
++test("an import link works on a first visit with no squads", async () => {
++  window.location.hash = "#/importa?s=garbage";
++  renderApp({ data: sampleData, squads: [] });
++  expect(await screen.findByText("Link non valido")).toBeInTheDocument();
++  expect(window.location.hash).toBe("#/importa?s=garbage");
++});
++
++test("data that cannot be loaded shows a message instead of a blank page", async () => {
++  renderApp({ squads: [sampleSquad], load: () => Promise.reject(new Error("offline")) });
++  expect(await screen.findByText("Dati non disponibili. Riprova più tardi.")).toBeInTheDocument();
++});
++
++test("corrupted stored squads start the app with the first-visit editor", async () => {
++  localStorage.setItem("fantaspec.squads.v1", "{broken");
++  render(<App load={() => Promise.resolve(sampleData)} />);
++  expect(await screen.findByText("Crea la tua prima rosa")).toBeInTheDocument();
++});
+diff --git a/web/src/App.tsx b/web/src/App.tsx
+new file mode 100644
+index 0000000..c939a5e
+--- /dev/null
++++ b/web/src/App.tsx
+@@ -0,0 +1,96 @@
++import { useEffect, useState, useSyncExternalStore } from "react";
++import { loadData } from "./data";
++import { ImportScreen } from "./screens/ImportScreen";
++import { SquadEditor } from "./screens/SquadEditor";
++import { SquadScreen } from "./screens/SquadScreen";
++import { loadSelected, loadSquads, saveSelected, saveSquads, type Squad } from "./squads";
++import type { AppData } from "./types";
++
++type Route = { path: "/" | "/rose" | "/importa"; params: URLSearchParams };
++
++function parseRoute(hash: string): Route {
++  const raw = hash.replace(/^#/, "");
++  const q = raw.indexOf("?");
++  const path = q < 0 ? raw : raw.slice(0, q);
++  const params = new URLSearchParams(q < 0 ? "" : raw.slice(q + 1));
++  return { path: path === "/rose" || path === "/importa" ? path : "/", params };
++}
++
++function subscribeToHash(onChange: () => void) {
++  window.addEventListener("hashchange", onChange);
++  return () => window.removeEventListener("hashchange", onChange);
++}
++
++type Load = { state: "loading" } | { state: "failed" } | { state: "ready"; data: AppData };
++
++type Props = {
++  /** Where the data comes from; tests pass their own. */
++  load?: () => Promise<AppData>;
++};
++
++export default function App({ load = loadData }: Props) {
++  const route = parseRoute(useSyncExternalStore(subscribeToHash, () => window.location.hash));
++  const [squads, setSquads] = useState(loadSquads);
++  const [selected, setSelected] = useState(loadSelected);
++  const [loaded, setLoaded] = useState<Load>({ state: "loading" });
++
++  useEffect(() => {
++    let current = true;
++    load().then(
++      data => current && setLoaded({ state: "ready", data }),
++      () => current && setLoaded({ state: "failed" }),
++    );
++    return () => { current = false; };
++  }, [load]);
++
++  // First visit: with no squads, the home screen is the editor. An import link still works.
++  const firstVisit = squads.length === 0 && route.path === "/";
++  useEffect(() => {
++    if (firstVisit) window.location.replace("#/rose");
++  }, [firstVisit]);
++  const path = firstVisit ? "/rose" : route.path;
++
++  const selectedId = (squads.find(s => s.id === selected) ?? squads[0])?.id;
++
++  function changeSquads(next: Squad[]) {
++    setSquads(next);
++    saveSquads(next);
++  }
++  function select(id: string) {
++    setSelected(id);
++    saveSelected(id);
++  }
++  function importSquad(squad: Squad) {
++    changeSquads([...squads, squad]);
++    select(squad.id);
++    window.location.hash = "#/";
++  }
++
++  let screen;
++  if (path === "/importa") {
++    screen = <ImportScreen param={route.params.get("s") ?? ""} squads={squads} onImport={importSquad} />;
++  } else if (loaded.state === "loading") {
++    screen = <p className="status">Caricamento…</p>;
++  } else if (loaded.state === "failed") {
++    screen = <p className="status" role="alert">Dati non disponibili. Riprova più tardi.</p>;
++  } else if (path === "/rose") {
++    screen = (
++      <>
++        {squads.length === 0 && <p className="status">Crea la tua prima rosa</p>}
++        <SquadEditor data={loaded.data} squads={squads} onChange={changeSquads} />
++      </>
++    );
++  } else {
++    screen = <SquadScreen data={loaded.data} squads={squads} selectedId={selectedId} onSelect={select} />;
++  }
++
++  return (
++    <>
++      <nav className="topbar">
++        <a href="#/" className="brand">fantaspec</a>
++        <a href="#/rose">Rose</a>
++      </nav>
++      <main>{screen}</main>
++    </>
++  );
++}
+diff --git a/web/src/data.test.ts b/web/src/data.test.ts
+new file mode 100644
+index 0000000..4a982bd
+--- /dev/null
++++ b/web/src/data.test.ts
+@@ -0,0 +1,28 @@
++import { loadData } from "./data";
++import { sampleData } from "./test/sampleData";
++
++function stubFetch(respond: (url: string) => Response) {
++  const fetchMock = vi.fn((url: string, _init?: RequestInit) => Promise.resolve(respond(url)));
++  vi.stubGlobal("fetch", fetchMock);
++  return fetchMock;
++}
++afterEach(() => {
++  vi.unstubAllGlobals();
++  vi.unstubAllEnvs();
++});
++
++test("loads the three data files from the site base, bypassing stale caches", async () => {
++  vi.stubEnv("BASE_URL", "/fantaspec/");
++  const files: Record<string, unknown> = { meta: sampleData.meta, clubs: sampleData.clubs, players: sampleData.players };
++  const fetchMock = stubFetch(url => Response.json(files[url.split("/").pop()!.replace(".json", "")]));
++  expect(await loadData()).toEqual(sampleData);
++  expect(fetchMock.mock.calls.map(c => c[0]).sort()).toEqual(
++    ["/fantaspec/data/clubs.json", "/fantaspec/data/meta.json", "/fantaspec/data/players.json"],
++  );
++  for (const call of fetchMock.mock.calls) expect(call[1]).toEqual({ cache: "no-cache" });
++});
++
++test("a failed request rejects", async () => {
++  stubFetch(() => new Response("nope", { status: 404 }));
++  await expect(loadData()).rejects.toThrow(/404/);
++});
+diff --git a/web/src/data.ts b/web/src/data.ts
+new file mode 100644
+index 0000000..bdb627c
+--- /dev/null
++++ b/web/src/data.ts
+@@ -0,0 +1,17 @@
++import type { AppData, ClubData, Meta, PlayerData } from "./types";
++
++async function getJson<T>(name: string): Promise<T> {
++  // no-cache: always revalidate, so a phone never keeps showing yesterday's numbers.
++  const response = await fetch(`${import.meta.env.BASE_URL}data/${name}.json`, { cache: "no-cache" });
++  if (!response.ok) throw new Error(`${name}.json: HTTP ${response.status}`);
++  return (await response.json()) as T;
++}
++
++export async function loadData(): Promise<AppData> {
++  const [meta, clubs, players] = await Promise.all([
++    getJson<Meta>("meta"),
++    getJson<Record<string, ClubData>>("clubs"),
++    getJson<Record<string, PlayerData>>("players"),
++  ]);
++  return { meta, clubs, players };
++}
+diff --git a/web/src/format.test.ts b/web/src/format.test.ts
+new file mode 100644
+index 0000000..2521171
+--- /dev/null
++++ b/web/src/format.test.ts
+@@ -0,0 +1,54 @@
++import { dateRange, num1, perGame, startClass, tertile } from "./format";
++
++test("italian number format", () => {
++  expect(num1(6.5)).toBe("6,5"); expect(num1(null)).toBe("–");
++});
++
++test("num1 always shows one decimal", () => {
++  expect(num1(6)).toBe("6,0");
++  expect(num1(1.666)).toBe("1,7");
++  expect(num1(0)).toBe("0,0");
++});
++
++test("per game average", () => {
++  expect(perGame(14, 9)).toBeCloseTo(1.556, 3);
++  expect(perGame(0, 9)).toBe(0);
++  expect(perGame(5, 0)).toBe(0);
++});
++
++test("tertile colouring", () => {
++  const all = [0.8, 1.0, 1.2, 1.4, 1.6, 2.0];
++  expect(tertile(2.0, all, true)).toBe("good"); expect(tertile(0.8, all, true)).toBe("bad"); expect(tertile(2.0, all, false)).toBe("bad");
++});
++
++test("tertile: lower is good, middle and flat lists stay neutral", () => {
++  const all = [0.8, 1.0, 1.2, 1.4, 1.6, 2.0];
++  expect(tertile(0.8, all, false)).toBe("good");
++  expect(tertile(1.2, all, true)).toBe("");
++  expect(tertile(1.2, all, false)).toBe("");
++  expect(tertile(1, [1, 1, 1, 1], true)).toBe("");
++  expect(tertile(1, [1, 2], true)).toBe("");
++  expect(tertile(1, [], true)).toBe("");
++});
++
++test("tertile over 20 clubs marks about a third on each side", () => {
++  const all = Array.from({ length: 20 }, (_, i) => 0.5 + i * 0.1);
++  const marks = all.map(v => tertile(v, all, true));
++  expect(marks.filter(m => m === "good").length).toBeGreaterThanOrEqual(6);
++  expect(marks.filter(m => m === "bad").length).toBeGreaterThanOrEqual(6);
++  expect(marks.filter(m => m === "").length).toBeGreaterThanOrEqual(6);
++  expect(marks[0]).toBe("bad"); expect(marks[19]).toBe("good");
++});
++
++test("start percentage classes", () => {
++  expect(startClass(75)).toBe("good"); expect(startClass(100)).toBe("good");
++  expect(startClass(74)).toBe(""); expect(startClass(50)).toBe("");
++  expect(startClass(49)).toBe("bad"); expect(startClass(0)).toBe("bad");
++  expect(startClass(null)).toBe("");
++});
++
++test("matchday date range", () => {
++  expect(dateRange("2026-10-31", "2026-11-02")).toBe("31 ott – 2 nov");
++  expect(dateRange("2026-12-29", "2027-01-01")).toBe("29 dic – 1 gen");
++  expect(dateRange("2026-10-31", "2026-10-31")).toBe("31 ott");
++});
+diff --git a/web/src/format.ts b/web/src/format.ts
+new file mode 100644
+index 0000000..30c9e32
+--- /dev/null
++++ b/web/src/format.ts
+@@ -0,0 +1,38 @@
++const oneDecimal = new Intl.NumberFormat("it-IT", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
++const dayMonth = new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "short", timeZone: "UTC" });
++
++/** One decimal, Italian style: 6,5. A missing number shows as an en dash. */
++export function num1(n: number | null): string {
++  return n === null ? "–" : oneDecimal.format(n);
++}
++
++/** Average per game; 0 for a club that has not played yet. */
++export function perGame(total: number, played: number): number {
++  return played > 0 ? total / played : 0;
++}
++
++/**
++ * Colours a value against all clubs: the top third of `all` is "good" when higher is good (the bottom third
++ * when it is not), the opposite third is "bad", the middle stays neutral. Ties and flat lists stay neutral.
++ */
++export function tertile(value: number, all: number[], higherIsGood: boolean): "good" | "bad" | "" {
++  const third = Math.floor(all.length / 3);
++  if (third === 0) return "";
++  const sorted = [...all].sort((x, y) => x - y);
++  const isLow = value <= sorted[third - 1];
++  const isHigh = value >= sorted[sorted.length - third];
++  if (isLow === isHigh) return "";
++  return isLow === higherIsGood ? "bad" : "good";
++}
++
++/** Probable-lineup percentage: 75 and above is good, below 50 is bad. */
++export function startClass(pct: number | null): "good" | "bad" | "" {
++  if (pct === null) return "";
++  return pct >= 75 ? "good" : pct < 50 ? "bad" : "";
++}
++
++/** "2026-10-31", "2026-11-02" -> "31 ott – 2 nov". */
++export function dateRange(from: string, to: string): string {
++  const day = (iso: string) => dayMonth.format(new Date(`${iso}T00:00:00Z`));
++  return from === to ? day(from) : `${day(from)} – ${day(to)}`;
++}
+diff --git a/web/src/main.tsx b/web/src/main.tsx
+new file mode 100644
+index 0000000..693ac2e
+--- /dev/null
++++ b/web/src/main.tsx
+@@ -0,0 +1,10 @@
++import { StrictMode } from "react";
++import { createRoot } from "react-dom/client";
++import App from "./App";
++import "./styles.css";
++
++createRoot(document.getElementById("root")!).render(
++  <StrictMode>
++    <App />
++  </StrictMode>,
++);
+diff --git a/web/src/screens/ImportScreen.tsx b/web/src/screens/ImportScreen.tsx
+new file mode 100644
+index 0000000..4b9e31f
+--- /dev/null
++++ b/web/src/screens/ImportScreen.tsx
+@@ -0,0 +1,13 @@
++import { decodeShare, type Squad } from "../squads";
++
++type Props = {
++  /** The `s` parameter of the share link. */
++  param: string;
++  squads: Squad[];
++  onImport: (squad: Squad) => void;
++};
++
++// Placeholder until Task 10.
++export function ImportScreen({ param }: Props) {
++  return <p>{decodeShare(param) ? "Importa" : "Link non valido"}</p>;
++}
+diff --git a/web/src/screens/SquadEditor.tsx b/web/src/screens/SquadEditor.tsx
+new file mode 100644
+index 0000000..065f034
+--- /dev/null
++++ b/web/src/screens/SquadEditor.tsx
+@@ -0,0 +1,18 @@
++import type { AppData } from "../types";
++import type { Squad } from "../squads";
++
++type Props = {
++  data: AppData;
++  squads: Squad[];
++  onChange: (squads: Squad[]) => void;
++};
++
++// Placeholder until Task 10.
++export function SquadEditor({ squads }: Props) {
++  return (
++    <>
++      <h1>Le mie rose</h1>
++      <ul>{squads.map(s => <li key={s.id}>{s.name}</li>)}</ul>
++    </>
++  );
++}
+diff --git a/web/src/screens/SquadScreen.tsx b/web/src/screens/SquadScreen.tsx
+new file mode 100644
+index 0000000..ff662b7
+--- /dev/null
++++ b/web/src/screens/SquadScreen.tsx
+@@ -0,0 +1,15 @@
++import type { AppData } from "../types";
++import type { Squad } from "../squads";
++
++type Props = {
++  data: AppData;
++  squads: Squad[];
++  selectedId: string;
++  onSelect: (id: string) => void;
++};
++
++// Placeholder until Task 9.
++export function SquadScreen({ squads, selectedId }: Props) {
++  const squad = squads.find(s => s.id === selectedId) ?? squads[0];
++  return <p>{squad.name} ({squad.players.length})</p>;
++}
+diff --git a/web/src/squads.test.ts b/web/src/squads.test.ts
+new file mode 100644
+index 0000000..f4ea1aa
+--- /dev/null
++++ b/web/src/squads.test.ts
+@@ -0,0 +1,83 @@
++import { decodeShare, encodeShare, loadSelected, loadSquads, saveSelected, saveSquads } from "./squads";
++
++test("share link round trip keeps names and order", () => {
++  const s = { id: "x", name: "FC Ghisleni", players: [{ id: 572, name: "Meret" }, { id: 184, name: "Bernardeschi" }] };
++  expect(decodeShare(encodeShare(s))).toEqual({ ...s, id: expect.any(String) });
++});
++
++test("share link keeps accents, apostrophes and emoji, and is URL safe", () => {
++  const s = { id: "x", name: "Rosa d'Ōro ⚽", players: [{ id: 4317, name: "N'Dicka" }, { id: 1, name: "Milinković-Savić" }] };
++  const param = encodeShare(s);
++  expect(param).toMatch(/^[A-Za-z0-9_-]+$/);
++  expect(decodeShare(param)).toEqual({ ...s, id: expect.any(String) });
++});
++
++test("every decoded share link gets a fresh id", () => {
++  const s = { id: "x", name: "A", players: [] };
++  expect(decodeShare(encodeShare(s))!.id).not.toBe(decodeShare(encodeShare(s))!.id);
++});
++
++test("bad share links return null", () => {
++  const b64 = (v: unknown) => btoa(JSON.stringify(v));
++  const bad = [
++    "",
++    "%%%",
++    btoa("not json"),
++    b64({ n: "x" }),
++    b64({ n: 3, p: [] }),
++    b64({ n: "x", p: [[1]] }),
++    b64({ n: "x", p: [["1", "Meret"]] }),
++    b64({ n: "x", p: [[1.5, "Meret"]] }),
++    b64({ n: "x", p: "Meret" }),
++    b64(null),
++    b64([]),
++    "/w", // not valid UTF-8 once decoded
++  ];
++  for (const param of bad) expect(decodeShare(param)).toBeNull();
++});
++
++test("squads and selection survive a reload", () => {
++  const squads = [{ id: "a", name: "Uno", players: [{ id: 1, name: "Meret" }] }];
++  saveSquads(squads);
++  saveSelected("a");
++  expect(loadSquads()).toEqual(squads);
++  expect(loadSelected()).toBe("a");
++  expect(localStorage.getItem("fantaspec.squads.v1")).not.toBeNull();
++  expect(localStorage.getItem("fantaspec.selected")).toBe("a");
++});
++
++test("nothing stored gives no squads and no selection", () => {
++  expect(loadSquads()).toEqual([]);
++  expect(loadSelected()).toBeNull();
++});
++
++test("corrupted or blocked storage gives no squads", () => {
++  localStorage.setItem("fantaspec.squads.v1", "{broken");
++  expect(loadSquads()).toEqual([]);
++  vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw new Error("blocked"); });
++  expect(loadSquads()).toEqual([]);
++  expect(loadSelected()).toBeNull();
++});
++
++test("blocked storage hides even valid squads, without throwing", () => {
++  saveSquads([{ id: "a", name: "Uno", players: [] }]);
++  saveSelected("a");
++  expect(loadSquads()).toHaveLength(1);
++  vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw new Error("blocked"); });
++  expect(loadSquads()).toEqual([]);
++  expect(loadSelected()).toBeNull();
++});
++
++test("stored squads with the wrong shape are dropped, valid ones kept", () => {
++  const good = { id: "a", name: "Uno", players: [{ id: 1, name: "Meret" }] };
++  localStorage.setItem("fantaspec.squads.v1", JSON.stringify([good, { id: "b" }, { id: "c", name: "X", players: [{ id: "1" }] }, null, 7]));
++  expect(loadSquads()).toEqual([good]);
++  localStorage.setItem("fantaspec.squads.v1", JSON.stringify({ not: "an array" }));
++  expect(loadSquads()).toEqual([]);
++});
++
++test("blocked or full storage never throws on save", () => {
++  vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("quota"); });
++  expect(() => saveSquads([])).not.toThrow();
++  expect(() => saveSelected("a")).not.toThrow();
++});
+diff --git a/web/src/squads.ts b/web/src/squads.ts
+new file mode 100644
+index 0000000..e25db29
+--- /dev/null
++++ b/web/src/squads.ts
+@@ -0,0 +1,92 @@
++export type SquadPlayer = { id: number; name: string };
++export type Squad = { id: string; name: string; players: SquadPlayer[] };
++
++const SQUADS_KEY = "fantaspec.squads.v1";
++const SELECTED_KEY = "fantaspec.selected";
++
++// Storage can be missing, blocked, full or hold garbage: every access is guarded and falls back silently.
++
++function readStorage(key: string): string | null {
++  try {
++    return localStorage.getItem(key);
++  } catch {
++    return null;
++  }
++}
++
++function writeStorage(key: string, value: string): void {
++  try {
++    localStorage.setItem(key, value);
++  } catch {
++    // Nowhere to save: the app keeps working with what it has in memory.
++  }
++}
++
++function isSquadPlayer(v: unknown): v is SquadPlayer {
++  const p = v as SquadPlayer | null;
++  return typeof p === "object" && p !== null && Number.isInteger(p.id) && typeof p.name === "string";
++}
++
++function isSquad(v: unknown): v is Squad {
++  const s = v as Squad | null;
++  return typeof s === "object" && s !== null && typeof s.id === "string" && typeof s.name === "string"
++    && Array.isArray(s.players) && s.players.every(isSquadPlayer);
++}
++
++export function newId(): string {
++  // randomUUID only exists in secure contexts (not on a phone opening the dev server over http).
++  return typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
++    ? crypto.randomUUID()
++    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
++}
++
++export function loadSquads(): Squad[] {
++  try {
++    const parsed: unknown = JSON.parse(readStorage(SQUADS_KEY) ?? "[]");
++    return Array.isArray(parsed) ? parsed.filter(isSquad) : [];
++  } catch {
++    return [];
++  }
++}
++
++export function saveSquads(squads: Squad[]): void {
++  writeStorage(SQUADS_KEY, JSON.stringify(squads));
++}
++
++export function loadSelected(): string | null {
++  return readStorage(SELECTED_KEY);
++}
++
++export function saveSelected(id: string): void {
++  writeStorage(SELECTED_KEY, id);
++}
++
++// Share link payload: base64url of the UTF-8 JSON {"n": name, "p": [[id, name], ...]}.
++
++export function encodeShare(squad: Squad): string {
++  const json = JSON.stringify({ n: squad.name, p: squad.players.map(p => [p.id, p.name]) });
++  let binary = "";
++  for (const byte of new TextEncoder().encode(json)) binary += String.fromCharCode(byte);
++  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
++}
++
++/** The squad in a share link (with a fresh id), or null when the link is not one of ours. */
++export function decodeShare(param: string): Squad | null {
++  try {
++    const base64 = param.replace(/-/g, "+").replace(/_/g, "/");
++    const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
++    const payload: unknown = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
++    const { n, p } = payload as { n?: unknown; p?: unknown };
++    if (typeof n !== "string" || !Array.isArray(p)) return null;
++    const players: SquadPlayer[] = [];
++    for (const entry of p) {
++      if (!Array.isArray(entry)) return null;
++      const player = { id: entry[0], name: entry[1] };
++      if (!isSquadPlayer(player)) return null;
++      players.push(player);
++    }
++    return { id: newId(), name: n, players };
++  } catch {
++    return null;
++  }
++}
+diff --git a/web/src/styles.css b/web/src/styles.css
+new file mode 100644
+index 0000000..f0332f8
+--- /dev/null
++++ b/web/src/styles.css
+@@ -0,0 +1,81 @@
++:root {
++  color-scheme: light dark;
++  --bg: #f4f5f7;
++  --card: #ffffff;
++  --fg: #16191f;
++  --muted: #5a6370;
++  --line: #dde1e7;
++  --accent: #0b6b4d;
++  --good: #1b7f3b;
++  --bad: #c0302c;
++  --banner-bg: #fbe4e2;
++  --banner-fg: #7a1511;
++  --radius: 10px;
++}
++
++@media (prefers-color-scheme: dark) {
++  :root {
++    --bg: #101317;
++    --card: #1a1f26;
++    --fg: #eceff3;
++    --muted: #9aa4b2;
++    --line: #2b323c;
++    --accent: #4cc39a;
++    --good: #52c47a;
++    --bad: #f0706b;
++    --banner-bg: #4a1f1d;
++    --banner-fg: #ffd9d6;
++  }
++}
++
++* {
++  box-sizing: border-box;
++}
++
++html {
++  -webkit-text-size-adjust: 100%;
++}
++
++body {
++  margin: 0;
++  background: var(--bg);
++  color: var(--fg);
++  font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
++}
++
++/* One column, centred: the phone layout is also the desktop layout. */
++#root {
++  max-width: 480px;
++  margin: 0 auto;
++  padding: 0 12px 32px;
++}
++
++a {
++  color: var(--accent);
++}
++
++.topbar {
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  min-height: 48px;
++}
++
++.topbar a {
++  display: inline-flex;
++  align-items: center;
++  min-height: 44px;
++  padding: 0 4px;
++  text-decoration: none;
++  font-weight: 600;
++}
++
++.topbar .brand {
++  color: var(--fg);
++  letter-spacing: 0.02em;
++}
++
++.status {
++  margin: 24px 0;
++  color: var(--muted);
++}
+diff --git a/web/src/test/sampleData.test.ts b/web/src/test/sampleData.test.ts
+new file mode 100644
+index 0000000..6b0bdd7
+--- /dev/null
++++ b/web/src/test/sampleData.test.ts
+@@ -0,0 +1,67 @@
++import { perGame } from "../format";
++import { fullSquad, sampleData, sampleSquad } from "./sampleData";
++
++// Guards the facts that the Squad screen and Squad editor tests rely on.
++
++const { clubs, players } = sampleData;
++const byName = (name: string) => Object.values(players).filter(p => p.name === name);
++const squadPlayers = (ids: number[]) => ids.map(id => players[String(id)]);
++
++test("every named player exists once, with the expected role and club", () => {
++  const expected: [string, string, string | null][] = [
++    ["Meret", "P", "napoli"], ["Bastoni", "D", "inter"], ["Dimarco", "D", "inter"], ["Di Lorenzo", "D", "napoli"],
++    ["N'Dicka", "D", "roma"], ["Bernardeschi", "C", "juventus"], ["Kean", "A", "juventus"],
++    ["Panchinaro", "C", "roma"], ["Senzapartita", "C", "lecce"], ["Partito", "A", null],
++  ];
++  for (const [name, role, club] of expected) {
++    expect(byName(name)).toHaveLength(1);
++    expect(byName(name)[0]).toMatchObject({ role, club });
++  }
++  expect(byName("Meret")[0].id).toBe(572);
++  expect(byName("Bernardeschi")[0].id).toBe(184);
++});
++
++test("the edge cases are in place", () => {
++  expect(byName("Kean")[0].status?.kind).toBe("injured");
++  const bench = byName("Panchinaro")[0];
++  expect(bench.season).toMatchObject({ pres: 0, medV: null, medFV: null });
++  expect(bench.last5.fv.every(v => v === null)).toBe(true);
++  expect(clubs.lecce.next).toBeNull();
++  expect(byName("Partito")[0].club).toBeNull();
++});
++
++test("squads only hold known players, under their data names", () => {
++  for (const squad of [sampleSquad, fullSquad]) {
++    for (const { id, name } of squad.players) expect(players[String(id)]?.name).toBe(name);
++  }
++});
++
++test("the screen squad has all four roles and exactly the three defenders", () => {
++  const members = squadPlayers(fullSquad.players.map(p => p.id));
++  expect([...new Set(members.map(p => p.role))].sort()).toEqual(["A", "C", "D", "P"]);
++  expect(members.filter(p => p.role === "D").map(p => p.name).sort()).toEqual(["Bastoni", "Di Lorenzo", "Dimarco"]);
++});
++
++test("inter defenders face a weaker attack than Di Lorenzo", () => {
++  const opponentGoalsFor = (club: string) => {
++    const opponent = clubs[clubs[club].next!.opponent];
++    return perGame(opponent.gf, opponent.played);
++  };
++  expect(opponentGoalsFor("inter")).toBeLessThan(opponentGoalsFor("napoli"));
++});
++
++test("the editor searches find exactly one player", () => {
++  const names = Object.values(players).map(p => p.name.toLowerCase().replace(/[^a-z]/g, ""));
++  expect(names.filter(n => n.includes("mer"))).toEqual(["meret"]);
++  expect(names.filter(n => n.includes("ndicka"))).toEqual(["ndicka"]);
++  expect(sampleSquad.players.map(p => p.name)).not.toContain("N'Dicka");
++});
++
++test("clubs are consistent: the split adds up and opponents exist and point back", () => {
++  for (const club of Object.values(clubs)) {
++    expect(club.home.played + club.away.played).toBe(club.played);
++    expect(club.home.gf + club.away.gf).toBe(club.gf);
++    expect(club.home.ga + club.away.ga).toBe(club.ga);
++    if (club.next) expect(clubs[club.next.opponent].next?.opponent).toBe(club.key);
++  }
++});
+diff --git a/web/src/test/sampleData.ts b/web/src/test/sampleData.ts
+new file mode 100644
+index 0000000..4f14e11
+--- /dev/null
++++ b/web/src/test/sampleData.ts
+@@ -0,0 +1,108 @@
++// Small hand-made dataset shared by the web tests. It is a valid AppData (same shape as public/data/*.json)
++// and is written so the Squad screen (Task 9) and Squad editor / import (Task 10) tests can lean on it.
++//
++// Matchday 10, Europe/Rome. Pairings: napoli @ juventus, inter v roma. lecce has no fixture left (next: null).
++//
++//                 GF/game  GA/game   next
++//   napoli          1.56     1.11     @ juventus
++//   juventus        1.78     0.67     v napoli
++//   inter           2.33     0.78     v roma
++//   roma            1.00     1.22     @ inter
++//   lecce           0.67     1.78     -
++//
++// So a defender (matchup = opponent GF/game) has the easiest game at inter (roma, 1.0) and the hardest at
++// napoli (juventus, 1.78): Bastoni and Dimarco (same club, tie broken by name) before Di Lorenzo.
++import type { AppData, ClubData, PlayerData } from "../types";
++import type { Squad } from "../squads";
++
++const clubs: ClubData[] = [
++  {
++    key: "napoli", name: "Napoli", position: 4, points: 17, played: 9, form: ["L", "L", "W", "D", "W"], gf: 14, ga: 10,
++    home: { played: 5, gf: 8, ga: 3 }, away: { played: 4, gf: 6, ga: 7 },
++    next: { opponent: "juventus", home: false, kickoff: "2026-10-31T18:00:00+01:00", matchday: 10, h2h: ["W", "D", "L", "D", "L"] },
++  },
++  {
++    key: "juventus", name: "Juventus", position: 2, points: 20, played: 9, form: ["W", "W", "D", "W", "W"], gf: 16, ga: 6,
++    home: { played: 5, gf: 10, ga: 2 }, away: { played: 4, gf: 6, ga: 4 },
++    next: { opponent: "napoli", home: true, kickoff: "2026-10-31T18:00:00+01:00", matchday: 10, h2h: ["L", "D", "W", "D", "W"] },
++  },
++  {
++    key: "inter", name: "Inter", position: 1, points: 22, played: 9, form: ["W", "W", "W", "D", "W"], gf: 21, ga: 7,
++    home: { played: 4, gf: 11, ga: 3 }, away: { played: 5, gf: 10, ga: 4 },
++    next: { opponent: "roma", home: true, kickoff: "2026-11-01T20:45:00+01:00", matchday: 10, h2h: ["W", "W", "D", "W", "L"] },
++  },
++  {
++    key: "roma", name: "Roma", position: 7, points: 14, played: 9, form: ["D", "L", "W", "D", "L"], gf: 9, ga: 11,
++    home: { played: 5, gf: 6, ga: 5 }, away: { played: 4, gf: 3, ga: 6 },
++    next: { opponent: "inter", home: false, kickoff: "2026-11-01T20:45:00+01:00", matchday: 10, h2h: ["L", "L", "D", "L", "W"] },
++  },
++  {
++    key: "lecce", name: "Lecce", position: 18, points: 6, played: 9, form: ["L", "L", "D", "L", "L"], gf: 6, ga: 16,
++    home: { played: 5, gf: 4, ga: 8 }, away: { played: 4, gf: 2, ga: 8 },
++    next: null,
++  },
++];
++
++type Stats = Partial<PlayerData["season"]>;
++type Opts = { status?: PlayerData["status"]; startPct?: number | null; fv?: (number | null)[]; g?: number; a?: number; gs?: number };
++
++function player(id: number, name: string, role: PlayerData["role"], club: string | null, season: Stats, o: Opts = {}): PlayerData {
++  const fv = o.fv ?? [];
++  return {
++    id, name, club, role,
++    season: { pres: 0, medV: null, medFV: null, g: 0, gs: 0, a: 0, cs: role === "C" || role === "A" ? null : 0, ...season },
++    last5: { played: fv.filter(v => v !== null).length, g: o.g ?? 0, gs: o.gs ?? 0, a: o.a ?? 0, fv },
++    status: o.status ?? null,
++    startPct: o.startPct ?? null,
++  };
++}
++
++const players: PlayerData[] = [
++  player(572, "Meret", "P", "napoli", { pres: 9, medV: 6.0, medFV: 6.5, gs: 10, cs: 3 }, { fv: [5.0, 6.0, 7.0, 4.0, 6.0], gs: 6, startPct: 95 }),
++  player(2816, "Di Lorenzo", "D", "napoli", { pres: 9, medV: 6.0, medFV: 6.8, g: 1, a: 2, cs: 3 }, { fv: [6.5, 7.0, null, 6.0, 8.5], g: 1, a: 1, startPct: 90 }),
++  player(2120, "Bastoni", "D", "inter", { pres: 8, medV: 6.5, medFV: 7.0, g: 1, a: 1, cs: 4 }, { fv: [6.5, 7.0, 7.5, null, 7.0], startPct: 85 }),
++  player(254, "Dimarco", "D", "inter", { pres: 9, medV: 6.5, medFV: 7.5, g: 2, a: 4, cs: 4 }, { fv: [8.0, 7.0, 7.5, 6.5, 8.5], g: 1, a: 2, startPct: 60, status: { kind: "doubtful", text: "" } }),
++  player(4317, "N'Dicka", "D", "roma", { pres: 8, medV: 6.0, medFV: 6.2, cs: 3 }, { fv: [5.5, 6.0, 6.0, 6.0, 6.0], startPct: 70 }),
++  player(184, "Bernardeschi", "C", "juventus", { pres: 8, medV: 6.25, medFV: 6.4, g: 2 }, { fv: [10.0, null, 5.5, 9.5, 6.0], g: 2, startPct: 80 }),
++  // Never voted this season: a new signing who is always on the bench.
++  player(9001, "Panchinaro", "C", "roma", {}, { fv: [null, null, null, null, null], startPct: 0 }),
++  // His club has no fixture left, so there is no opponent and no lineup.
++  player(9002, "Senzapartita", "C", "lecce", { pres: 6, medV: 6.0, medFV: 6.3, g: 1, a: 1 }, { fv: [6.0, null, 6.5, 6.0, 6.5], g: 1, a: 1 }),
++  player(2097, "Kean", "A", "juventus", { pres: 7, medV: 6.5, medFV: 7.8, g: 4, a: 1 }, {
++    fv: [9.5, 6.0, null, 8.5, 7.0], g: 3, a: 1, startPct: 0,
++    status: { kind: "injured", text: "rientro da metà novembre" },
++  }),
++  // Left Serie A: no club, no fixtures, no lineup.
++  player(9003, "Partito", "A", null, { pres: 4, medV: 5.8, medFV: 6.1, g: 1 }),
++];
++
++const byKey = <T extends { key: string }>(list: T[]) => Object.fromEntries(list.map(item => [item.key, item]));
++
++export const sampleData: AppData = {
++  meta: {
++    season: "2026-27",
++    updatedAt: "2026-10-31T10:07:12+01:00",
++    lastRun: { at: "2026-10-31T10:07:12+01:00", kind: "light", ok: true, errors: [] },
++    nextMatchday: { number: 10, from: "2026-10-31", to: "2026-11-02" },
++  },
++  clubs: byKey(clubs),
++  players: Object.fromEntries(players.map(p => [String(p.id), p])),
++};
++
++/** A small squad for the editor and import tests. It leaves out N'Dicka on purpose, so he only shows up as a search result. */
++export const sampleSquad: Squad = {
++  id: "sq-ghisleni",
++  name: "FC Ghisleni",
++  players: [{ id: 572, name: "Meret" }, { id: 184, name: "Bernardeschi" }, { id: 2097, name: "Kean" }],
++};
++
++/**
++ * The squad for the Squad screen tests: every role, exactly three defenders (Bastoni, Dimarco, Di Lorenzo),
++ * plus the edge cases: Kean is injured, Panchinaro never got a vote, Senzapartita's club has no fixture left,
++ * Partito left Serie A.
++ */
++export const fullSquad: Squad = {
++  id: "sq-completa",
++  name: "Rosa completa",
++  players: [572, 2816, 2120, 254, 184, 9001, 9002, 2097, 9003].map(id => ({ id, name: sampleData.players[String(id)].name })),
++};
+diff --git a/web/src/test/setup.ts b/web/src/test/setup.ts
+new file mode 100644
+index 0000000..743ca5a
+--- /dev/null
++++ b/web/src/test/setup.ts
+@@ -0,0 +1,15 @@
++import "@testing-library/jest-dom/vitest";
++
++// Vitest's jsdom environment exposes the JSDOM instance as a global.
++declare const jsdom: { window: { localStorage: Storage } };
++
++// Node 25+ has its own global `localStorage` (a stub that warns and is undefined without --localstorage-file),
++// which hides the jsdom one. Point it back at jsdom's so tests behave like a browser on any Node version.
++Object.defineProperty(globalThis, "localStorage", { value: jsdom.window.localStorage, configurable: true, writable: true });
++
++// Every test starts from clean storage, an empty URL hash and no leftover spies.
++afterEach(() => {
++  vi.restoreAllMocks();
++  localStorage.clear();
++  window.history.replaceState(null, "", "/");
++});
+diff --git a/web/src/types.ts b/web/src/types.ts
+new file mode 100644
+index 0000000..bc3c94d
+--- /dev/null
++++ b/web/src/types.ts
+@@ -0,0 +1,94 @@
++// Mirrors the JSON written by the pipeline into public/data/ (meta.json, clubs.json, players.json).
++
++export type Role = "P" | "D" | "C" | "A";
++
++/** One result seen from a club's side: Win, Draw, Loss. Always oldest to newest in lists. */
++export type Result = "W" | "D" | "L";
++
++export type LastRun = {
++  at: string;
++  kind: "light" | "full";
++  ok: boolean;
++  errors: string[];
++};
++
++export type Meta = {
++  season: string;
++  /** Changes only when the site data changed. */
++  updatedAt: string;
++  lastRun: LastRun;
++  /** null when no unplayed fixture is left. */
++  nextMatchday: { number: number; from: string; to: string } | null;
++};
++
++export type Split = { played: number; gf: number; ga: number };
++
++export type NextMatch = {
++  /** Club key of the opponent. */
++  opponent: string;
++  home: boolean;
++  kickoff: string;
++  matchday: number;
++  /** Last (up to) 5 meetings, from this club's side; may be shorter or empty. */
++  h2h: Result[];
++};
++
++export type ClubData = {
++  key: string;
++  name: string;
++  position: number;
++  points: number;
++  played: number;
++  form: Result[];
++  gf: number;
++  ga: number;
++  home: Split;
++  away: Split;
++  /** null when the club has no unplayed fixture left. */
++  next: NextMatch | null;
++};
++
++export type PlayerStatus = {
++  kind: "suspended" | "injured" | "doubtful" | "warned";
++  text: string;
++};
++
++export type PlayerData = {
++  id: number;
++  name: string;
++  /** Club key; null for a player no longer on the fantacalcio roster. */
++  club: string | null;
++  role: Role;
++  season: {
++    pres: number;
++    /** null when pres is 0. */
++    medV: number | null;
++    /** null when pres is 0. */
++    medFV: number | null;
++    g: number;
++    gs: number;
++    a: number;
++    /** null for roles C and A. */
++    cs: number | null;
++  };
++  last5: {
++    played: number;
++    g: number;
++    gs: number;
++    a: number;
++    /** One entry per match in the club's last (up to) 5, oldest first; null where the player had no vote. */
++    fv: (number | null)[];
++  };
++  /** null when the player has no status. */
++  status: PlayerStatus | null;
++  /** 0-100 when the club's next match is on the lineups page, null otherwise. */
++  startPct: number | null;
++};
++
++export type AppData = {
++  meta: Meta;
++  /** Keyed by club slug. */
++  clubs: Record<string, ClubData>;
++  /** Keyed by player id as a string. */
++  players: Record<string, PlayerData>;
++};
+diff --git a/web/tsconfig.app.json b/web/tsconfig.app.json
+new file mode 100644
+index 0000000..6f6c9d2
+--- /dev/null
++++ b/web/tsconfig.app.json
+@@ -0,0 +1,26 @@
++{
++  "compilerOptions": {
++    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
++    "target": "es2023",
++    "lib": ["ES2023", "DOM"],
++    "module": "esnext",
++    "types": ["vite/client", "vitest/globals"],
++    "allowArbitraryExtensions": true,
++    "skipLibCheck": true,
++
++    /* Bundler mode */
++    "moduleResolution": "bundler",
++    "allowImportingTsExtensions": true,
++    "verbatimModuleSyntax": true,
++    "moduleDetection": "force",
++    "noEmit": true,
++    "jsx": "react-jsx",
++
++    /* Linting */
++    "noUnusedLocals": true,
++    "noUnusedParameters": true,
++    "erasableSyntaxOnly": true,
++    "noFallthroughCasesInSwitch": true
++  },
++  "include": ["src"]
++}
+diff --git a/web/tsconfig.json b/web/tsconfig.json
+new file mode 100644
+index 0000000..1ffef60
+--- /dev/null
++++ b/web/tsconfig.json
+@@ -0,0 +1,7 @@
++{
++  "files": [],
++  "references": [
++    { "path": "./tsconfig.app.json" },
++    { "path": "./tsconfig.node.json" }
++  ]
++}
+diff --git a/web/tsconfig.node.json b/web/tsconfig.node.json
+new file mode 100644
+index 0000000..8455dcb
+--- /dev/null
++++ b/web/tsconfig.node.json
+@@ -0,0 +1,23 @@
++{
++  "compilerOptions": {
++    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
++    "target": "es2023",
++    "lib": ["ES2023"],
++    "types": ["node"],
++    "skipLibCheck": true,
++
++    /* Bundler mode */
++    "module": "nodenext",
++    "allowImportingTsExtensions": true,
++    "verbatimModuleSyntax": true,
++    "moduleDetection": "force",
++    "noEmit": true,
++
++    /* Linting */
++    "noUnusedLocals": true,
++    "noUnusedParameters": true,
++    "erasableSyntaxOnly": true,
++    "noFallthroughCasesInSwitch": true
++  },
++  "include": ["vite.config.ts"]
++}
+diff --git a/web/vite.config.ts b/web/vite.config.ts
+new file mode 100644
+index 0000000..f87999b
+--- /dev/null
++++ b/web/vite.config.ts
+@@ -0,0 +1,13 @@
++import react from "@vitejs/plugin-react";
++import { defineConfig } from "vitest/config";
++
++// https://vite.dev/config/
++export default defineConfig({
++  base: "/fantaspec/",
++  plugins: [react()],
++  test: {
++    environment: "jsdom",
++    globals: true,
++    setupFiles: ["./src/test/setup.ts"],
++  },
++});

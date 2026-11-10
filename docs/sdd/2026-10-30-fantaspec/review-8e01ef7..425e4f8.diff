@@ -1,0 +1,321 @@
+# Review package: 8e01ef7..HEAD
+
+## Commits
+425e4f8 pipeline: fantacalcio votes, roster and calendar parsers
+
+## Files changed
+ docs/superpowers/plans/2026-10-30-fantaspec.md | 10 ++---
+ pipeline/fantaspec/models.py                   | 33 ++++++++++++++++
+ pipeline/fantaspec/sources/fc_calendar.py      | 35 +++++++++++++++++
+ pipeline/fantaspec/sources/fc_roster.py        | 28 +++++++++++++
+ pipeline/fantaspec/sources/fc_votes.py         | 54 ++++++++++++++++++++++++++
+ pipeline/tests/test_fc_calendar.py             | 11 ++++++
+ pipeline/tests/test_fc_roster.py               | 11 ++++++
+ pipeline/tests/test_fc_votes.py                | 22 +++++++++++
+ 8 files changed, 199 insertions(+), 5 deletions(-)
+
+## Diff
+diff --git a/docs/superpowers/plans/2026-10-30-fantaspec.md b/docs/superpowers/plans/2026-10-30-fantaspec.md
+index 03b760a..12620a0 100644
+--- a/docs/superpowers/plans/2026-10-30-fantaspec.md
++++ b/docs/superpowers/plans/2026-10-30-fantaspec.md
+@@ -223,21 +223,21 @@ def test_parse_standings():
+ - Consumes: `config.fc_*_url`, `clubs.by_key()`.
+ - Produces:
+   - `VoteRow(player_id: int, name: str, club: str, role: str, matchday: int, vote: float | None, fanta_vote: float | None, goals: int, conceded: int, own_goals: int, pens_scored: int, pens_missed: int, pens_saved: int, assists: int)`
+   - `RosterPlayer(id: int, name: str, club: str, role: str)`
+   - `CalendarFixture(matchday: int, home: str, away: str)`
+   - `fc_votes.parse_votes(html: str, matchday: int) -> list[VoteRow]`
+   - `fc_roster.parse_roster(html: str) -> list[RosterPlayer]`
+   - `fc_calendar.parse_calendar(html: str, matchday: int) -> list[CalendarFixture]`
+ 
+ - [x] **Step 1: Save the pages.** Already saved on 2026-10-30: `fc_votes_8.html.gz`, `fc_roster.html.gz`, `fc_calendar_10.html.gz` (10 fixtures) in `pipeline/tests/fixtures/`.
+-- [ ] **Step 2: Write the failing tests**
++- [x] **Step 2: Write the failing tests**
+ 
+ ```python
+ def test_votes_matchday_8():
+     rows = parse_votes(load_fixture("fc_votes_8.html.gz"), 8)
+     assert len(rows) == 305
+     assert len({r.club for r in rows}) == 20
+     meret = next(r for r in rows if r.player_id == 572)
+     assert (meret.name, meret.club, meret.role, meret.vote, meret.fanta_vote, meret.conceded) == ("Meret", "napoli", "P", 6.5, 3.5, 3)
+     bernardeschi = next(r for r in rows if r.player_id == 184)
+     assert (bernardeschi.vote, bernardeschi.goals, bernardeschi.pens_scored) == (7.0, 0, 1)
+@@ -248,27 +248,27 @@ def test_roster():
+     assert RosterPlayer(572, "Meret", "napoli", "P") in players
+     assert {p.role for p in players} == {"P", "D", "C", "A"}
+ 
+ def test_calendar_matchday_10():
+     fx = parse_calendar(load_fixture("fc_calendar_10.html.gz"), 10)
+     assert len(fx) == 10
+     assert CalendarFixture(10, "juventus", "napoli") in fx
+     assert CalendarFixture(10, "milan", "inter") in fx
+ ```
+ 
+-- [ ] **Step 3: Run** `python -m pytest tests/test_fc_votes.py tests/test_fc_roster.py tests/test_fc_calendar.py -v`. Expected: FAIL.
+-- [ ] **Step 4: Implement the three parsers** with BeautifulSoup (`html.parser`).
++- [x] **Step 3: Run** `python -m pytest tests/test_fc_votes.py tests/test_fc_roster.py tests/test_fc_calendar.py -v`. Expected: FAIL.
++- [x] **Step 4: Implement the three parsers** with BeautifulSoup (`html.parser`).
+   - Votes: one row per `tr` containing `a.player-name` with href `/serie-a/squadre/<club>/<slug>/<id>`; skip rows without that link (coaches). Role from `span.role[data-value]` upper-cased. Vote and fantavote from the first `.pill` (`.player-grade` / `.player-fanta-grade`, `data-value` with comma decimal); a non-numeric value means `None`. Bonus cells `.player-bonus[data-value]` by `title`: `Gol segnati`, `Gol subiti`, `Autoreti`, `Rigori segnati`, `Rigori sbagliati`, `Rigori parati`, `Assist`.
+   - Roster: rows carry `data-filter-role-classic="p"` and the same player link; club from the link.
+   - Calendar: links `calendario/<md>/<season>/<home>-<away>/<id>` filtered to the requested matchday; split `<home>-<away>` by trying every known club key as the prefix, de-duplicated.
+-- [ ] **Step 5: Run the tests again.** Expected: PASS.
+-- [ ] **Step 6: Commit** `git commit -m "pipeline: fantacalcio votes, roster and calendar parsers"`.
++- [x] **Step 5: Run the tests again.** Expected: PASS.
++- [x] **Step 6: Commit** `git commit -m "pipeline: fantacalcio votes, roster and calendar parsers"`.
+ 
+ ---
+ 
+ ### Task 4: Lineups, unavailable players and name matching
+ 
+ **Files:**
+ - Create: `pipeline/fantaspec/sources/fc_lineups.py`, `fc_unavailable.py`, `pipeline/fantaspec/names.py`; extend `models.py`
+ - Test: `pipeline/tests/test_fc_lineups.py`, `test_fc_unavailable.py`, `test_names.py`; fixtures `fc_lineups.html.gz`, `fc_unavailable.html.gz`
+ 
+ **Interfaces:**
+diff --git a/pipeline/fantaspec/models.py b/pipeline/fantaspec/models.py
+index 3cedb57..f847134 100644
+--- a/pipeline/fantaspec/models.py
++++ b/pipeline/fantaspec/models.py
+@@ -19,10 +19,43 @@ class EspnMatch:
+     away_goals: int | None
+     completed: bool
+ 
+ 
+ @dataclass(frozen=True)
+ class StandingRow:
+     espn_id: int
+     position: int
+     points: int
+     played: int
++
++
++@dataclass(frozen=True)
++class VoteRow:
++    player_id: int  # fantacalcio.it player id
++    name: str
++    club: str  # fantacalcio.it club slug
++    role: str  # P, D, C or A
++    matchday: int
++    vote: float | None  # None when s.v.
++    fanta_vote: float | None
++    goals: int  # open-play goals only; penalties are in pens_scored
++    conceded: int
++    own_goals: int
++    pens_scored: int
++    pens_missed: int
++    pens_saved: int
++    assists: int
++
++
++@dataclass(frozen=True)
++class RosterPlayer:
++    id: int  # fantacalcio.it player id
++    name: str
++    club: str  # fantacalcio.it club slug
++    role: str  # P, D, C or A
++
++
++@dataclass(frozen=True)
++class CalendarFixture:
++    matchday: int
++    home: str  # fantacalcio.it club slug
++    away: str
+diff --git a/pipeline/fantaspec/sources/fc_calendar.py b/pipeline/fantaspec/sources/fc_calendar.py
+new file mode 100644
+index 0000000..2c2d730
+--- /dev/null
++++ b/pipeline/fantaspec/sources/fc_calendar.py
+@@ -0,0 +1,35 @@
++import re
++from collections.abc import Collection
++
++from bs4 import BeautifulSoup
++
++from fantaspec.clubs import by_key
++from fantaspec.models import CalendarFixture
++
++_MATCH_HREF = re.compile(r"calendario/(\d+)/[^/]+/([^/]+)/\d+$")
++
++
++def parse_calendar(html: str, matchday: int) -> list[CalendarFixture]:
++    """fantacalcio.it calendar page -> the fixtures of `matchday`, in page order, without duplicates."""
++    keys = by_key().keys()
++    fixtures: list[CalendarFixture] = []
++    for link in BeautifulSoup(html, "html.parser").find_all("a", href=True):
++        match = _MATCH_HREF.search(link["href"])
++        if match is None or int(match.group(1)) != matchday:
++            continue
++        pair = _split_pair(match.group(2), keys)
++        if pair is None:
++            continue
++        fixture = CalendarFixture(matchday, *pair)
++        if fixture not in fixtures:
++            fixtures.append(fixture)
++    return fixtures
++
++
++def _split_pair(slug: str, keys: Collection[str]) -> tuple[str, str] | None:
++    """'<home>-<away>' -> (home, away), trying every club key as the prefix (keys may contain '-')."""
++    for home in keys:
++        away = slug.removeprefix(f"{home}-")
++        if away != slug and away in keys:
++            return home, away
++    return None
+diff --git a/pipeline/fantaspec/sources/fc_roster.py b/pipeline/fantaspec/sources/fc_roster.py
+new file mode 100644
+index 0000000..9406295
+--- /dev/null
++++ b/pipeline/fantaspec/sources/fc_roster.py
+@@ -0,0 +1,28 @@
++import re
++
++from bs4 import BeautifulSoup, Tag
++
++from fantaspec.models import RosterPlayer
++
++_PLAYER_HREF = re.compile(r"/serie-a/squadre/([^/]+)/[^/]+/(\d+)$")
++
++
++def parse_player_link(row: Tag) -> tuple[int, str, str] | None:
++    """The `a.player-name` link inside a row -> (player id, name, club slug), or None if absent."""
++    link = row.select_one("a.player-name[href]")
++    match = _PLAYER_HREF.search(link["href"]) if link else None
++    if match is None:
++        return None
++    return int(match.group(2)), link.get_text(strip=True), match.group(1)
++
++
++def parse_roster(html: str) -> list[RosterPlayer]:
++    """fantacalcio.it quotazioni page -> every listed player with their Classic role."""
++    players = []
++    for row in BeautifulSoup(html, "html.parser").select("tr[data-filter-role-classic]"):
++        link = parse_player_link(row)
++        if link is None:
++            continue
++        player_id, name, club = link
++        players.append(RosterPlayer(player_id, name, club, row["data-filter-role-classic"].upper()))
++    return players
+diff --git a/pipeline/fantaspec/sources/fc_votes.py b/pipeline/fantaspec/sources/fc_votes.py
+new file mode 100644
+index 0000000..8a77d50
+--- /dev/null
++++ b/pipeline/fantaspec/sources/fc_votes.py
+@@ -0,0 +1,54 @@
++from bs4 import BeautifulSoup, Tag
++
++from fantaspec.models import VoteRow
++from fantaspec.sources.fc_roster import parse_player_link
++
++# fantacalcio.it encodes "s.v." (senza voto) as this grade value.
++_SENZA_VOTO = 55.0
++
++_BONUS_FIELDS = {
++    "Gol segnati": "goals",
++    "Gol subiti": "conceded",
++    "Autoreti": "own_goals",
++    "Rigori segnati": "pens_scored",
++    "Rigori sbagliati": "pens_missed",
++    "Rigori parati": "pens_saved",
++    "Assist": "assists",
++}
++
++
++def parse_votes(html: str, matchday: int) -> list[VoteRow]:
++    """fantacalcio.it votes page -> one VoteRow per player (coaches are skipped).
++
++    The vote pair is the first of the three (Redazione Fantacalcio).
++    """
++    rows = []
++    for tr in BeautifulSoup(html, "html.parser").find_all("tr"):
++        link = parse_player_link(tr)
++        if link is None:
++            continue
++        player_id, name, club = link
++        pill = tr.select_one(".pill")
++        bonus = {cell.get("title"): cell["data-value"] for cell in tr.select(".player-bonus[data-value]")}
++        rows.append(
++            VoteRow(
++                player_id=player_id,
++                name=name,
++                club=club,
++                role=tr.select_one("span.role[data-value]")["data-value"].upper(),
++                matchday=matchday,
++                vote=_grade(pill.select_one(".player-grade")),
++                fanta_vote=_grade(pill.select_one(".player-fanta-grade")),
++                **{field: int(bonus[title]) for title, field in _BONUS_FIELDS.items()},
++            )
++        )
++    return rows
++
++
++def _grade(cell: Tag | None) -> float | None:
++    """A grade cell's comma-decimal data-value -> float; None for s.v. or anything non-numeric."""
++    try:
++        value = float(cell["data-value"].replace(",", "."))
++    except (TypeError, KeyError, ValueError):
++        return None
++    return None if value == _SENZA_VOTO else value
+diff --git a/pipeline/tests/test_fc_calendar.py b/pipeline/tests/test_fc_calendar.py
+new file mode 100644
+index 0000000..98dcb2b
+--- /dev/null
++++ b/pipeline/tests/test_fc_calendar.py
+@@ -0,0 +1,11 @@
++from conftest import load_fixture
++
++from fantaspec.models import CalendarFixture
++from fantaspec.sources.fc_calendar import parse_calendar
++
++
++def test_calendar_matchday_10():
++    fx = parse_calendar(load_fixture("fc_calendar_10.html.gz"), 10)
++    assert len(fx) == 10
++    assert CalendarFixture(10, "juventus", "napoli") in fx
++    assert CalendarFixture(10, "milan", "inter") in fx
+diff --git a/pipeline/tests/test_fc_roster.py b/pipeline/tests/test_fc_roster.py
+new file mode 100644
+index 0000000..179807a
+--- /dev/null
++++ b/pipeline/tests/test_fc_roster.py
+@@ -0,0 +1,11 @@
++from conftest import load_fixture
++
++from fantaspec.models import RosterPlayer
++from fantaspec.sources.fc_roster import parse_roster
++
++
++def test_roster():
++    players = parse_roster(load_fixture("fc_roster.html.gz"))
++    assert len(players) >= 500
++    assert RosterPlayer(572, "Meret", "napoli", "P") in players
++    assert {p.role for p in players} == {"P", "D", "C", "A"}
+diff --git a/pipeline/tests/test_fc_votes.py b/pipeline/tests/test_fc_votes.py
+new file mode 100644
+index 0000000..ee788ea
+--- /dev/null
++++ b/pipeline/tests/test_fc_votes.py
+@@ -0,0 +1,22 @@
++from conftest import load_fixture
++
++from fantaspec.sources.fc_votes import parse_votes
++
++
++def test_votes_matchday_8():
++    rows = parse_votes(load_fixture("fc_votes_8.html.gz"), 8)
++    assert len(rows) == 316  # 305 in the spec missed the 11 players with accented slugs
++    assert len({r.club for r in rows}) == 20
++    meret = next(r for r in rows if r.player_id == 572)
++    assert (meret.name, meret.club, meret.role, meret.vote, meret.fanta_vote, meret.conceded) == ("Meret", "napoli", "P", 6.5, 3.5, 3)
++    bernardeschi = next(r for r in rows if r.player_id == 184)
++    assert (bernardeschi.vote, bernardeschi.goals, bernardeschi.pens_scored) == (7.0, 0, 1)
++
++
++def test_votes_accented_slug_and_senza_voto():
++    rows = parse_votes(load_fixture("fc_votes_8.html.gz"), 8)
++    assert {r.matchday for r in rows} == {8}
++    soule = next(r for r in rows if r.player_id == 5734)  # href slug "soulè"
++    assert (soule.name, soule.club) == ("Soulè", "roma")
++    vitik = next(r for r in rows if r.player_id == 7068)  # data-value "55" = s.v.
++    assert (vitik.vote, vitik.fanta_vote) == (None, None)

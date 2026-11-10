@@ -1,0 +1,110 @@
+# Review package: 4f7f6f6..c952355
+
+## Commits
+c952355 web: no default squad on a first visit via a share link
+
+## Files changed
+ web/src/App.test.tsx | 27 +++++++++++++++++++++++++++
+ web/src/App.tsx      | 14 ++++++++++----
+ 2 files changed, 37 insertions(+), 4 deletions(-)
+
+## Diff
+diff --git a/web/src/App.test.tsx b/web/src/App.test.tsx
+index aab4809..830a24e 100644
+--- a/web/src/App.test.tsx
++++ b/web/src/App.test.tsx
+@@ -112,10 +112,37 @@ test("a saved empty list stays empty: no default squad after deleting everything
+   expect(await screen.findByText("Crea la tua prima rosa")).toBeInTheDocument();
+   expect(localStorage.getItem("fantaspec.squads.v1")).toBe("[]");
+ });
+ 
+ test("blocked storage gets no default squad", async () => {
+   vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw new Error("blocked"); });
+   vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("blocked"); });
+   render(<App load={() => Promise.resolve(sampleData)} />);
+   expect(await screen.findByText("Crea la tua prima rosa")).toBeInTheDocument();
+ });
++
++// A share link opened in a new browser is a friend's device: never the default squad there, now or later.
++
++test("a first visit through a share link imports only that squad", async () => {
++  const user = userEvent.setup();
++  window.location.hash = `#/importa?s=${encodeShare(sampleSquad)}`;
++  render(<App load={() => Promise.resolve(sampleData)} />);
++  await user.click(await screen.findByText("Importa"));
++  expect(await screen.findByLabelText("Rosa")).toHaveDisplayValue(sampleSquad.name);
++  expect(loadSquads()).toEqual([{ ...sampleSquad, id: expect.any(String) }]);
++  expect(screen.queryByText("La mia rosa")).not.toBeInTheDocument();
++});
++
++test("a first visit through a share link that is cancelled gets no default squad, then or on the next visit", async () => {
++  const user = userEvent.setup();
++  window.location.hash = `#/importa?s=${encodeShare(sampleSquad)}`;
++  const { unmount } = render(<App load={() => Promise.resolve(sampleData)} />);
++  await user.click(await screen.findByText("Annulla"));
++  expect(await screen.findByText("Crea la tua prima rosa")).toBeInTheDocument();
++  expect(window.location.hash).toBe("#/rose");
++  expect(loadSquads()).toEqual([]);
++  unmount();
++  window.location.hash = "#/";
++  render(<App load={() => Promise.resolve(sampleData)} />);
++  expect(await screen.findByText("Crea la tua prima rosa")).toBeInTheDocument();
++  expect(screen.queryByText("La mia rosa")).not.toBeInTheDocument();
++});
+diff --git a/web/src/App.tsx b/web/src/App.tsx
+index fac1e30..1ea87aa 100644
+--- a/web/src/App.tsx
++++ b/web/src/App.tsx
+@@ -16,42 +16,48 @@ function parseRoute(hash: string): Route {
+   const params = new URLSearchParams(q < 0 ? "" : raw.slice(q + 1));
+   return { path: path === "/rose" || path === "/importa" ? path : "/", params };
+ }
+ 
+ function subscribeToHash(onChange: () => void) {
+   window.addEventListener("hashchange", onChange);
+   return () => window.removeEventListener("hashchange", onChange);
+ }
+ 
+ /**
+- * The saved squads. A browser that never saved any starts with the default squad, saved and selected;
+- * an emptied list, corrupted or blocked storage stay empty.
++ * The saved squads, decided once at startup. A browser that never saved any starts with the default squad,
++ * saved and selected; an emptied list, corrupted or blocked storage stay empty. A new browser that arrives
++ * through a share link is someone else's device: it saves an empty list instead, so neither the import nor
++ * a cancelled import nor a later visit ever brings in the default squad.
+  */
+-function initialSquads(): Squad[] {
++function initialSquads(path: Route["path"]): Squad[] {
+   if (!isNewBrowser()) return loadSquads();
++  if (path === "/importa") {
++    saveSquads([]);
++    return [];
++  }
+   const squad = defaultSquad();
+   saveSquads([squad]);
+   saveSelected(squad.id);
+   return [squad];
+ }
+ 
+ type Load = { state: "loading" } | { state: "failed" } | { state: "ready"; data: AppData };
+ 
+ type Props = {
+   /** Where the data comes from; tests pass their own. */
+   load?: () => Promise<AppData>;
+ };
+ 
+ export default function App({ load = loadData }: Props) {
+   const route = parseRoute(useSyncExternalStore(subscribeToHash, () => window.location.hash));
+   // In this order: seeding the default squad also saves the selection read next.
+-  const [squads, setSquads] = useState(initialSquads);
++  const [squads, setSquads] = useState(() => initialSquads(route.path));
+   const [selected, setSelected] = useState(loadSelected);
+   const [loaded, setLoaded] = useState<Load>({ state: "loading" });
+ 
+   useEffect(() => {
+     let current = true;
+     load().then(
+       data => current && setLoaded({ state: "ready", data }),
+       () => current && setLoaded({ state: "failed" }),
+     );
+     return () => { current = false; };

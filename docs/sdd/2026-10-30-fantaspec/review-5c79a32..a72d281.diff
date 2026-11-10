@@ -1,0 +1,1135 @@
+# Review package: 5c79a32..a72d281
+
+## Commits
+a72d281 pipeline: build, validation, run orchestration
+
+## Files changed
+ docs/superpowers/plans/2026-10-30-fantaspec.md |   8 +-
+ pipeline/fantaspec/__main__.py                 |  55 ++++++
+ pipeline/fantaspec/build.py                    |  97 +++++++++
+ pipeline/fantaspec/fixtures.py                 |  10 +-
+ pipeline/fantaspec/run.py                      | 264 +++++++++++++++++++++++++
+ pipeline/tests/conftest.py                     |  12 ++
+ pipeline/tests/league.py                       | 218 ++++++++++++++++++++
+ pipeline/tests/test_build.py                   | 141 +++++++++++++
+ pipeline/tests/test_fixtures.py                |  10 +-
+ pipeline/tests/test_run.py                     | 150 ++++++++++++++
+ 10 files changed, 958 insertions(+), 7 deletions(-)
+
+## Diff
+diff --git a/docs/superpowers/plans/2026-10-30-fantaspec.md b/docs/superpowers/plans/2026-10-30-fantaspec.md
+index 10c0b04..aeb0e08 100644
+--- a/docs/superpowers/plans/2026-10-30-fantaspec.md
++++ b/docs/superpowers/plans/2026-10-30-fantaspec.md
+@@ -445,21 +445,21 @@ def test_midweek_round_overlap_and_dst():
+   - CLI: `python -m fantaspec gate` prints `kind=<light|full|skip>` and appends it to `$GITHUB_OUTPUT` when set; `python -m fantaspec run --kind <light|full> [--backfill]` exits 0 unless validation failed (exit 1).
+ 
+ Run behaviour:
+ - `light`: fetch lineups and unavailable; reuse everything else from `raw/`.
+ - `full`: also ESPN schedules for the 20 clubs (current season), standings, roster, calendar pages for matchdays missing from `raw/calendar.json`, and the votes pages of every matchday that has a fixture completed in the last 4 days.
+ - `--backfill`: all 38 calendar pages, every completed matchday's votes, and ESPN schedules for the previous `H2H_SEASONS` seasons into `raw/history.json` (fetched only on backfill).
+ - Each source is parsed right after fetching; a fetch or parse error adds `"<source>: <message>"` to `errors` and leaves that `raw/` file untouched. Parsed results are written to `raw/<source>.json` only when changed.
+ - Then compute, validate, and `write_if_changed` meta, clubs and players into `OUT_DIR`. `lastRun.ok` is `false` when `errors` is not empty.
+ - Gate: load fixtures from `raw/`, `due(now, slots(...))`; empty `raw/` → `full`.
+ 
+-- [ ] **Step 1: Write the failing tests**
++- [x] **Step 1: Write the failing tests**
+ 
+ ```python
+ def test_write_if_changed_ignores_timestamps(tmp_path):
+     files = sample_outputs()
+     assert write_if_changed(tmp_path, files) is True
+     again = sample_outputs(updated_at="2026-11-01T10:00:00+01:00", run_at="2026-11-01T10:00:00+01:00")
+     assert write_if_changed(tmp_path, again) is False
+ 
+ def test_validate_rejects_empty_scrape():
+     assert validate({}, {}) != []
+@@ -489,23 +489,23 @@ def test_layout_change_never_overwrites_site_data(tmp_repo):
+     assert result.ok is False and result.wrote is False
+     assert read_out(tmp_repo, "players") == SEEDED_PLAYERS
+ 
+ def test_same_slot_twice_writes_once(tmp_repo):
+     seed_raw(tmp_repo)
+     assert run("full", fake_fetcher(), now=NOW).wrote is True
+     assert run("full", fake_fetcher(), now=NOW + timedelta(hours=1)).wrote is False
+ ```
+ `tmp_repo` is a fixture that points `RAW_DIR` and `OUT_DIR` at `tmp_path` (monkeypatch `config`).
+ 
+-- [ ] **Step 2: Run** `python -m pytest tests/test_build.py tests/test_run.py -v`. Expected: FAIL.
+-- [ ] **Step 3: Implement** `build.py`, `run.py`, `__main__.py` (argparse). `run` takes the fetcher as a parameter; the CLI passes `http.fetch_text`.
+-- [ ] **Step 4: Run the whole suite** `python -m pytest -v`. Expected: all PASS.
++- [x] **Step 2: Run** `python -m pytest tests/test_build.py tests/test_run.py -v`. Expected: FAIL.
++- [x] **Step 3: Implement** `build.py`, `run.py`, `__main__.py` (argparse). `run` takes the fetcher as a parameter; the CLI passes `http.fetch_text`.
++- [x] **Step 4: Run the whole suite** `python -m pytest -v`. Expected: all PASS.
+ - [ ] **Step 5: Real backfill.** From the repo root: `cd pipeline && pip install -e . && python -m fantaspec run --kind full --backfill`. Expected: exit 0, `raw/` filled, `web/public/data/{meta,clubs,players}.json` written; `jq '.["572"].season' ../web/public/data/players.json` shows Meret with `pres` > 0.
+ - [ ] **Step 6: Commit** `git add pipeline raw web/public/data && git commit -m "pipeline: build, validation, run orchestration, first backfill"`.
+ 
+ ---
+ 
+ ### Task 8: Web app skeleton, data loading and squad storage
+ 
+ **Files:**
+ - Create: `web/package.json`, `web/vite.config.ts`, `web/tsconfig.json`, `web/index.html`, `web/src/main.tsx`, `web/src/App.tsx`, `web/src/styles.css`, `web/src/types.ts`, `web/src/data.ts`, `web/src/squads.ts`, `web/src/format.ts`, `web/src/test/sampleData.ts`
+ - Test: `web/src/squads.test.ts`, `web/src/format.test.ts`, `web/src/App.test.tsx`
+diff --git a/pipeline/fantaspec/__main__.py b/pipeline/fantaspec/__main__.py
+new file mode 100644
+index 0000000..05f7845
+--- /dev/null
++++ b/pipeline/fantaspec/__main__.py
+@@ -0,0 +1,55 @@
++"""CLI: `python -m fantaspec gate` and `python -m fantaspec run --kind <light|full> [--backfill]`."""
++import argparse
++import os
++import sys
++import time
++from datetime import datetime
++
++from fantaspec.config import TZ
++from fantaspec.http import fetch_text
++from fantaspec.run import Fetcher, gate, run
++from fantaspec.schedule import FULL, LIGHT
++
++FC_PAUSE = 1.0  # seconds before each fantacalcio.it request
++
++
++def polite(fetch: Fetcher) -> Fetcher:
++    """`fetch`, pausing before each fantacalcio.it request."""
++    def fetch_politely(url: str) -> str:
++        if "fantacalcio.it" in url:
++            time.sleep(FC_PAUSE)
++        return fetch(url)
++    return fetch_politely
++
++
++def main(argv: list[str] | None = None) -> int:
++    parser = argparse.ArgumentParser(prog="fantaspec")
++    commands = parser.add_subparsers(dest="command", required=True)
++    commands.add_parser("gate", help="print kind=<light|full|skip> and slot=<ISO time> for this hour")
++    run_parser = commands.add_parser("run", help="fetch, compute and write the site data")
++    run_parser.add_argument("--kind", choices=[LIGHT, FULL], required=True)
++    run_parser.add_argument("--backfill", action="store_true",
++                            help="also every calendar page, every played matchday's votes and past seasons")
++    args = parser.parse_args(argv)
++    now = datetime.now(TZ)
++
++    if args.command == "gate":
++        kind, slot = gate(now)
++        lines = f"kind={kind}\nslot={slot}\n"
++        print(lines, end="")
++        if os.environ.get("GITHUB_OUTPUT"):
++            with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
++                out.write(lines)
++        return 0
++
++    if args.backfill and args.kind != FULL:
++        run_parser.error("--backfill needs --kind full")
++    result = run(args.kind, polite(fetch_text), now, backfill=args.backfill)
++    for error in result.errors:
++        print(error, file=sys.stderr)
++    print(f"ok={str(result.ok).lower()} wrote={str(result.wrote).lower()} errors={len(result.errors)}")
++    return 0 if result.valid else 1
++
++
++if __name__ == "__main__":
++    sys.exit(main())
+diff --git a/pipeline/fantaspec/build.py b/pipeline/fantaspec/build.py
+new file mode 100644
+index 0000000..590727e
+--- /dev/null
++++ b/pipeline/fantaspec/build.py
+@@ -0,0 +1,97 @@
++"""The site data around clubs.json and players.json: meta.json, validation, and writing only on change."""
++import json
++from collections import defaultdict
++from datetime import date, datetime
++from pathlib import Path
++
++from fantaspec.config import SEASON, TZ
++from fantaspec.models import Fixture
++
++CLUB_COUNT = 20
++MIN_PLAYERS = 400
++ROLES = ("P", "D", "C", "A")
++NEXT_MIN_FIXTURES = 5  # a matchday with fewer still to play (a lone postponed match) isn't the next one
++_EXAMPLES = 5  # offending players named in a validation message
++
++
++def validate(clubs: dict, players: dict) -> list[str]:
++    """What makes the computed site data unfit to publish (empty when it's fine)."""
++    problems = []
++    if len(clubs) != CLUB_COUNT:
++        problems.append(f"clubs: {len(clubs)} instead of {CLUB_COUNT}")
++    if len(players) < MIN_PLAYERS:
++        problems.append(f"players: {len(players)}, fewer than {MIN_PLAYERS}")
++    checks = {
++        "unknown club": ("club", lambda v: v is not None and v not in clubs),
++        "role outside P/D/C/A": ("role", lambda v: v not in ROLES),
++        "startPct outside 0-100": ("startPct", lambda v: v is not None and not 0 <= v <= 100),
++    }
++    for problem, (field, bad) in checks.items():
++        found = [f"{pid} ({p[field]})" for pid, p in players.items() if bad(p[field])]
++        if found:
++            more = f" and {len(found) - _EXAMPLES} more" if len(found) > _EXAMPLES else ""
++            problems.append(f"players: {problem}: {', '.join(found[:_EXAMPLES])}{more}")
++    return problems
++
++
++def next_matchday(fixtures: list[Fixture], now: datetime) -> dict | None:
++    """The lowest matchday with at least NEXT_MIN_FIXTURES fixtures still to play (not completed, kickoff
++    after `now`), with the local dates of the first and last of them; None when there is none."""
++    ahead: dict[int, list[date]] = defaultdict(list)
++    for f in fixtures:
++        if not f.completed and f.kickoff is not None and f.kickoff > now:
++            ahead[f.matchday].append(f.kickoff.astimezone(TZ).date())
++    for number in sorted(ahead):
++        days = ahead[number]
++        if len(days) >= NEXT_MIN_FIXTURES:
++            return {"number": number, "from": min(days).isoformat(), "to": max(days).isoformat()}
++    return None
++
++
++def meta(kind: str, errors: list[str], fixtures: list[Fixture], now: datetime) -> dict:
++    """meta.json for a run of `kind` at `now` (aware); write_if_changed keeps or bumps updatedAt."""
++    stamp = now.astimezone(TZ).isoformat(timespec="seconds")
++    return {
++        "season": SEASON,
++        "updatedAt": stamp,
++        "lastRun": {"at": stamp, "kind": kind, "ok": not errors, "errors": list(errors)},
++        "nextMatchday": next_matchday(fixtures, now),
++    }
++
++
++def write_if_changed(out_dir: Path, files: dict[str, dict]) -> bool:
++    """Write the site files ({name: data}, saved as <name>.json, one of them "meta") where they changed.
++
++    Site data changed when a file other than meta differs from disk, or a meta field other than
++    updatedAt and lastRun does: then every file is written, meta with its new updatedAt, and the
++    result is True. Otherwise, when lastRun's outcome (ok, errors) differs, only meta is rewritten,
++    keeping the stored updatedAt. Timestamps and lastRun.kind alone never cause a write.
++    Returns whether site data was written.
++    """
++    old = {name: _read(out_dir / f"{name}.json") for name in files}
++    new_meta, old_meta = files["meta"], old["meta"] or {}
++    if any(files[name] != old[name] for name in files if name != "meta") or _site(new_meta) != _site(old_meta):
++        for name, data in files.items():
++            _write(out_dir / f"{name}.json", data)
++        return True
++    if _outcome(new_meta) != _outcome(old_meta):
++        _write(out_dir / "meta.json", {**new_meta, "updatedAt": old_meta.get("updatedAt")})
++    return False
++
++
++def _site(meta_: dict) -> dict:
++    return {k: v for k, v in meta_.items() if k not in ("updatedAt", "lastRun")}
++
++
++def _outcome(meta_: dict) -> tuple:
++    last = meta_.get("lastRun") or {}
++    return last.get("ok"), last.get("errors")
++
++
++def _read(path: Path) -> dict | None:
++    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
++
++
++def _write(path: Path, data: dict) -> None:
++    path.parent.mkdir(parents=True, exist_ok=True)
++    path.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+diff --git a/pipeline/fantaspec/fixtures.py b/pipeline/fantaspec/fixtures.py
+index 5ded53b..f35e86a 100644
+--- a/pipeline/fantaspec/fixtures.py
++++ b/pipeline/fantaspec/fixtures.py
+@@ -1,20 +1,26 @@
+ from fantaspec.models import CalendarFixture, Club, EspnMatch, Fixture
+ 
+ 
+ def join_fixtures(calendar: list[CalendarFixture], espn: list[EspnMatch], clubs: list[Club]) -> list[Fixture]:
+     """Every calendar fixture, in calendar order, with its kickoff and score from ESPN.
+ 
+     The two sources are joined on the ordered pair (home, away), which is unique in a season.
+     A fixture ESPN doesn't list keeps no kickoff and is not completed; ESPN matches outside the
+-    calendar or against a club not in `clubs` are ignored.
++    calendar or against a club not in `clubs` are ignored. When ESPN lists a match more than once
++    (both clubs' schedules), the last copy wins, except that a completed copy always beats one that
++    isn't (a stale copy from a page fetched before the match).
+     """
+     key_of = {c.espn_id: c.key for c in clubs}
+-    by_pair = {(key_of.get(m.home_espn), key_of.get(m.away_espn)): m for m in espn}
++    by_pair: dict[tuple[str | None, str | None], EspnMatch] = {}
++    for m in espn:
++        pair = (key_of.get(m.home_espn), key_of.get(m.away_espn))
++        if m.completed or not (pair in by_pair and by_pair[pair].completed):
++            by_pair[pair] = m
+     out = []
+     for c in calendar:
+         m = by_pair.get((c.home, c.away))
+         if m is None:
+             out.append(Fixture(c.matchday, c.home, c.away, None, None, None, False))
+         else:
+             out.append(Fixture(c.matchday, c.home, c.away, m.kickoff, m.home_goals, m.away_goals, m.completed))
+     return out
+diff --git a/pipeline/fantaspec/run.py b/pipeline/fantaspec/run.py
+new file mode 100644
+index 0000000..5b34e5d
+--- /dev/null
++++ b/pipeline/fantaspec/run.py
+@@ -0,0 +1,264 @@
++"""One pipeline run: refresh the raw/ cache from the sources the run needs, then compute, validate and
++write the site data; and the gate that picks the run for an hourly trigger.
++
++raw/ layout (one record per line, so diffs stay small):
++  calendar.json     {"<matchday>": [CalendarFixture, ...]}
++  espn.json         {"<club key>": [EspnMatch, ...]}  the club's results and upcoming pages, by kickoff
++  standings.json    [StandingRow, ...]
++  roster.json       [RosterPlayer, ...]
++  votes.json        {"<matchday>": [VoteRow, ...]}
++  lineups.json      {"entries": [LineupEntry, ...], "pairs": [[home, away], ...]}
++  unavailable.json  [Unavailable, ...]
++  history.json      [EspnMatch, ...]  completed matches of past seasons, once each, by kickoff
++"""
++import json
++from collections.abc import Callable
++from dataclasses import asdict, dataclass
++from datetime import datetime, timedelta
++
++from fantaspec import config
++from fantaspec.build import meta, validate, write_if_changed
++from fantaspec.clubs import load_clubs
++from fantaspec.config import TZ
++from fantaspec.fixtures import join_fixtures
++from fantaspec.models import (CalendarFixture, Club, EspnMatch, Fixture, LineupEntry, RosterPlayer, StandingRow,
++                              Unavailable, VoteRow)
++from fantaspec.schedule import FULL, LIGHT, due, slots
++from fantaspec.sources.espn import parse_schedule, parse_standings
++from fantaspec.sources.fc_calendar import parse_calendar
++from fantaspec.sources.fc_lineups import parse_lineups
++from fantaspec.sources.fc_roster import parse_roster
++from fantaspec.sources.fc_unavailable import parse_unavailable
++from fantaspec.sources.fc_votes import parse_votes
++from fantaspec.stats import club_stats, player_stats
++
++Fetcher = Callable[[str], str]
++
++SKIP = "skip"
++MATCHDAYS = 38
++RECENT = timedelta(days=4)  # a full run refetches the votes of matchdays with a match completed this recently
++
++
++@dataclass(frozen=True)
++class RunResult:
++    ok: bool  # every source refreshed and the site data validated
++    errors: list[str]  # "<source>: <message>"
++    wrote: bool  # site data changed and was written
++    valid: bool = True  # site data could be computed and passed validation; when False nothing was written
++
++
++def run(kind: str, fetch: Fetcher, now: datetime, backfill: bool = False) -> RunResult:
++    """A light or full run at `now` (aware); a backfill is a full run that also fetches every calendar page,
++    every played matchday's votes and the past seasons for head to head.
++
++    A source that fails to fetch or parse (or parses to nothing where that can't be right) is reported as
++    "<source>: <message>" and keeps its previous raw/ data. Site data that doesn't validate is not written.
++    """
++    if kind not in (LIGHT, FULL) or (backfill and kind != FULL):
++        raise ValueError(f"no such run: kind={kind!r}, backfill={backfill}")
++    clubs = load_clubs()
++    errors: list[str] = []
++    if kind == FULL:
++        _refresh_calendar(fetch, errors, every=backfill)
++        _refresh_espn(fetch, clubs, errors)
++        _refresh("standings", errors, lambda: _standings_rows(fetch(config.espn_standings_url()), clubs))
++        _refresh("roster", errors, lambda: _rows(parse_roster(fetch(config.fc_roster_url()))))
++        _refresh_votes(fetch, clubs, now, errors, every=backfill)
++        if backfill:
++            _refresh_history(fetch, clubs, errors)
++    _refresh("lineups", errors, lambda: _lineups_rows(parse_lineups(fetch(config.fc_lineups_url()))))
++    _refresh("unavailable", errors,
++             lambda: [_record(u) for u in parse_unavailable(fetch(config.fc_unavailable_url()))])
++    return _publish(kind, clubs, now, errors)
++
++
++def gate(now: datetime) -> tuple[str, str]:
++    """(kind, slot) for an hourly trigger at `now` (aware): the due slot's kind and its Europe/Rome ISO time,
++    or ("skip", "") outside every slot. With no fixture dates in raw/ yet: a full run, slot = this hour."""
++    fixtures = _fixtures(load_clubs())
++    if not any(f.kickoff for f in fixtures):
++        return FULL, now.astimezone(TZ).replace(minute=0, second=0, microsecond=0).isoformat()
++    slot = due(now, slots(fixtures))
++    return (slot.kind, slot.at.isoformat()) if slot else (SKIP, "")
++
++
++# --- refreshing raw/ --------------------------------------------------------------------------------------
++
++def _attempt(source: str, errors: list[str], step: Callable[[], object]):
++    """step() or, when it raises, None with "<source>: <error>" added to errors."""
++    try:
++        return step()
++    except Exception as exc:  # a network error or a page the parsers no longer understand
++        errors.append(f"{source}: {type(exc).__name__}: {exc}")
++        return None
++
++
++def _refresh(name: str, errors: list[str], step: Callable[[], object]) -> None:
++    """A one-page source: save what step() returns, keep the old raw file when it fails."""
++    data = _attempt(name, errors, step)
++    if data is not None:
++        _save(name, data)
++
++
++def _refresh_calendar(fetch: Fetcher, errors: list[str], every: bool) -> None:
++    stored = _load("calendar", {})
++    wanted = [md for md in range(1, MATCHDAYS + 1) if every or str(md) not in stored]
++    fetched = {}
++    for md in wanted:
++        rows = _attempt(f"calendar: matchday {md}", errors,
++                        lambda: _rows(parse_calendar(fetch(config.fc_calendar_url(md)), md)))
++        if rows is not None:
++            fetched[str(md)] = rows
++    if fetched:
++        _save("calendar", _by_matchday({**stored, **fetched}))
++
++
++def _refresh_espn(fetch: Fetcher, clubs: list[Club], errors: list[str]) -> None:
++    """Each club's results and upcoming fixtures; a club whose pages fail keeps its previous matches."""
++    def pages(club: Club) -> list[dict]:
++        results = parse_schedule(json.loads(fetch(config.espn_schedule_url(club.espn_id, config.ESPN_SEASON))))
++        upcoming = parse_schedule(json.loads(fetch(config.espn_fixtures_url(club.espn_id))))
++        return _rows(sorted(results + upcoming, key=lambda m: (m.kickoff, m.espn_id)))
++
++    stored = _load("espn", {})
++    fetched = {}
++    for club in clubs:
++        rows = _attempt(f"espn: {club.key}", errors, lambda: pages(club))
++        if rows is not None:
++            fetched[club.key] = rows
++    if fetched:
++        merged = stored | fetched
++        _save("espn", {c.key: merged[c.key] for c in clubs if c.key in merged})
++
++
++def _refresh_votes(fetch: Fetcher, clubs: list[Club], now: datetime, errors: list[str], every: bool) -> None:
++    """The votes of every matchday with a match completed in the last RECENT (every played matchday when
++    `every`), including a postponed match finally played: its votes are on its own matchday's page."""
++    played = [f for f in _fixtures(clubs) if f.completed]
++    wanted = sorted({f.matchday for f in played if every or now - f.kickoff <= RECENT})
++    fetched = {}
++    for md in wanted:
++        rows = _attempt(f"votes: matchday {md}", errors, lambda: _rows(parse_votes(fetch(config.fc_votes_url(md)), md)))
++        if rows is not None:
++            fetched[str(md)] = rows
++    if fetched:
++        _save("votes", _by_matchday({**_load("votes", {}), **fetched}))
++
++
++def _refresh_history(fetch: Fetcher, clubs: list[Club], errors: list[str]) -> None:
++    """Completed matches of the past H2H_SEASONS seasons, added to what raw/ already holds."""
++    stored = {m["espn_id"]: m for m in _load("history", [])}
++    fetched = False
++    for season in range(config.ESPN_SEASON - config.H2H_SEASONS, config.ESPN_SEASON):
++        for club in clubs:
++            matches = _attempt(f"history: {season} {club.key}", errors, lambda: parse_schedule(
++                json.loads(fetch(config.espn_schedule_url(club.espn_id, season)))))
++            if matches is not None:
++                fetched = True
++                stored |= {m.espn_id: _record(m) for m in matches if m.completed}
++    if fetched:
++        _save("history", sorted(stored.values(), key=lambda m: (m["kickoff"], m["espn_id"])))
++
++
++def _rows(items: list) -> list[dict]:
++    """Records of a page that must list something."""
++    if not items:
++        raise ValueError("no rows")
++    return [_record(item) for item in items]
++
++
++def _standings_rows(text: str, clubs: list[Club]) -> list[dict]:
++    rows = parse_standings(json.loads(text))
++    missing = sorted(c.key for c in clubs if c.espn_id not in {r.espn_id for r in rows})
++    if missing:
++        raise ValueError(f"missing {', '.join(missing)}")
++    return _rows(rows)
++
++
++def _lineups_rows(page: tuple[list[LineupEntry], set[tuple[str, str]]]) -> dict:
++    entries, pairs = page
++    return {"entries": [_record(e) for e in entries], "pairs": sorted([list(p) for p in pairs])}
++
++
++def _by_matchday(pages: dict[str, list]) -> dict[str, list]:
++    return dict(sorted(pages.items(), key=lambda item: int(item[0])))
++
++
++# --- computing and publishing -----------------------------------------------------------------------------
++
++def _publish(kind: str, clubs: list[Club], now: datetime, errors: list[str]) -> RunResult:
++    try:
++        fixtures = _fixtures(clubs)
++        clubs_out = club_stats(fixtures, [StandingRow(**r) for r in _load("standings", [])], _history(clubs),
++                               clubs, now)
++        votes = [VoteRow(**r) for rows in _load("votes", {}).values() for r in rows]
++        players_out = player_stats([RosterPlayer(**r) for r in _load("roster", [])], votes, fixtures, _lineups(),
++                                   [Unavailable(**r) for r in _load("unavailable", [])], clubs_out)
++        problems = [f"validation: {p}" for p in validate(clubs_out, players_out)]
++    except Exception as exc:  # raw/ missing or incomplete
++        problems = [f"build: {type(exc).__name__}: {exc}"]
++    if problems:
++        return RunResult(ok=False, errors=errors + problems, wrote=False, valid=False)
++    files = {"meta": meta(kind, errors, fixtures, now), "clubs": clubs_out, "players": players_out}
++    return RunResult(ok=not errors, errors=errors, wrote=write_if_changed(config.OUT_DIR, files))
++
++
++def _fixtures(clubs: list[Club]) -> list[Fixture]:
++    calendar = [CalendarFixture(**r) for rows in _load("calendar", {}).values() for r in rows]
++    espn = [_match(r) for rows in _load("espn", {}).values() for r in rows]
++    return join_fixtures(calendar, espn, clubs)
++
++
++def _history(clubs: list[Club]) -> list[Fixture]:
++    """Past seasons' matches between two current clubs, as matchday-0 fixtures."""
++    key_of = {c.espn_id: c.key for c in clubs}
++    return [Fixture(0, key_of[m.home_espn], key_of[m.away_espn], m.kickoff, m.home_goals, m.away_goals, True)
++            for m in map(_match, _load("history", []))
++            if m.completed and m.home_espn in key_of and m.away_espn in key_of]
++
++
++def _lineups() -> tuple[list[LineupEntry], set[tuple[str, str]]]:
++    stored = _load("lineups", {"entries": [], "pairs": []})
++    return [LineupEntry(**r) for r in stored["entries"]], {(home, away) for home, away in stored["pairs"]}
++
++
++# --- raw/ files -------------------------------------------------------------------------------------------
++
++def _record(item) -> dict:
++    row = asdict(item)
++    if isinstance(row.get("kickoff"), datetime):
++        row["kickoff"] = row["kickoff"].isoformat()
++    return row
++
++
++def _match(row: dict) -> EspnMatch:
++    return EspnMatch(**{**row, "kickoff": datetime.fromisoformat(row["kickoff"])})
++
++
++def _load(name: str, default):
++    path = config.RAW_DIR / f"{name}.json"
++    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else default
++
++
++def _save(name: str, data: list | dict) -> None:
++    """Write raw/<name>.json unless it already holds exactly this."""
++    path = config.RAW_DIR / f"{name}.json"
++    text = _dumps(data)
++    if path.exists() and path.read_text(encoding="utf-8") == text:
++        return
++    path.parent.mkdir(parents=True, exist_ok=True)
++    path.write_text(text, encoding="utf-8")
++
++
++def _dumps(data: list | dict) -> str:
++    """JSON with one record per line: a list of records, or an object whose values are lists of records."""
++    if isinstance(data, dict):
++        return "{\n" + ",\n".join(f"  {json.dumps(k)}: {_lines(v, '  ')}" for k, v in data.items()) + "\n}\n"
++    return _lines(data, "") + "\n"
++
++
++def _lines(rows: list, indent: str) -> str:
++    if not rows:
++        return "[]"
++    body = ",\n".join(f"{indent}  {json.dumps(r, ensure_ascii=False, sort_keys=True)}" for r in rows)
++    return f"[\n{body}\n{indent}]"
+diff --git a/pipeline/tests/conftest.py b/pipeline/tests/conftest.py
+index b5df29d..3bbdef6 100644
+--- a/pipeline/tests/conftest.py
++++ b/pipeline/tests/conftest.py
+@@ -1,17 +1,29 @@
+ import gzip
+ import json
+ from pathlib import Path
+ 
++import pytest
++
+ FIXTURES = Path(__file__).parent / "fixtures"
+ 
+ 
+ def load_fixture(name: str):
+     """Read a saved page from tests/fixtures: .json -> dict, .html -> str, .html.gz -> str."""
+     path = FIXTURES / name
+     if name.endswith(".json"):
+         return json.loads(path.read_text(encoding="utf-8"))
+     if name.endswith(".html.gz"):
+         return gzip.decompress(path.read_bytes()).decode("utf-8")
+     if name.endswith(".html"):
+         return path.read_text(encoding="utf-8")
+     raise ValueError(f"unsupported fixture type: {name}")
++
++
++@pytest.fixture
++def tmp_repo(tmp_path, monkeypatch):
++    """A repo in tmp_path: config.RAW_DIR is tmp_path/raw and config.OUT_DIR is tmp_path/out."""
++    from fantaspec import config
++
++    monkeypatch.setattr(config, "RAW_DIR", tmp_path / "raw")
++    monkeypatch.setattr(config, "OUT_DIR", tmp_path / "out")
++    return tmp_path
+diff --git a/pipeline/tests/league.py b/pipeline/tests/league.py
+new file mode 100644
+index 0000000..bb8764e
+--- /dev/null
++++ b/pipeline/tests/league.py
+@@ -0,0 +1,218 @@
++"""A made-up 20-club season around NOW (Friday 30 Oct 2026, 12:00 in Rome) for the run tests, the raw/
++files a previous run would have left, and a fake fetcher that serves the season.
++
++Real clubs in a double round robin, with Lazio-Roma on matchday 3. Matchdays 1-9 were played one a week up
++to Wednesday 28 Oct; matchdays 10-38 come one a week from Saturday 31 Oct. ESPN schedules and calendar
++pages are built from the season; the other fantacalcio.it pages are the saved ones, and every votes URL
++gets the saved matchday-8 page. ESPN's past seasons hold three Lazio meetings with their matchday-10
++opponent, and one against a club no longer in Serie A.
++"""
++import gzip
++import json
++from collections.abc import Callable
++from dataclasses import asdict
++from datetime import datetime, timedelta, timezone
++from functools import cache
++from pathlib import Path
++
++import requests
++from conftest import FIXTURES
++
++from fantaspec.clubs import load_clubs
++from fantaspec.config import (ESPN_SEASON, H2H_SEASONS, TZ, espn_fixtures_url, espn_schedule_url,
++                              espn_standings_url, fc_calendar_url, fc_lineups_url, fc_roster_url,
++                              fc_unavailable_url, fc_votes_url)
++from fantaspec.models import CalendarFixture, EspnMatch
++from fantaspec.sources.espn import parse_standings
++from fantaspec.sources.fc_roster import parse_roster
++from fantaspec.sources.fc_unavailable import parse_unavailable
++from fantaspec.sources.fc_votes import parse_votes
++
++NOW = datetime(2026, 10, 30, 12, 0, tzinfo=TZ)
++CLUBS = load_clubs()
++MATCHDAYS = 38
++LAST_PLAYED = 9
++GONE_ESPN_ID = 9999  # a club no longer in Serie A
++
++def _round_robin(keys: list[str]) -> list[list[tuple[str, str]]]:
++    """Circle method: 19 rounds where every club plays once, then the same rounds with home and away swapped."""
++    order, rounds = list(keys), []
++    for r in range(len(order) - 1):
++        n = len(order)
++        rounds.append([(order[i], order[n - 1 - i]) if (r + i) % 2 == 0 else (order[n - 1 - i], order[i])
++                       for i in range(n // 2)])
++        order = [order[0], order[-1]] + order[1:-1]
++    return rounds + [[(away, home) for home, away in rnd] for rnd in rounds]
++
++
++def _kickoff(matchday: int) -> datetime:
++    if matchday <= LAST_PLAYED:
++        return datetime(2026, 10, 28, 20, 45, tzinfo=TZ) - timedelta(weeks=LAST_PLAYED - matchday)
++    return datetime(2026, 10, 31, 18, 0, tzinfo=TZ) + timedelta(weeks=matchday - LAST_PLAYED - 1)
++
++
++def _utc(*args: int) -> datetime:
++    return datetime(*args, tzinfo=timezone.utc)
++
++
++class Season:
++    def __init__(self, completed_yesterday: tuple[tuple[str, str, int], ...] = ()):
++        rounds = _round_robin([c.key for c in CLUBS])
++        rounds.insert(2, rounds.pop(next(i for i, r in enumerate(rounds) if ("lazio", "roma") in r)))
++        self.calendar = {md: [CalendarFixture(md, home, away) for home, away in rnd]
++                         for md, rnd in enumerate(rounds, start=1)}
++        late = {(home, away): md for home, away, md in completed_yesterday}
++        for (home, away), md in late.items():
++            assert CalendarFixture(md, home, away) in self.calendar[md], (home, away, md)
++        espn = {c.key: c.espn_id for c in CLUBS}
++        self.matches = []
++        for md, fixtures in self.calendar.items():
++            for i, f in enumerate(fixtures):
++                when, played = _kickoff(md), md <= LAST_PLAYED
++                if (f.home, f.away) in late:
++                    when, played = NOW.replace(hour=20, minute=45) - timedelta(days=1), True
++                goals = ((md + i) % 3, (md * (i + 1)) % 2) if played else (None, None)
++                self.matches.append(EspnMatch(f"{md:02d}{i:02d}", when.astimezone(timezone.utc), espn[f.home],
++                                              espn[f.away], *goals, played))
++        rival = next(f.away if f.home == "lazio" else f.home for f in self.calendar[LAST_PLAYED + 1]
++                     if "lazio" in (f.home, f.away))
++        lazio, other = espn["lazio"], espn[rival]
++        self.rival = rival
++        self.history = {  # ESPN season -> matches
++            2019: [EspnMatch("h1", _utc(2020, 2, 9, 14, 0), lazio, other, 1, 0, True)],
++            2025: [EspnMatch("h2", _utc(2025, 10, 19, 16, 0), other, lazio, 2, 2, True),
++                   EspnMatch("h3", _utc(2026, 3, 1, 17, 0), lazio, other, 0, 1, True),
++                   EspnMatch("h4", _utc(2026, 4, 12, 16, 0), lazio, GONE_ESPN_ID, 3, 0, True)],
++        }
++        self.pages = self._pages()
++
++    def _pages(self) -> dict[str, Callable[[], str]]:
++        """URL -> page text (built when asked for)."""
++        pages = {
++            fc_roster_url(): lambda: saved("fc_roster.html.gz"),
++            fc_lineups_url(): lambda: saved("fc_lineups.html.gz"),
++            fc_unavailable_url(): lambda: saved("fc_unavailable.html.gz"),
++            espn_standings_url(): lambda: saved("espn_standings.json"),
++        }
++        for md in range(1, MATCHDAYS + 1):
++            pages[fc_votes_url(md)] = lambda: saved("fc_votes_8.html.gz")
++            pages[fc_calendar_url(md)] = lambda md=md: self.calendar_page(md)
++        for club in CLUBS:
++            mine = [m for m in self.matches if club.espn_id in (m.home_espn, m.away_espn)]
++            pages[espn_schedule_url(club.espn_id, ESPN_SEASON)] = lambda mine=mine: espn_page(
++                [m for m in mine if m.completed])
++            pages[espn_fixtures_url(club.espn_id)] = lambda mine=mine: espn_page([m for m in mine if not m.completed])
++            for season in range(ESPN_SEASON - H2H_SEASONS, ESPN_SEASON):
++                past = [m for m in self.history.get(season, []) if club.espn_id in (m.home_espn, m.away_espn)]
++                pages[espn_schedule_url(club.espn_id, season)] = lambda past=past: espn_page(past)
++        return pages
++
++    def calendar_page(self, md: int) -> str:
++        links = "".join(f'<a href="https://www.fantacalcio.it/serie-a/calendario/{md}/2026-27/'
++                        f'{f.home}-{f.away}/{18000 + 10 * md + i}">{f.home} - {f.away}</a>'
++                        for i, f in enumerate(self.calendar[md]))
++        return f"<html><body><nav>{links}</nav></body></html>"
++
++
++@cache
++def saved(name: str) -> str:
++    path = FIXTURES / name
++    return gzip.decompress(path.read_bytes()).decode("utf-8") if name.endswith(".gz") else path.read_text("utf-8")
++
++
++def espn_page(matches: list[EspnMatch]) -> str:
++    """A team schedule document as ESPN's API returns it, with only the fields the parser reads."""
++    def side(where: str, espn_id: int, goals: int | None) -> dict:
++        return {"homeAway": where, "id": str(espn_id), **({"score": {"value": float(goals)}} if goals is not None else {})}
++
++    return json.dumps({"events": [
++        {"id": m.espn_id, "date": m.kickoff.strftime("%Y-%m-%dT%H:%MZ"),
++         "competitions": [{"competitors": [side("home", m.home_espn, m.home_goals),
++                                           side("away", m.away_espn, m.away_goals)],
++                           "status": {"type": {"completed": m.completed}}}]}
++        for m in matches]})
++
++
++_season = Season()
++
++# raw/lineups.json as a previous run left it: Napoli's next match only. The saved page parses to something else.
++SEEDED_LINEUPS = {
++    "entries": [{"player_id": 2170, "name": "Milinkovic-Savic V.", "club": "napoli", "start_pct": 90,
++                 "doubtful": False}],
++    "pairs": [next([f.home, f.away] for f in _season.calendar[LAST_PLAYED + 1] if "napoli" in (f.home, f.away))],
++}
++
++
++def reset() -> None:
++    global _season
++    _season = Season()
++
++# raw/lineups.json as a previous run left it: Napoli's next match only. The saved page parses to something else.
++SEEDED_LINEUPS = {
++    "entries": [{"player_id": 2170, "name": "Milinkovic-Savic V.", "club": "napoli", "start_pct": 90,
++                 "doubtful": False}],
++    "pairs": [next([f.home, f.away] for f in _season.calendar[LAST_PLAYED + 1] if "napoli" in (f.home, f.away))],
++}
++
++
++def current() -> Season:
++    return _season
++
++
++def record(item) -> dict:
++    row = asdict(item)
++    if isinstance(row.get("kickoff"), datetime):
++        row["kickoff"] = row["kickoff"].isoformat()
++    return row
++
++
++def write_raw(repo: Path, name: str, data) -> None:
++    path = repo / "raw" / f"{name}.json"
++    path.parent.mkdir(parents=True, exist_ok=True)
++    path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
++
++
++def read_raw(repo: Path, name: str):
++    return json.loads((repo / "raw" / f"{name}.json").read_text(encoding="utf-8"))
++
++
++def read_out(repo: Path, name: str) -> dict:
++    return json.loads((repo / "out" / f"{name}.json").read_text(encoding="utf-8"))
++
++
++def seed_raw(repo: Path, completed_yesterday: list[tuple[str, str, int]] = ()) -> None:
++    """raw/ as a previous full run left it, for a season where the given matches were played yesterday;
++    the fake fetcher serves the same season. No past-season history."""
++    global _season
++    _season = Season(tuple(completed_yesterday))
++    write_raw(repo, "calendar", {str(md): [record(f) for f in fx] for md, fx in _season.calendar.items()})
++    write_raw(repo, "espn", {c.key: [record(m) for m in _season.matches if c.espn_id in (m.home_espn, m.away_espn)]
++                             for c in CLUBS})
++    write_raw(repo, "standings", [record(r) for r in parse_standings(json.loads(saved("espn_standings.json")))])
++    write_raw(repo, "roster", [record(p) for p in parse_roster(saved("fc_roster.html.gz"))])
++    write_raw(repo, "votes", {"8": [record(v) for v in parse_votes(saved("fc_votes_8.html.gz"), 8)]})
++    write_raw(repo, "lineups", SEEDED_LINEUPS)
++    write_raw(repo, "unavailable", [record(u) for u in parse_unavailable(saved("fc_unavailable.html.gz"))])
++
++
++class FakeFetcher:
++    """Serves the current season's pages and records every URL asked for."""
++
++    def __init__(self, season: Season, fail: set[str], override: dict[str, str]):
++        self.season, self.fail, self.override = season, fail, override
++        self.requested: list[str] = []
++
++    def __call__(self, url: str) -> str:
++        self.requested.append(url)
++        if url in self.fail:
++            raise requests.ConnectionError(f"cannot reach {url}")
++        if url in self.override:
++            return self.override[url]
++        page = self.season.pages.get(url)
++        if page is None:
++            raise LookupError(f"no page for {url}")
++        return page()
++
++
++def fake_fetcher(fail: set[str] = frozenset(), override: dict[str, str] | None = None) -> FakeFetcher:
++    return FakeFetcher(_season, set(fail), override or {})
+diff --git a/pipeline/tests/test_build.py b/pipeline/tests/test_build.py
+new file mode 100644
+index 0000000..cf2e52c
+--- /dev/null
++++ b/pipeline/tests/test_build.py
+@@ -0,0 +1,141 @@
++import json
++from datetime import date, datetime, time, timedelta, timezone
++
++from fantaspec.build import meta, next_matchday, validate, write_if_changed
++from fantaspec.config import TZ
++from fantaspec.models import Fixture
++
++NOW = datetime(2026, 10, 30, 12, 0, tzinfo=TZ)
++STAMP = "2026-10-31T10:07:12+01:00"
++
++
++def sample_outputs(updated_at: str = STAMP, run_at: str = STAMP, kind: str = "light", ok: bool = True,
++                   errors: tuple[str, ...] = (), fv: float = 6.5) -> dict[str, dict]:
++    """A tiny meta/clubs/players set; `fv` changes the site data."""
++    return {
++        "meta": {"season": "2026-27", "updatedAt": updated_at,
++                 "lastRun": {"at": run_at, "kind": kind, "ok": ok, "errors": list(errors)},
++                 "nextMatchday": {"number": 10, "from": "2026-10-31", "to": "2026-11-02"}},
++        "clubs": {"napoli": {"key": "napoli", "name": "Napoli", "position": 4}},
++        "players": {"572": {"id": 572, "name": "Meret", "club": "napoli", "role": "P", "medFV": fv},
++                    "2105": {"id": 2105, "name": "Soulè", "club": "roma", "role": "A", "medFV": None}},
++    }
++
++
++def on_disk(out, name: str) -> dict:
++    return json.loads((out / f"{name}.json").read_text(encoding="utf-8"))
++
++
++def test_write_if_changed_ignores_timestamps(tmp_path):
++    files = sample_outputs()
++    assert write_if_changed(tmp_path, files) is True
++    again = sample_outputs(updated_at="2026-11-01T10:00:00+01:00", run_at="2026-11-01T10:00:00+01:00")
++    assert write_if_changed(tmp_path, again) is False
++    assert on_disk(tmp_path, "meta") == files["meta"]
++
++
++def test_write_if_changed_writes_sorted_indented_utf8(tmp_path):
++    files = sample_outputs()
++    write_if_changed(tmp_path, files)
++    for name, data in files.items():
++        text = (tmp_path / f"{name}.json").read_text(encoding="utf-8")
++        assert text == json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
++    assert "Soulè" in (tmp_path / "players.json").read_text(encoding="utf-8")
++
++
++def test_write_if_changed_bumps_updated_at_with_the_data(tmp_path):
++    write_if_changed(tmp_path, sample_outputs())
++    later = "2026-11-01T23:30:05+01:00"
++    assert write_if_changed(tmp_path, sample_outputs(updated_at=later, run_at=later, kind="full", fv=7.0)) is True
++    assert on_disk(tmp_path, "meta")["updatedAt"] == later
++    assert on_disk(tmp_path, "meta")["lastRun"]["kind"] == "full"
++    assert on_disk(tmp_path, "players")["572"]["medFV"] == 7.0
++
++
++def test_write_if_changed_records_a_new_run_outcome_without_bumping_updated_at(tmp_path):
++    write_if_changed(tmp_path, sample_outputs())
++    clubs_written = (tmp_path / "clubs.json").stat().st_mtime_ns
++    later = "2026-11-01T10:00:00+01:00"
++    failed = sample_outputs(updated_at=later, run_at=later, ok=False, errors=("lineups: boom",))
++    assert write_if_changed(tmp_path, failed) is False
++    assert on_disk(tmp_path, "meta") == {**failed["meta"], "updatedAt": STAMP}
++    assert (tmp_path / "clubs.json").stat().st_mtime_ns == clubs_written
++
++
++def test_write_if_changed_ignores_the_run_kind_alone(tmp_path):
++    files = sample_outputs()
++    write_if_changed(tmp_path, files)
++    assert write_if_changed(tmp_path, sample_outputs(kind="full", run_at="2026-11-01T10:00:00+01:00")) is False
++    assert on_disk(tmp_path, "meta") == files["meta"]
++
++
++def test_validate_rejects_empty_scrape():
++    assert validate({}, {}) != []
++
++
++def good_site() -> tuple[dict, dict]:
++    clubs = {f"club{i}": {"key": f"club{i}"} for i in range(20)}
++    players = {str(n): {"id": n, "club": f"club{n % 20}", "role": "PDCA"[n % 4], "startPct": n % 101}
++               for n in range(400)}
++    return clubs, players
++
++
++def test_validate_accepts_a_sane_site_and_names_each_problem():
++    clubs, players = good_site()
++    assert validate(clubs, players) == []
++    players["7"]["club"] = None                       # left Serie A: fine
++    players["8"]["startPct"] = None                   # club not on the lineups page: fine
++    assert validate(clubs, players) == []
++    del clubs["club19"]
++    players["1"]["club"] = "pisa"
++    players["2"]["role"] = "Por"
++    players["3"]["startPct"] = 101
++    del players["399"]
++    problems = validate(clubs, players)
++    assert len(problems) == 5
++    assert any("19" in p for p in problems)           # clubs
++    assert any("399" in p for p in problems)          # players
++    assert sum("pisa" in p or "club19" in p for p in problems) == 1
++    assert any("Por" in p for p in problems) and any("101" in p for p in problems)
++
++
++def kickoff(day: date, hour: int = 18) -> datetime:
++    return datetime.combine(day, time(hour), tzinfo=TZ).astimezone(timezone.utc)
++
++
++def matchday(number: int, unplayed: int, first: date = date(2026, 11, 4), last: date | None = None) -> list[Fixture]:
++    """Ten fixtures of `number`: the played ones a week before `first`, then `unplayed` ones with
++    kickoffs spread from `first` to `last` (local dates)."""
++    last = last or first
++    played = [Fixture(number, f"h{number}-{i}", f"a{number}-{i}", kickoff(first - timedelta(weeks=1)), 1, 0, True)
++              for i in range(10 - unplayed)]
++    ahead = [Fixture(number, f"h{number}-{i}", f"a{number}-{i}",
++                     kickoff(first + (last - first) * i // max(unplayed - 1, 1)), None, None, False)
++             for i in range(unplayed)]
++    return played + ahead
++
++
++def test_next_matchday_ignores_lone_postponed_match():
++    fx = matchday(3, unplayed=1) + matchday(10, unplayed=10, first=date(2026, 10, 31), last=date(2026, 11, 2))
++    assert next_matchday(fx, NOW) == {"number": 10, "from": "2026-10-31", "to": "2026-11-02"}
++
++
++def test_next_matchday_uses_local_dates_and_what_is_still_to_play():
++    fx = matchday(10, unplayed=10, first=date(2026, 10, 31), last=date(2026, 11, 2))
++    late = [Fixture(10, "x", "y", datetime(2026, 11, 2, 23, 30, tzinfo=timezone.utc), None, None, False)]  # 3 Nov in Rome
++    assert next_matchday(fx + late, NOW)["to"] == "2026-11-03"
++    saturday_night = datetime(2026, 10, 31, 23, 0, tzinfo=TZ)   # 5 of round 10 kicked off already
++    assert next_matchday(fx, saturday_night) == {"number": 10, "from": "2026-11-01", "to": "2026-11-02"}
++    assert next_matchday(matchday(38, unplayed=0), NOW) is None
++
++
++def test_meta_shape():
++    fx = matchday(10, unplayed=10, first=date(2026, 10, 31), last=date(2026, 11, 2))
++    now = datetime(2026, 10, 30, 11, 7, 12, 345, tzinfo=timezone.utc)
++    assert meta("full", ["lineups: boom"], fx, now) == {
++        "season": "2026-27",
++        "updatedAt": "2026-10-30T12:07:12+01:00",
++        "lastRun": {"at": "2026-10-30T12:07:12+01:00", "kind": "full", "ok": False, "errors": ["lineups: boom"]},
++        "nextMatchday": {"number": 10, "from": "2026-10-31", "to": "2026-11-02"},
++    }
++    assert meta("light", [], fx, now)["lastRun"]["ok"] is True
+diff --git a/pipeline/tests/test_fixtures.py b/pipeline/tests/test_fixtures.py
+index 0d03e90..1ec0f88 100644
+--- a/pipeline/tests/test_fixtures.py
++++ b/pipeline/tests/test_fixtures.py
+@@ -1,20 +1,28 @@
+ from season import CAL, CLUBS, ESPN, utc
+ 
+ from fantaspec.fixtures import join_fixtures
+-from fantaspec.models import Fixture
++from fantaspec.models import EspnMatch, Fixture
+ 
+ 
+ def test_join_keeps_unplayed_and_postponed():
+     fx = join_fixtures(CAL, ESPN, CLUBS)
+     assert len(fx) == len(CAL)
+     postponed = next(f for f in fx if (f.home, f.away) == ("lazio", "roma"))
+     assert postponed.matchday == 3 and postponed.completed is False
+ 
+ 
+ def test_join_takes_kickoff_and_score_from_espn():
+     fx = join_fixtures(CAL, ESPN, CLUBS)
+     assert [(f.matchday, f.home, f.away) for f in fx] == [(c.matchday, c.home, c.away) for c in CAL]
+     assert Fixture(1, "napoli", "lazio", utc(2026, 9, 20, 16, 0), 2, 0, True) in fx
+     assert Fixture(1, "roma", "torino", utc(2026, 10, 22, 18, 45), 0, 0, True) in fx       # played late
+     assert Fixture(4, "juventus", "napoli", utc(2026, 10, 31, 17, 0), None, None, False) in fx
+     assert Fixture(5, "lazio", "juventus", None, None, None, False) in fx                 # not on ESPN
++
++
++def test_join_prefers_the_completed_copy_of_a_match():
++    # torino-napoli as listed by a page fetched before the match, kept in raw/ when that page later failed
++    stale = EspnMatch("e5", utc(2026, 10, 18, 16, 0), 239, 114, None, None, False)
++    played = Fixture(3, "torino", "napoli", utc(2026, 10, 18, 16, 0), 2, 1, True)
++    assert played in join_fixtures(CAL, ESPN + [stale], CLUBS)
++    assert played in join_fixtures(CAL, [stale] + ESPN, CLUBS)
+diff --git a/pipeline/tests/test_run.py b/pipeline/tests/test_run.py
+new file mode 100644
+index 0000000..5657bed
+--- /dev/null
++++ b/pipeline/tests/test_run.py
+@@ -0,0 +1,150 @@
++from datetime import datetime, timedelta
++
++import pytest
++from league import (CLUBS, NOW, SEEDED_LINEUPS, current, fake_fetcher, read_out, read_raw, reset, seed_raw,
++                    write_raw)
++
++from fantaspec import __main__ as cli
++from fantaspec.config import (ESPN_SEASON, H2H_SEASONS, TZ, espn_schedule_url, fc_calendar_url, fc_lineups_url,
++                              fc_roster_url, fc_unavailable_url, fc_votes_url)
++from fantaspec.run import RunResult, gate, run
++
++
++@pytest.fixture(autouse=True)
++def fresh_season():
++    reset()
++
++
++def seed_out(repo) -> None:
++    """web/public/data as a good full run on the seeded raw/ writes it."""
++    result = run("full", fake_fetcher(), now=NOW)
++    assert result.ok and result.wrote, result.errors
++
++
++def raw_files(repo) -> dict[str, tuple[bytes, int]]:
++    return {p.name: (p.read_bytes(), p.stat().st_mtime_ns) for p in (repo / "raw").iterdir()}
++
++
++def test_postponed_match_votes_are_fetched(tmp_repo):
++    seed_raw(tmp_repo, completed_yesterday=[("lazio", "roma", 3)])   # matchday 3 match played yesterday
++    fetch = fake_fetcher()
++    run("full", fetch, now=NOW)
++    assert fc_votes_url(3) in fetch.requested
++    assert fc_votes_url(9) in fetch.requested                      # played on Wednesday
++    assert fc_votes_url(2) not in fetch.requested and fc_votes_url(4) not in fetch.requested
++    assert read_raw(tmp_repo, "votes").keys() == {"3", "8", "9"}
++
++
++def test_failed_source_keeps_old_raw_and_reports(tmp_repo):
++    seed_raw(tmp_repo)                                # previous good raw files
++    fetch = fake_fetcher(fail={fc_lineups_url()})     # every other URL served from tests/fixtures
++    result = run("light", fetch, now=NOW)
++    assert result.errors and result.errors[0].startswith("lineups:")
++    assert read_raw(tmp_repo, "lineups") == SEEDED_LINEUPS
++    assert read_out(tmp_repo, "meta")["lastRun"]["ok"] is False
++    assert fetch.requested == [fc_lineups_url(), fc_unavailable_url()]
++    assert result.ok is False and result.wrote is True    # first site data, written with the failure noted
++    assert read_out(tmp_repo, "players")["2170"]["startPct"] == 90      # from the kept raw/lineups.json
++
++
++def test_layout_change_never_overwrites_site_data(tmp_repo):
++    seed_raw(tmp_repo); seed_out(tmp_repo)
++    seeded_roster, seeded_players = read_raw(tmp_repo, "roster"), read_out(tmp_repo, "players")
++    fetch = fake_fetcher(override={fc_roster_url(): "<html></html>"})
++    result = run("full", fetch, now=NOW + timedelta(minutes=5))
++    assert result.ok is False and result.wrote is False
++    assert read_out(tmp_repo, "players") == seeded_players
++    assert read_raw(tmp_repo, "roster") == seeded_roster
++    assert result.errors == ["roster: ValueError: no rows"]
++    assert read_out(tmp_repo, "meta")["lastRun"]["errors"] == result.errors
++
++
++def test_same_slot_twice_writes_once(tmp_repo):
++    seed_raw(tmp_repo)
++    first = run("full", fake_fetcher(), now=NOW)
++    assert first.wrote is True and first.ok, first.errors
++    raw_after_first = raw_files(tmp_repo)
++    assert run("full", fake_fetcher(), now=NOW + timedelta(hours=1)).wrote is False
++    assert raw_files(tmp_repo) == raw_after_first
++    assert read_out(tmp_repo, "meta")["lastRun"]["at"] == "2026-10-30T12:00:00+01:00"
++
++
++def test_full_run_fetches_only_missing_calendar_pages_and_no_history(tmp_repo):
++    seed_raw(tmp_repo)
++    calendar = read_raw(tmp_repo, "calendar")
++    del calendar["38"]
++    write_raw(tmp_repo, "calendar", calendar)
++    fetch = fake_fetcher()
++    assert run("full", fetch, now=NOW).ok
++    assert [u for u in fetch.requested if "/calendario/" in u] == [fc_calendar_url(38)]
++    assert len(read_raw(tmp_repo, "calendar")["38"]) == 10
++    assert not any(f"season={ESPN_SEASON - 1}" in u for u in fetch.requested)
++
++
++def test_validation_failure_writes_nothing(tmp_repo):
++    seed_raw(tmp_repo); seed_out(tmp_repo)
++    meta_before = read_out(tmp_repo, "meta")
++    write_raw(tmp_repo, "roster", [])                 # a broken cache: too few players
++    result = run("light", fake_fetcher(), now=NOW + timedelta(days=1))
++    assert (result.ok, result.wrote, result.valid) == (False, False, False)
++    assert any(e.startswith("validation: players") for e in result.errors)
++    assert read_out(tmp_repo, "meta") == meta_before
++
++
++def test_backfill_fills_raw_from_scratch(tmp_repo):
++    fetch = fake_fetcher()
++    result = run("full", fetch, now=NOW, backfill=True)
++    assert result.ok and result.wrote, result.errors
++    for md in range(1, 39):
++        assert fc_calendar_url(md) in fetch.requested
++    assert [u for u in fetch.requested if "voti" in u] == [fc_votes_url(md) for md in range(1, 10)]
++    for club in CLUBS:
++        for season in range(ESPN_SEASON - H2H_SEASONS, ESPN_SEASON):
++            assert espn_schedule_url(club.espn_id, season) in fetch.requested
++    assert len(read_raw(tmp_repo, "calendar")) == 38
++    assert [m["espn_id"] for m in read_raw(tmp_repo, "history")] == ["h1", "h2", "h3", "h4"]   # once each
++    lazio = read_out(tmp_repo, "clubs")["lazio"]
++    assert lazio["next"]["opponent"] == current().rival and lazio["next"]["matchday"] == 10
++    assert lazio["next"]["h2h"] == ["W", "D", "L"]
++    assert read_out(tmp_repo, "meta")["nextMatchday"] == {"number": 10, "from": "2026-10-31", "to": "2026-10-31"}
++    assert read_out(tmp_repo, "players")["572"]["season"]["pres"] > 0
++
++
++def test_gate_without_raw_runs_full_this_hour(tmp_repo):
++    assert gate(datetime(2026, 10, 30, 12, 20, tzinfo=TZ)) == ("full", "2026-10-30T12:00:00+01:00")
++
++
++def test_gate_follows_the_slots(tmp_repo):
++    seed_raw(tmp_repo)
++    assert gate(NOW + timedelta(minutes=7)) == ("full", "2026-10-30T12:00:00+01:00")   # 2nd day after matchday 9
++    assert gate(datetime(2026, 10, 30, 19, 7, tzinfo=TZ)) == ("light", "2026-10-30T19:00:00+01:00")
++    assert gate(datetime(2026, 10, 30, 15, 7, tzinfo=TZ)) == ("skip", "")
++    assert gate(datetime(2026, 11, 1, 0, 59, tzinfo=TZ)) == ("full", "2026-10-31T23:30:00+01:00")   # late trigger
++
++
++def test_cli_gate_prints_and_appends_to_github_output(tmp_repo, monkeypatch, capsys):
++    output = tmp_repo / "github_output"
++    output.write_text("before=1\n")
++    monkeypatch.setenv("GITHUB_OUTPUT", str(output))
++    assert cli.main(["gate"]) == 0
++    printed = capsys.readouterr().out
++    assert printed.startswith("kind=full\nslot=20") and printed.count("\n") == 2   # no raw/ yet
++    assert output.read_text() == "before=1\n" + printed
++
++
++def test_cli_run_exits_1_only_when_validation_failed(monkeypatch):
++    calls = []
++
++    def fake_run(result):
++        def run_(kind, fetch, now, backfill=False):
++            calls.append((kind, backfill, now.tzinfo is not None))
++            return result
++        return run_
++
++    monkeypatch.setattr(cli, "run", fake_run(RunResult(False, ["lineups: down"], False)))
++    assert cli.main(["run", "--kind", "light"]) == 0
++    monkeypatch.setattr(cli, "run", fake_run(RunResult(False, ["validation: clubs: 19"], False, valid=False)))
++    assert cli.main(["run", "--kind", "full", "--backfill"]) == 1
++    assert calls == [("light", False, True), ("full", True, True)]
++    with pytest.raises(SystemExit):
++        cli.main(["run", "--kind", "light", "--backfill"])

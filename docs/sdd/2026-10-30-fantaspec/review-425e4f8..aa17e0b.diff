@@ -1,0 +1,367 @@
+# Review package: 425e4f8..HEAD
+
+## Commits
+aa17e0b pipeline: lineups, unavailable and name matching
+
+## Files changed
+ docs/superpowers/plans/2026-10-30-fantaspec.md | 10 ++---
+ pipeline/fantaspec/models.py                   | 17 ++++++++
+ pipeline/fantaspec/names.py                    | 29 ++++++++++++++
+ pipeline/fantaspec/sources/fc_lineups.py       | 55 ++++++++++++++++++++++++++
+ pipeline/fantaspec/sources/fc_unavailable.py   | 55 ++++++++++++++++++++++++++
+ pipeline/tests/test_fc_lineups.py              | 29 ++++++++++++++
+ pipeline/tests/test_fc_unavailable.py          | 34 ++++++++++++++++
+ pipeline/tests/test_names.py                   | 21 ++++++++++
+ 8 files changed, 245 insertions(+), 5 deletions(-)
+
+## Diff
+diff --git a/docs/superpowers/plans/2026-10-30-fantaspec.md b/docs/superpowers/plans/2026-10-30-fantaspec.md
+index 12620a0..9e81c5c 100644
+--- a/docs/superpowers/plans/2026-10-30-fantaspec.md
++++ b/docs/superpowers/plans/2026-10-30-fantaspec.md
+@@ -272,21 +272,21 @@ def test_calendar_matchday_10():
+ - Test: `pipeline/tests/test_fc_lineups.py`, `test_fc_unavailable.py`, `test_names.py`; fixtures `fc_lineups.html.gz`, `fc_unavailable.html.gz`
+ 
+ **Interfaces:**
+ - Consumes: `RosterPlayer`.
+ - Produces:
+   - `LineupEntry(player_id: int, name: str, club: str, start_pct: int, doubtful: bool)`; `fc_lineups.parse_lineups(html: str) -> tuple[list[LineupEntry], set[str]]` (entries, and the club keys covered by the page).
+   - `Unavailable(club: str, name: str, kind: str, text: str)` with kind `injured` | `suspended` | `warned`; `fc_unavailable.parse_unavailable(html: str) -> list[Unavailable]`.
+   - `names.match_player(name: str, club: str, roster: list[RosterPlayer]) -> int | None`.
+ 
+ - [x] **Step 1: Save both pages.** Already saved on 2026-10-30: `fc_lineups.html.gz`, `fc_unavailable.html.gz` in `pipeline/tests/fixtures/`.
+-- [ ] **Step 2: Write the failing tests.** Besides the assertions below, pick one starter, one ballottaggio player and one injured player visible in the saved pages and assert their exact values.
++- [x] **Step 2: Write the failing tests.** Besides the assertions below, pick one starter, one ballottaggio player and one injured player visible in the saved pages and assert their exact values.
+ 
+ ```python
+ def test_lineups_structure():
+     entries, clubs = parse_lineups(load_fixture("fc_lineups.html.gz"))
+     assert len(clubs) >= 18
+     assert len(entries) >= 300
+     assert all(0 <= e.start_pct <= 100 for e in entries)
+     assert any(e.doubtful for e in entries)
+ 
+ def test_unavailable_structure():
+@@ -298,27 +298,27 @@ def test_unavailable_structure():
+ def test_match_player():
+     roster = [RosterPlayer(1, "Miranda J.", "bologna", "D"), RosterPlayer(2, "N'Dicka", "roma", "D"),
+               RosterPlayer(3, "Martinez L.", "inter", "A"), RosterPlayer(4, "Martinez Jo.", "inter", "P")]
+     assert match_player("Miranda J.", "bologna", roster) == 1
+     assert match_player("N’Dicka", "roma", roster) == 2
+     assert match_player("Lautaro Martinez", "inter", roster) is None
+     assert match_player("Martinez L.", "inter", roster) == 3
+     assert match_player("Miranda", "roma", roster) is None
+ ```
+ 
+-- [ ] **Step 3: Run the tests.** Expected: FAIL.
+-- [ ] **Step 4: Implement.**
++- [x] **Step 3: Run the tests.** Expected: FAIL.
++- [x] **Step 4: Implement.**
+   - Lineups: per match block, starters and bench each carry a name link (player id) and a `NN%`; a player in a "ballottaggio" pair is `doubtful=True`. Covered clubs are the two clubs of every match block.
+   - Unavailable: per club section, the `Infortunati`, `Squalificati`, `Diffidati` lists; each entry's first word(s) are the name, the rest is `text`; "Nessuno"/"Nessun calciatore" means an empty list.
+   - `match_player`: normalise (lower case, strip accents, unify apostrophes, drop dots), only within the same club; exact normalised match first, then a unique surname match; ambiguous or missing → `None`.
+-- [ ] **Step 5: Run the tests again.** Expected: PASS.
+-- [ ] **Step 6: Commit** `git commit -m "pipeline: lineups, unavailable and name matching"`.
++- [x] **Step 5: Run the tests again.** Expected: PASS.
++- [x] **Step 6: Commit** `git commit -m "pipeline: lineups, unavailable and name matching"`.
+ 
+ ---
+ 
+ ### Task 5: Fixtures join and stats
+ 
+ **Files:**
+ - Create: `pipeline/fantaspec/fixtures.py`, `pipeline/fantaspec/stats.py`; extend `models.py`
+ - Test: `pipeline/tests/test_fixtures.py`, `pipeline/tests/test_stats.py` (hand-built inputs, no saved pages)
+ 
+ **Interfaces:**
+diff --git a/pipeline/fantaspec/models.py b/pipeline/fantaspec/models.py
+index f847134..47101da 100644
+--- a/pipeline/fantaspec/models.py
++++ b/pipeline/fantaspec/models.py
+@@ -52,10 +52,27 @@ class RosterPlayer:
+     name: str
+     club: str  # fantacalcio.it club slug
+     role: str  # P, D, C or A
+ 
+ 
+ @dataclass(frozen=True)
+ class CalendarFixture:
+     matchday: int
+     home: str  # fantacalcio.it club slug
+     away: str
++
++
++@dataclass(frozen=True)
++class LineupEntry:
++    player_id: int  # fantacalcio.it player id
++    name: str
++    club: str  # fantacalcio.it club slug
++    start_pct: int  # 0-100, chance of starting
++    doubtful: bool  # named in a "ballottaggio" (two-way doubt for a starting spot)
++
++
++@dataclass(frozen=True)
++class Unavailable:
++    club: str  # fantacalcio.it club slug
++    name: str  # as written on the page; matched to a roster id by names.match_player
++    kind: str  # injured, suspended or warned
++    text: str  # the page's note, "" when there is none
+diff --git a/pipeline/fantaspec/names.py b/pipeline/fantaspec/names.py
+new file mode 100644
+index 0000000..ceba5f9
+--- /dev/null
++++ b/pipeline/fantaspec/names.py
+@@ -0,0 +1,29 @@
++import unicodedata
++
++from fantaspec.models import RosterPlayer
++
++_APOSTROPHES = str.maketrans({"’": "'", "‘": "'", "ʼ": "'", "`": "'", "´": "'"})
++
++
++def normalise(name: str) -> str:
++    """Lower case, no accents, one kind of apostrophe, no dots, single spaces: "Konè M." -> "kone m"."""
++    decomposed = unicodedata.normalize("NFKD", name.translate(_APOSTROPHES).lower())
++    plain = "".join(ch for ch in decomposed if not unicodedata.combining(ch))
++    return " ".join(plain.replace(".", "").split())
++
++
++def _surname(name: str) -> str:
++    """The normalised name without its initials: "Martinez Jo." -> "martinez"."""
++    return normalise(" ".join(word for word in name.split() if not word.endswith(".")))
++
++
++def match_player(name: str, club: str, roster: list[RosterPlayer]) -> int | None:
++    """The roster id of the player called `name` at `club`: an exact normalised match first,
++    then a unique surname match; None when no player or more than one fits."""
++    candidates = [p for p in roster if p.club == club]
++    for key in (normalise, _surname):
++        target = key(name)
++        hits = [p.id for p in candidates if key(p.name) == target] if target else []
++        if hits:
++            return hits[0] if len(hits) == 1 else None
++    return None
+diff --git a/pipeline/fantaspec/sources/fc_lineups.py b/pipeline/fantaspec/sources/fc_lineups.py
+new file mode 100644
+index 0000000..0ed148a
+--- /dev/null
++++ b/pipeline/fantaspec/sources/fc_lineups.py
+@@ -0,0 +1,55 @@
++import re
++
++from bs4 import BeautifulSoup, Tag
++
++from fantaspec.models import LineupEntry
++from fantaspec.sources.fc_roster import parse_player_link
++
++_CLUB_HREF = re.compile(r"/serie-a/squadre/([^/]+)$")
++_PERCENT = re.compile(r"(\d{1,3})%")
++
++
++def parse_lineups(html: str) -> tuple[list[LineupEntry], set[str]]:
++    """fantacalcio.it probable lineups page -> (starters and bench of every match, the clubs of those matches).
++
++    A player named in one of the match's "ballottaggi" is doubtful.
++    Raises ValueError when a match block doesn't look as expected.
++    """
++    matches = BeautifulSoup(html, "html.parser").select("li.match-item")
++    if not matches:
++        raise ValueError("lineups page: no match blocks")
++    entries: list[LineupEntry] = []
++    clubs: set[str] = set()
++    for match in matches:
++        pair = _match_clubs(match)
++        clubs.update(pair)
++        doubtful = {link[0] for li in match.select(".ballot-list li") if (link := parse_player_link(li))}
++        for item in match.select(".team-card .player-list li.player-item"):
++            entry = _entry(item, doubtful)
++            if entry.club not in pair:
++                raise ValueError(f"lineups page: {entry.name} ({entry.club}) listed in {pair[0]}-{pair[1]}")
++            entries.append(entry)
++    return entries, clubs
++
++
++def _match_clubs(match: Tag) -> tuple[str, str]:
++    """The (home, away) club slugs from a match block's header."""
++    slugs = []
++    for side in ("team-home", "team-away"):
++        link = match.select_one(f"label.{side} a.team-link[href]")
++        found = _CLUB_HREF.search(link["href"]) if link else None
++        if found is None:
++            raise ValueError(f"lineups page: no {side} club in match {match.get('id')}")
++        slugs.append(found.group(1))
++    return slugs[0], slugs[1]
++
++
++def _entry(item: Tag, doubtful: set[int]) -> LineupEntry:
++    """One starter or bench row (name link + "NN%") -> LineupEntry."""
++    link = parse_player_link(item)
++    value = item.select_one(".progress-value")
++    percent = _PERCENT.fullmatch(value.get_text(strip=True)) if value else None
++    if link is None or percent is None or int(percent.group(1)) > 100:
++        raise ValueError(f"lineups page: unexpected player row {item.get_text(' ', strip=True)!r}")
++    player_id, name, club = link
++    return LineupEntry(player_id, name, club, int(percent.group(1)), player_id in doubtful)
+diff --git a/pipeline/fantaspec/sources/fc_unavailable.py b/pipeline/fantaspec/sources/fc_unavailable.py
+new file mode 100644
+index 0000000..1affc84
+--- /dev/null
++++ b/pipeline/fantaspec/sources/fc_unavailable.py
+@@ -0,0 +1,55 @@
++from bs4 import BeautifulSoup, Tag
++
++from fantaspec.clubs import load_clubs
++from fantaspec.models import Unavailable
++
++# List heading -> Unavailable.kind
++_KINDS = {"Infortunati": "injured", "Squalificati": "suspended", "Diffidati": "warned"}
++
++
++def parse_unavailable(html: str) -> list[Unavailable]:
++    """fantacalcio.it unavailable page -> every injured, suspended and warned player, club by club.
++
++    Each club card holds headed lists; an empty list is a "Nessuno" message instead of a list.
++    Raises ValueError on an unknown club, heading or element.
++    """
++    club_keys = {c.name.lower(): c.key for c in load_clubs()}
++    cards = BeautifulSoup(html, "html.parser").select("div.card.team-card")
++    if not cards:
++        raise ValueError("unavailable page: no club sections")
++    items: list[Unavailable] = []
++    for card in cards:
++        club_name = card.select_one(".team-name").get_text(strip=True)
++        club = club_keys.get(club_name.lower())
++        if club is None:
++            raise ValueError(f"unavailable page: unknown club {club_name!r}")
++        for column in card.select(".col"):
++            items.extend(_column(column, club))
++    return items
++
++
++def _column(column: Tag, club: str) -> list[Unavailable]:
++    """A column of the club card: heading, list or empty message, heading, ..."""
++    items = []
++    kind = None
++    for child in column.find_all(recursive=False):
++        text = child.get_text(" ", strip=True)
++        if child.name == "header":
++            kind = next((k for heading, k in _KINDS.items() if heading in text), None)
++            if kind is None:
++                raise ValueError(f"unavailable page: unknown heading {text!r} ({club})")
++        elif kind and child.name == "ul":
++            items.extend(_entry(li, club, kind) for li in child.find_all("li", recursive=False))
++        elif not (kind and "empty-list-message" in child.get("class", []) and text.startswith("Nessun")):
++            raise ValueError(f"unavailable page: unexpected element {text[:60]!r} ({club})")
++    return items
++
++
++def _entry(li: Tag, club: str, kind: str) -> Unavailable:
++    """One list item: the player's name and an optional note."""
++    name = li.select_one(".item-name")
++    if name is None:
++        raise ValueError(f"unavailable page: list item without a name ({club})")
++    note = li.select_one(".item-description")
++    text = " ".join(note.get_text(" ", strip=True).split()) if note else ""
++    return Unavailable(club, name.get_text(strip=True), kind, text)
+diff --git a/pipeline/tests/test_fc_lineups.py b/pipeline/tests/test_fc_lineups.py
+new file mode 100644
+index 0000000..98c59dc
+--- /dev/null
++++ b/pipeline/tests/test_fc_lineups.py
+@@ -0,0 +1,29 @@
++import pytest
++from conftest import load_fixture
++
++from fantaspec.models import LineupEntry
++from fantaspec.sources.fc_lineups import parse_lineups
++
++
++def test_lineups_structure():
++    entries, clubs = parse_lineups(load_fixture("fc_lineups.html.gz"))
++    assert len(clubs) >= 18
++    assert len(entries) >= 300
++    assert all(0 <= e.start_pct <= 100 for e in entries)
++    assert any(e.doubtful for e in entries)
++
++
++def test_lineups_values():
++    entries, clubs = parse_lineups(load_fixture("fc_lineups.html.gz"))
++    assert {"bologna", "monza"} <= clubs
++    assert LineupEntry(133, "Skorupski", "bologna", 90, False) in entries  # starter
++    assert LineupEntry(7212, "Heggem", "bologna", 40, True) in entries  # bench, in a ballottaggio with Casale
++    assert LineupEntry(5498, "Casale", "bologna", 60, True) in entries
++    # De Silvestri is only in Bologna's injured list, not in the lineup
++    assert not any(e.player_id == 487 for e in entries)
++    assert len({e.player_id for e in entries}) == len(entries)
++
++
++def test_lineups_rejects_unknown_markup():
++    with pytest.raises(ValueError):
++        parse_lineups("<html><body><p>Pagina non trovata</p></body></html>")
+diff --git a/pipeline/tests/test_fc_unavailable.py b/pipeline/tests/test_fc_unavailable.py
+new file mode 100644
+index 0000000..aa2261e
+--- /dev/null
++++ b/pipeline/tests/test_fc_unavailable.py
+@@ -0,0 +1,34 @@
++import pytest
++from conftest import load_fixture
++
++from fantaspec.clubs import by_key
++from fantaspec.models import Unavailable
++from fantaspec.sources.fc_unavailable import parse_unavailable
++
++
++def test_unavailable_structure():
++    items = parse_unavailable(load_fixture("fc_unavailable.html.gz"))
++    assert {i.kind for i in items} <= {"injured", "suspended", "warned"}
++    assert all(i.club in by_key() for i in items)
++    assert not any(i.name.lower().startswith("nessun") for i in items)
++
++
++def test_unavailable_values():
++    items = parse_unavailable(load_fixture("fc_unavailable.html.gz"))
++    assert Unavailable(
++        "atalanta",
++        "Kessiè",
++        "injured",
++        "L'ivoriano condizionato da una distrazione di basso grado al polpaccio della gamba destra, "
++        "tentativo rientro da inizio novembre.",
++    ) in items
++    assert Unavailable("lecce", "Gaspar K.", "suspended", "squalificato nella 10a giornata di campionato") in items
++    assert Unavailable("cagliari", "Deiola", "warned", "") in items
++    assert len(items) == 87
++
++
++def test_unavailable_rejects_unknown_markup():
++    with pytest.raises(ValueError):
++        parse_unavailable("<html><body><p>Pagina non trovata</p></body></html>")
++    with pytest.raises(ValueError):
++        parse_unavailable('<div class="card team-card"><span class="team-name">Pisa</span></div>')
+diff --git a/pipeline/tests/test_names.py b/pipeline/tests/test_names.py
+new file mode 100644
+index 0000000..9dab4e9
+--- /dev/null
++++ b/pipeline/tests/test_names.py
+@@ -0,0 +1,21 @@
++from fantaspec.models import RosterPlayer
++from fantaspec.names import match_player
++
++
++def test_match_player():
++    roster = [RosterPlayer(1, "Miranda J.", "bologna", "D"), RosterPlayer(2, "N'Dicka", "roma", "D"),
++              RosterPlayer(3, "Martinez L.", "inter", "A"), RosterPlayer(4, "Martinez Jo.", "inter", "P")]
++    assert match_player("Miranda J.", "bologna", roster) == 1
++    assert match_player("N’Dicka", "roma", roster) == 2
++    assert match_player("Lautaro Martinez", "inter", roster) is None
++    assert match_player("Martinez L.", "inter", roster) == 3
++    assert match_player("Miranda", "roma", roster) is None
++
++
++def test_match_player_normalisation_and_surname():
++    roster = [RosterPlayer(10, "Kessie", "atalanta", "C"), RosterPlayer(11, "Pellegrini Lo.", "roma", "C"),
++              RosterPlayer(12, "Thuram", "juventus", "C")]
++    assert match_player("KESSIÈ", "atalanta", roster) == 10
++    assert match_player("Pellegrini", "roma", roster) == 11
++    assert match_player("Thuram K.", "juventus", roster) == 12
++    assert match_player("Miranda", "bologna", roster) is None
