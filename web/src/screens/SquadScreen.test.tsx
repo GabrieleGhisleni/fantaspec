@@ -15,11 +15,6 @@ beforeEach(() => {
 const row = (name: string) => screen.getByText(name).closest("li")!;
 /** Player names in the order the rows are shown. */
 const rowNames = () => screen.getAllByRole("listitem").map(li => li.querySelector(".player-name")?.textContent);
-/** The table row under a heading in the club comparison (the keeper's stat list also says "Gol subiti"). */
-const venueRow = (detail: ReturnType<typeof within>, label: string) =>
-  detail.getAllByText(label).filter(el => el.tagName === "TH").at(-1)!;
-/** The texts of a table row's cells, left to right. */
-const cellTexts = (cell: HTMLElement) => [...cell.closest("tr")!.children].map(c => c.textContent);
 
 test("groups by role with Italian headers", () => {
   render(<SquadScreen {...props} />);
