@@ -21,7 +21,6 @@ const CHIPS: Chip[] = ["Tutti", "P", "D", "C", "A"];
 export function SquadScreen({ data, squads, selectedId, onSelect }: Props) {
   const [chip, setChip] = useState<Chip>("Tutti");
   const [sort, setSort] = useState<SortKey>("role");
-  const [expanded, setExpanded] = useState<ReadonlySet<number>>(new Set());
   const sortId = useId();
 
   const squad = squads.find(s => s.id === selectedId) ?? squads[0];
@@ -30,14 +29,6 @@ export function SquadScreen({ data, squads, selectedId, onSelect }: Props) {
   const { meta } = data;
   const rows = sortRows(buildRows(squad, data), "role");
   const visible = sortRows(rows.filter(r => chip === "Tutti" || r.player?.role === chip), sort);
-
-  function toggle(id: number) {
-    setExpanded(prev => {
-      const next = new Set(prev);
-      if (!next.delete(id)) next.add(id);
-      return next;
-    });
-  }
 
   const list = (items: Row[]) => (
     <ul className="rows">
@@ -52,7 +43,7 @@ export function SquadScreen({ data, squads, selectedId, onSelect }: Props) {
             </li>
           )}
         >
-          <PlayerRow row={r} open={expanded.has(r.id)} onToggle={() => toggle(r.id)} />
+          <PlayerRow row={r} />
         </ErrorBoundary>
       ))}
     </ul>

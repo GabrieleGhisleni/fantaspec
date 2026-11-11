@@ -30,8 +30,21 @@ export function InfoScreen() {
           Infortunato, squalificato, in dubbio o diffidato (un giallo dalla squalifica). Toccando la riga trovi il
           dettaglio e la data di rientro, se nota.
         </Item>
-        <Item term="vs / @ Avversario (n°)">
-          Prossimo avversario: «vs» se si gioca in casa, «@» in trasferta; il numero è la sua posizione in classifica.
+        <Item term="Prossima partita">
+          Il club del giocatore con posizione in classifica e punti, poi il prossimo avversario con la stessa
+          informazione. «in casa contro» se il club gioca in casa, «in trasferta a» se gioca fuori.
+        </Item>
+        <Item term="Forma">
+          Gli ultimi risultati del club del giocatore e di quello avversario (V vittoria, N pareggio, P sconfitta,
+          dalla più vecchia alla più recente).
+        </Item>
+        <Item term="Gol a partita (fatti / subiti)">
+          Medie stagionali per partita dei due club: quanti gol segnano e quanti ne subiscono. Il primo numero di ogni
+          coppia sono i gol segnati, il secondo quelli subiti.
+        </Item>
+        <Item term="Gol · Assist · Presenze">
+          Gol e assist del giocatore nella stagione, e le partite con voto. Per i portieri compaiono i gol subiti (in
+          rosso, valgono come malus).
         </Item>
         <Item term="FV">
           Fantavoto mediano della stagione, cioè il voto con i bonus e malus. Si usa la mediana e non la media perché
@@ -44,31 +57,15 @@ export function InfoScreen() {
         </Item>
       </dl>
 
-      <h2 className="group-title">Dettaglio (tocca una riga)</h2>
-      <dl className="glossary">
-        <Item term="Pres · Mediana V · Mediana FV">Presenze con voto, mediana del voto e mediana del fantavoto nella stagione.</Item>
-        <Item term="Gol · Assist · Imbattuto">
-          Gol e assist segnati; per i portieri i gol subiti (in rosso, valgono come malus) e le partite a porta
-          inviolata.
-        </Item>
-        <Item term="Ultime 5">
-          Fantavoti delle ultime cinque partite in un grafico (un vuoto è una partita senza voto), con presenze, gol e
-          assist di quelle partite.
-        </Item>
-        <Item term="Confronto club">
-          Il club del giocatore a sinistra e l'avversario a destra: classifica, forma (V vittoria, N pareggio, P
-          sconfitta, dalla più vecchia alla più recente), gol fatti e subiti a partita sull'intera stagione. Sotto,
-          solo per questa partita: «Gol fatti» e «Gol subiti» per partita, giocando nel campo di questa sfida (il
-          club di casa in casa, quello ospite in trasferta). In fondo i precedenti.
-        </Item>
-      </dl>
-
       <h2 className="group-title">Schermata</h2>
       <dl className="glossary">
         <Item term="Filtri e ordine">
           I pulsanti P D C A filtrano per ruolo. «Ordina» sceglie fra ruolo, titolarità, FV mediana e avversario favorevole (il più favorevole prima).
         </Item>
-        <Item term="Partite della giornata">Le partite delle squadre dei tuoi giocatori, con il confronto fra i due club.</Item>
+        <Item term="Partite della giornata">
+          Le partite delle squadre dei tuoi giocatori, una scheda per partita. Ogni scheda confronta i due club: la
+          stagione, poi solo questa partita (gol in casa e in trasferta) e i precedenti.
+        </Item>
         <Item term="Rose">Crei e modifichi le rose, le condividi con un link e importi quelle degli amici. Restano su questo dispositivo.</Item>
       </dl>
 
