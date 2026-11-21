@@ -161,11 +161,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        5.5,
         6.5,
         null,
         null,
-        null
+        null,
+        6.0
       ],
       "g": 0,
       "gs": 0,
@@ -175,18 +175,15 @@
     "role": "D",
     "season": {
       "a": 0,
-      "cs": 3,
+      "cs": 4,
       "g": 0,
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 7
+      "pres": 8
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "1870": {
     "club": "inter",
@@ -224,15 +221,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        null,
         4.0,
         6.0,
         5.5,
-        6.5
+        6.5,
+        5.5
       ],
       "g": 0,
       "gs": 0,
-      "played": 4
+      "played": 5
     },
     "name": "Deiola",
     "role": "C",
@@ -241,11 +238,11 @@
       "cs": null,
       "g": 0,
       "gs": 0,
-      "medFV": 5.75,
+      "medFV": 5.5,
       "medV": 6.0,
-      "pres": 10
+      "pres": 11
     },
-    "startPct": 90,
+    "startPct": null,
     "status": {
       "kind": "warned",
       "text": ""
@@ -317,11 +314,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
         6.5,
         null,
         null,
-        null
+        null,
+        5.5
       ],
       "g": 0,
       "gs": 0,
@@ -334,11 +331,11 @@
       "cs": null,
       "g": 1,
       "gs": 0,
-      "medFV": 6.25,
+      "medFV": 6.0,
       "medV": 6.0,
-      "pres": 8
+      "pres": 9
     },
-    "startPct": 85,
+    "startPct": null,
     "status": null
   },
   "2012": {
@@ -375,13 +372,13 @@
     "club": "lazio",
     "id": 2038,
     "last5": {
-      "a": 1,
+      "a": 0,
       "fv": [
-        7.0,
         null,
         6.0,
         9.5,
-        5.5
+        5.5,
+        6.0
       ],
       "g": 1,
       "gs": 0,
@@ -396,9 +393,9 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 7
+      "pres": 8
     },
-    "startPct": 85,
+    "startPct": null,
     "status": null
   },
   "2061": {
@@ -407,13 +404,13 @@
     "last5": {
       "a": 1,
       "fv": [
-        14.0,
         8.0,
         6.5,
         5.5,
-        6.5
+        6.5,
+        6.0
       ],
-      "g": 2,
+      "g": 0,
       "gs": 0,
       "played": 5
     },
@@ -426,9 +423,9 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "2077": {
@@ -488,7 +485,7 @@
       "medV": 6.0,
       "pres": 4
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "l'attaccante si sottoporrà a nuove cure per un problema osseo alla gamba destra. Ipotizziamo un recupero da fine gennaio, ma la situazione rimane da monitorare."
@@ -590,14 +587,14 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
         4.0,
         2.0,
         4.0,
-        6.0
+        6.0,
+        3.0
       ],
       "g": 0,
-      "gs": 10,
+      "gs": 13,
       "played": 5
     },
     "name": "Falcone",
@@ -606,12 +603,12 @@
       "a": 0,
       "cs": 2,
       "g": 0,
-      "gs": 22,
-      "medFV": 4.0,
+      "gs": 25,
+      "medFV": 3.75,
       "medV": 6.0,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "2137": {
@@ -731,7 +728,7 @@
       "medV": 6.0,
       "pres": 2
     },
-    "startPct": 20,
+    "startPct": null,
     "status": null
   },
   "2170": {
@@ -741,27 +738,27 @@
       "a": 0,
       "fv": [
         null,
-        null,
         6.0,
         null,
-        5.5
+        5.5,
+        6.0
       ],
       "g": 0,
       "gs": 2,
-      "played": 2
+      "played": 3
     },
     "name": "Milinkovic-Savic V.",
     "role": "P",
     "season": {
       "a": 0,
-      "cs": 1,
+      "cs": 2,
       "g": 0,
       "gs": 3,
       "medFV": 6.0,
-      "medV": 6.75,
-      "pres": 4
+      "medV": 6.5,
+      "pres": 5
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "218": {
@@ -821,7 +818,7 @@
       "medV": 6.0,
       "pres": 1
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "Il montenegrino frenato ancora da un fastidio muscolare alla gamba, condizioni che restano valutare ma non ci sarà nel prossimo turno di campionato."
@@ -893,15 +890,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
         5.5,
         6.0,
         6.5,
-        6.0
+        6.0,
+        null
       ],
       "g": 0,
       "gs": 0,
-      "played": 5
+      "played": 4
     },
     "name": "De Roon",
     "role": "C",
@@ -914,7 +911,7 @@
       "medV": 6.0,
       "pres": 7
     },
-    "startPct": 60,
+    "startPct": null,
     "status": null
   },
   "2263": {
@@ -923,11 +920,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        null,
         6.0,
         6.0,
         null,
-        6.0
+        6.0,
+        null
       ],
       "g": 0,
       "gs": 0,
@@ -944,7 +941,7 @@
       "medV": 6.0,
       "pres": 3
     },
-    "startPct": 55,
+    "startPct": null,
     "status": null
   },
   "2296": {
@@ -953,15 +950,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        null,
         5.5,
         5.5,
         null,
-        null
+        null,
+        6.5
       ],
       "g": 0,
       "gs": 0,
-      "played": 2
+      "played": 3
     },
     "name": "Mancini",
     "role": "D",
@@ -970,15 +967,12 @@
       "cs": 4,
       "g": 0,
       "gs": 0,
-      "medFV": 6.25,
-      "medV": 6.25,
-      "pres": 8
+      "medFV": 6.5,
+      "medV": 6.5,
+      "pres": 9
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "2297": {
     "club": "atalanta",
@@ -1067,7 +1061,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "2404": {
@@ -1097,7 +1091,7 @@
       "medV": 5.75,
       "pres": 2
     },
-    "startPct": 40,
+    "startPct": 50,
     "status": {
       "kind": "doubtful",
       "text": ""
@@ -1169,11 +1163,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        2.0,
         6.5,
         10.0,
         6.0,
-        6.0
+        6.0,
+        6.5
       ],
       "g": 1,
       "gs": 0,
@@ -1188,13 +1182,10 @@
       "gs": 0,
       "medFV": 6.5,
       "medV": 6.5,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "252": {
     "club": "torino",
@@ -1223,7 +1214,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "2521": {
@@ -1376,7 +1367,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "254": {
@@ -1556,7 +1547,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "il difensore operato nella seconda metà di luglio al menisco del ginocchio destro. Sta recuperando lentamente, ipotizziamo possa tornare arruolabile da fine dicembre."
@@ -1589,7 +1580,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 15,
+    "startPct": null,
     "status": null
   },
   "2741": {
@@ -1775,7 +1766,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 1,
+    "startPct": null,
     "status": null
   },
   "2814": {
@@ -1847,15 +1838,15 @@
     "last5": {
       "a": 1,
       "fv": [
-        5.5,
         6.5,
         7.0,
         5.5,
+        null,
         null
       ],
       "g": 0,
       "gs": 0,
-      "played": 4
+      "played": 3
     },
     "name": "Di Lorenzo",
     "role": "D",
@@ -1868,7 +1859,7 @@
       "medV": 6.0,
       "pres": 10
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "il capitano azzurro costretto al cambio l'1 novembre contro la Juve per una lesione distrattiva del muscolo adduttore lungo della coscia sinistra, tentativo di recupero dalla fine di novembre."
@@ -1964,7 +1955,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 5,
+    "startPct": null,
     "status": null
   },
   "2848": {
@@ -1974,12 +1965,12 @@
       "a": 0,
       "fv": [
         6.0,
-        6.0,
         3.0,
         5.5,
+        10.0,
         10.0
       ],
-      "g": 1,
+      "g": 2,
       "gs": 0,
       "played": 5
     },
@@ -1988,17 +1979,14 @@
     "season": {
       "a": 0,
       "cs": null,
-      "g": 4,
+      "g": 5,
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 80,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "2857": {
     "club": "genoa",
@@ -2060,7 +2048,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 1,
+    "startPct": null,
     "status": null
   },
   "294": {
@@ -2120,7 +2108,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 5,
+    "startPct": null,
     "status": null
   },
   "309": {
@@ -2133,11 +2121,11 @@
         null,
         null,
         null,
-        null
+        6.0
       ],
       "g": 0,
       "gs": 0,
-      "played": 0
+      "played": 1
     },
     "name": "Dybala",
     "role": "A",
@@ -2148,9 +2136,9 @@
       "gs": 0,
       "medFV": 7.0,
       "medV": 7.0,
-      "pres": 6
+      "pres": 7
     },
-    "startPct": 80,
+    "startPct": null,
     "status": null
   },
   "313": {
@@ -2180,7 +2168,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "327": {
@@ -2210,7 +2198,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "333": {
@@ -2240,7 +2228,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 25,
+    "startPct": null,
     "status": null
   },
   "383": {
@@ -2309,15 +2297,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        4.5,
         3.5,
+        null,
         null,
         null,
         null
       ],
       "g": 0,
       "gs": 0,
-      "played": 2
+      "played": 1
     },
     "name": "Diego Carlos",
     "role": "D",
@@ -2330,7 +2318,7 @@
       "medV": 5.5,
       "pres": 6
     },
-    "startPct": 25,
+    "startPct": null,
     "status": null
   },
   "4147": {
@@ -2486,7 +2474,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 25,
+    "startPct": null,
     "status": null
   },
   "4199": {
@@ -2528,15 +2516,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        4.0,
         null,
         5.0,
+        null,
         null,
         null
       ],
       "g": 0,
       "gs": 0,
-      "played": 2
+      "played": 1
     },
     "name": "Mina",
     "role": "D",
@@ -2549,7 +2537,7 @@
       "medV": 5.75,
       "pres": 4
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "il colombiano condizionato da una vecchia ferita alla gamba (microlesione muscolare al bicipite femorale), out anche alla ripresa del campionato contro il Como. Da valutare in vista della 13a giornata di A."
@@ -2561,15 +2549,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        null,
         10.0,
         6.0,
+        5.5,
         5.5,
         5.5
       ],
       "g": 1,
       "gs": 0,
-      "played": 4
+      "played": 5
     },
     "name": "Zambo Anguissa",
     "role": "C",
@@ -2580,13 +2568,10 @@
       "gs": 0,
       "medFV": 5.5,
       "medV": 5.5,
-      "pres": 7
+      "pres": 8
     },
-    "startPct": 55,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "4236": {
     "club": "sassuolo",
@@ -2624,15 +2609,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        4.5,
         6.0,
+        null,
         null,
         null,
         null
       ],
       "g": 0,
       "gs": 0,
-      "played": 2
+      "played": 1
     },
     "name": "Winks",
     "role": "C",
@@ -2645,7 +2630,7 @@
       "medV": 6.0,
       "pres": 8
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "Il regista dei sardi in tribuna nel turno precedente di A contro il Frosinone per il perdurare di una fastidiosa lombalgia. Assente anche alla ripresa del campionato contro il Como, da valutare in vista della 13a di campionato."
@@ -2688,14 +2673,14 @@
       "a": 0,
       "fv": [
         6.0,
-        6.0,
+        null,
         null,
         null,
         null
       ],
       "g": 0,
       "gs": 0,
-      "played": 2
+      "played": 1
     },
     "name": "Lobotka",
     "role": "C",
@@ -2708,7 +2693,7 @@
       "medV": 6.0,
       "pres": 8
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "lo slovacco il 28 ottobre vittima a Monza di una lesione della sindesmosi tibio-peroneale senza instabilità, associata a lesione di basso grado del LPAA della caviglia sinistra. Recuperabile dalla metà di dicembre."
@@ -2752,15 +2737,15 @@
       "fv": [
         6.0,
         6.0,
-        6.0,
         9.5,
+        6.5,
         6.5
       ],
       "g": 1,
       "gs": 0,
       "played": 5
     },
-    "name": "N'Dicka",
+    "name": "Ndicka",
     "role": "D",
     "season": {
       "a": 0,
@@ -2769,9 +2754,9 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 9
+      "pres": 10
     },
-    "startPct": 80,
+    "startPct": null,
     "status": null
   },
   "4349": {
@@ -2801,7 +2786,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 55,
+    "startPct": null,
     "status": null
   },
   "4359": {
@@ -2843,14 +2828,14 @@
     "last5": {
       "a": 0,
       "fv": [
-        1.5,
         4.0,
         2.5,
         4.5,
-        7.5
+        7.5,
+        4.5
       ],
       "g": 0,
-      "gs": 12,
+      "gs": 10,
       "played": 5
     },
     "name": "Caprile",
@@ -2859,12 +2844,12 @@
       "a": 0,
       "cs": 4,
       "g": 0,
-      "gs": 15,
-      "medFV": 6.0,
+      "gs": 17,
+      "medFV": 5.75,
       "medV": 6.5,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "4364": {
@@ -2927,7 +2912,7 @@
       "medV": 5.75,
       "pres": 4
     },
-    "startPct": 60,
+    "startPct": 50,
     "status": null
   },
   "4374": {
@@ -3092,11 +3077,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        5.0,
         null,
         6.0,
         6.0,
-        6.0
+        6.0,
+        6.5
       ],
       "g": 0,
       "gs": 0,
@@ -3106,14 +3091,14 @@
     "role": "D",
     "season": {
       "a": 1,
-      "cs": 3,
+      "cs": 4,
       "g": 0,
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 10
+      "pres": 11
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "4431": {
@@ -3236,7 +3221,7 @@
       "medV": 6.25,
       "pres": 2
     },
-    "startPct": 55,
+    "startPct": null,
     "status": null
   },
   "4461": {
@@ -3266,7 +3251,7 @@
       "medV": 6.0,
       "pres": 1
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "4463": {
@@ -3359,7 +3344,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 5,
+    "startPct": null,
     "status": null
   },
   "4479": {
@@ -3426,13 +3411,13 @@
     "club": "lecce",
     "id": 4502,
     "last5": {
-      "a": 1,
+      "a": 0,
       "fv": [
-        8.0,
         6.0,
         5.0,
         6.0,
-        6.0
+        6.0,
+        5.0
       ],
       "g": 0,
       "gs": 0,
@@ -3445,11 +3430,11 @@
       "cs": 2,
       "g": 0,
       "gs": 0,
-      "medFV": 5.75,
-      "medV": 5.75,
-      "pres": 10
+      "medFV": 5.5,
+      "medV": 5.5,
+      "pres": 11
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "4510": {
@@ -3539,7 +3524,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "4657": {
@@ -3569,7 +3554,7 @@
       "medV": 6.0,
       "pres": 8
     },
-    "startPct": 60,
+    "startPct": 55,
     "status": {
       "kind": "doubtful",
       "text": ""
@@ -3581,15 +3566,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        5.5,
         6.5,
+        null,
         null,
         null,
         null
       ],
       "g": 0,
       "gs": 0,
-      "played": 2
+      "played": 1
     },
     "name": "Badiashile",
     "role": "D",
@@ -3602,7 +3587,7 @@
       "medV": 5.75,
       "pres": 4
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "il difensore KO il 24 ottobre contro la Roma per una lesione distrattiva di medio grado del retto femorale destro, recuperabile dalla fine di novembre."
@@ -3644,11 +3629,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.5,
         13.5,
         null,
         null,
-        6.5
+        6.5,
+        5.5
       ],
       "g": 2,
       "gs": 0,
@@ -3663,13 +3648,10 @@
       "gs": 0,
       "medFV": 6.5,
       "medV": 6.5,
-      "pres": 7
+      "pres": 8
     },
-    "startPct": 55,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "4728": {
     "club": "milan",
@@ -3794,7 +3776,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "4777": {
@@ -3803,13 +3785,13 @@
     "last5": {
       "a": 0,
       "fv": [
-        5.5,
         13.5,
         6.5,
         5.0,
-        6.0
+        6.0,
+        10.0
       ],
-      "g": 2,
+      "g": 3,
       "gs": 0,
       "played": 5
     },
@@ -3818,13 +3800,13 @@
     "season": {
       "a": 0,
       "cs": null,
-      "g": 2,
+      "g": 3,
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 8
+      "pres": 9
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "4807": {
@@ -3834,10 +3816,10 @@
       "a": 0,
       "fv": [
         6.0,
-        6.0,
         null,
         6.0,
-        10.5
+        10.5,
+        6.5
       ],
       "g": 1,
       "gs": 0,
@@ -3852,9 +3834,9 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 10
+      "pres": 11
     },
-    "startPct": 80,
+    "startPct": null,
     "status": null
   },
   "4817": {
@@ -3863,28 +3845,28 @@
     "last5": {
       "a": 1,
       "fv": [
-        null,
         6.0,
         6.0,
         7.5,
-        2.5
+        2.5,
+        6.0
       ],
       "g": 0,
       "gs": 0,
-      "played": 4
+      "played": 5
     },
     "name": "Pedraza",
     "role": "D",
     "season": {
       "a": 2,
-      "cs": 2,
+      "cs": 3,
       "g": 0,
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 7
+      "pres": 8
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "4845": {
@@ -4016,11 +3998,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        4.0,
         5.5,
         5.5,
         5.5,
-        10.0
+        10.0,
+        6.0
       ],
       "g": 1,
       "gs": 0,
@@ -4035,9 +4017,9 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "4871": {
@@ -4100,7 +4082,7 @@
       "medV": 5.75,
       "pres": 6
     },
-    "startPct": 60,
+    "startPct": 55,
     "status": {
       "kind": "doubtful",
       "text": ""
@@ -4146,9 +4128,9 @@
       "a": 0,
       "fv": [
         5.0,
-        5.0,
         10.0,
         6.0,
+        6.5,
         6.5
       ],
       "g": 1,
@@ -4164,9 +4146,9 @@
       "gs": 0,
       "medFV": 6.5,
       "medV": 6.5,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "4911": {
@@ -4286,7 +4268,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "4930": {
@@ -4496,7 +4478,7 @@
       "medV": 5.75,
       "pres": 8
     },
-    "startPct": 80,
+    "startPct": 85,
     "status": null
   },
   "4976": {
@@ -4568,15 +4550,15 @@
     "last5": {
       "a": 1,
       "fv": [
-        null,
         6.5,
         7.5,
         6.0,
-        6.5
+        6.5,
+        5.5
       ],
       "g": 0,
       "gs": 0,
-      "played": 4
+      "played": 5
     },
     "name": "Molina N.",
     "role": "D",
@@ -4587,13 +4569,10 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 9
+      "pres": 10
     },
-    "startPct": 55,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "5007": {
     "club": "lecce",
@@ -4622,7 +4601,7 @@
       "medV": 5.5,
       "pres": 5
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "il regista dei salentini KO l'11 ottobre in casa contro il Bologna vittima di una lesione miotendinea del retto femorale sinistro con lesione parziale del tendine, rientro da aprile."
@@ -4634,11 +4613,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        5.5,
         6.0,
         5.0,
         6.5,
-        6.0
+        6.0,
+        7.0
       ],
       "g": 0,
       "gs": 0,
@@ -4653,9 +4632,9 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 10
+      "pres": 11
     },
-    "startPct": 85,
+    "startPct": null,
     "status": null
   },
   "5022": {
@@ -4698,9 +4677,9 @@
       "a": 0,
       "fv": [
         5.0,
-        5.0,
         null,
         null,
+        5.5,
         5.5
       ],
       "g": 0,
@@ -4714,31 +4693,28 @@
       "cs": null,
       "g": 0,
       "gs": 0,
-      "medFV": 5.25,
-      "medV": 5.25,
-      "pres": 6
+      "medFV": 5.5,
+      "medV": 5.5,
+      "pres": 7
     },
-    "startPct": 55,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "5036": {
     "club": "como",
     "id": 5036,
     "last5": {
-      "a": 2,
+      "a": 1,
       "fv": [
         7.5,
-        7.5,
         6.0,
         6.0,
-        6.0
+        6.0,
+        null
       ],
       "g": 0,
       "gs": 0,
-      "played": 5
+      "played": 4
     },
     "name": "Caqueret",
     "role": "C",
@@ -4751,11 +4727,8 @@
       "medV": 6.0,
       "pres": 9
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "5116": {
     "club": "inter",
@@ -4823,11 +4796,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
         null,
         6.5,
         5.5,
-        5.0
+        5.0,
+        6.0
       ],
       "g": 0,
       "gs": 0,
@@ -4842,9 +4815,9 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 7
+      "pres": 8
     },
-    "startPct": 80,
+    "startPct": null,
     "status": null
   },
   "5172": {
@@ -5006,7 +4979,7 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
+        null,
         null,
         null,
         null,
@@ -5014,7 +4987,7 @@
       ],
       "g": 0,
       "gs": 0,
-      "played": 1
+      "played": 0
     },
     "name": "Pellegrini Lo.",
     "role": "C",
@@ -5027,7 +5000,7 @@
       "medV": 6.0,
       "pres": 2
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "Il centrocampista dei giallorossi il 20 ottobre in Champions League ha rimediato una lesione di alto grado in corrispondenza della giunzione muscolo - tendinea distale del muscolo semitendinoso della coscia destra. Stop lungo, ipotizziamo un rientro dalla fine di dicembre."
@@ -5090,7 +5063,7 @@
       "medV": 6.0,
       "pres": 1
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "531": {
@@ -5120,7 +5093,7 @@
       "medV": 5.5,
       "pres": 9
     },
-    "startPct": 55,
+    "startPct": 60,
     "status": {
       "kind": "doubtful",
       "text": ""
@@ -5186,7 +5159,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "5336": {
@@ -5195,11 +5168,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        5.0,
         null,
         10.0,
         10.0,
-        null
+        null,
+        5.5
       ],
       "g": 2,
       "gs": 0,
@@ -5212,11 +5185,11 @@
       "cs": null,
       "g": 2,
       "gs": 0,
-      "medFV": 8.0,
-      "medV": 6.5,
-      "pres": 4
+      "medFV": 6.0,
+      "medV": 6.0,
+      "pres": 5
     },
-    "startPct": 55,
+    "startPct": null,
     "status": null
   },
   "536": {
@@ -5225,11 +5198,11 @@
     "last5": {
       "a": 2,
       "fv": [
-        6.0,
         8.0,
         11.0,
         5.5,
-        6.0
+        6.0,
+        6.5
       ],
       "g": 1,
       "gs": 0,
@@ -5244,9 +5217,9 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 10
+      "pres": 11
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "5365": {
@@ -5399,7 +5372,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "543": {
@@ -5504,15 +5477,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        null,
         5.5,
         null,
         6.0,
-        5.5
+        5.5,
+        6.0
       ],
       "g": 0,
       "gs": 0,
-      "played": 3
+      "played": 4
     },
     "name": "Ricci S.",
     "role": "C",
@@ -5523,13 +5496,10 @@
       "gs": 0,
       "medFV": 5.5,
       "medV": 5.5,
-      "pres": 4
+      "pres": 5
     },
-    "startPct": 55,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "5457": {
     "club": "lecce",
@@ -5537,10 +5507,10 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
         5.0,
         5.5,
         9.0,
+        5.5,
         5.5
       ],
       "g": 1,
@@ -5555,10 +5525,10 @@
       "g": 1,
       "gs": 0,
       "medFV": 5.5,
-      "medV": 6.0,
-      "pres": 11
+      "medV": 5.75,
+      "pres": 12
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "5462": {
@@ -5588,7 +5558,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 25,
+    "startPct": null,
     "status": null
   },
   "5481": {
@@ -5685,30 +5655,30 @@
     "club": "lazio",
     "id": 5500,
     "last5": {
-      "a": 0,
+      "a": 1,
       "fv": [
-        null,
         null,
         6.0,
         null,
-        null
+        null,
+        7.0
       ],
       "g": 0,
       "gs": 0,
-      "played": 1
+      "played": 2
     },
     "name": "Cancellieri",
     "role": "C",
     "season": {
-      "a": 0,
+      "a": 1,
       "cs": null,
       "g": 1,
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 6
+      "pres": 7
     },
-    "startPct": 60,
+    "startPct": null,
     "status": null
   },
   "5504": {
@@ -5717,11 +5687,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
         null,
         null,
         null,
-        6.5
+        6.5,
+        6.0
       ],
       "g": 0,
       "gs": 0,
@@ -5736,9 +5706,9 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 8
+      "pres": 9
     },
-    "startPct": 85,
+    "startPct": null,
     "status": null
   },
   "5507": {
@@ -5832,10 +5802,7 @@
       "pres": 6
     },
     "startPct": 50,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "status": null
   },
   "5525": {
     "club": null,
@@ -6018,12 +5985,12 @@
       "a": 0,
       "fv": [
         6.0,
-        6.0,
         6.5,
         10.0,
-        5.0
+        5.0,
+        10.0
       ],
-      "g": 1,
+      "g": 2,
       "gs": 0,
       "played": 5
     },
@@ -6032,13 +5999,13 @@
     "season": {
       "a": 0,
       "cs": null,
-      "g": 1,
+      "g": 2,
       "gs": 0,
       "medFV": 6.5,
       "medV": 6.5,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 60,
+    "startPct": null,
     "status": null
   },
   "5562": {
@@ -6113,28 +6080,28 @@
     "last5": {
       "a": 2,
       "fv": [
-        null,
         6.5,
         10.0,
         10.0,
-        7.5
+        7.5,
+        21.0
       ],
-      "g": 2,
+      "g": 6,
       "gs": 0,
-      "played": 4
+      "played": 5
     },
     "name": "Malen",
     "role": "A",
     "season": {
       "a": 2,
       "cs": null,
-      "g": 8,
+      "g": 12,
       "gs": 0,
-      "medFV": 8.75,
-      "medV": 6.75,
-      "pres": 10
+      "medFV": 10.0,
+      "medV": 7.0,
+      "pres": 11
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "5589": {
@@ -6146,12 +6113,12 @@
         null,
         null,
         null,
-        null,
+        6.5,
         6.5
       ],
       "g": 0,
       "gs": 0,
-      "played": 1
+      "played": 2
     },
     "name": "Konè M.",
     "role": "C",
@@ -6160,11 +6127,11 @@
       "cs": null,
       "g": 2,
       "gs": 0,
-      "medFV": 6.0,
-      "medV": 6.0,
-      "pres": 7
+      "medFV": 6.25,
+      "medV": 6.25,
+      "pres": 8
     },
-    "startPct": 85,
+    "startPct": null,
     "status": null
   },
   "5603": {
@@ -6204,17 +6171,17 @@
     "club": "lazio",
     "id": 5620,
     "last5": {
-      "a": 1,
+      "a": 0,
       "fv": [
-        8.0,
         6.5,
         6.5,
         6.0,
-        6.5
+        6.5,
+        null
       ],
       "g": 0,
       "gs": 0,
-      "played": 5
+      "played": 4
     },
     "name": "Tavares N.",
     "role": "D",
@@ -6227,7 +6194,7 @@
       "medV": 6.5,
       "pres": 10
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "il terzino dei biancocelesti costretto al cambio l'8 novembre a Napoli a causa di un guaio muscolare al flessore della gamba. Recuperabile dalla metà di dicembre, proverà a esserci nel derby."
@@ -6260,7 +6227,7 @@
       "medV": 5.75,
       "pres": 10
     },
-    "startPct": 55,
+    "startPct": 50,
     "status": {
       "kind": "doubtful",
       "text": ""
@@ -6293,7 +6260,7 @@
       "medV": 6.5,
       "pres": 5
     },
-    "startPct": 60,
+    "startPct": null,
     "status": null
   },
   "5672": {
@@ -6323,7 +6290,7 @@
       "medV": 6.0,
       "pres": 2
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "5674": {
@@ -6485,8 +6452,8 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.5,
         10.5,
+        5.5,
         5.5,
         5.5,
         5.5
@@ -6504,13 +6471,10 @@
       "gs": 0,
       "medFV": 5.5,
       "medV": 5.5,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 55,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "5694": {
     "club": "fiorentina",
@@ -6578,11 +6542,11 @@
     "last5": {
       "a": 1,
       "fv": [
-        4.0,
         5.0,
         6.5,
         4.0,
-        null
+        null,
+        5.5
       ],
       "g": 0,
       "gs": 0,
@@ -6595,11 +6559,11 @@
       "cs": 3,
       "g": 0,
       "gs": 0,
-      "medFV": 5.75,
+      "medFV": 5.5,
       "medV": 5.5,
-      "pres": 10
+      "pres": 11
     },
-    "startPct": 85,
+    "startPct": null,
     "status": null
   },
   "5707": {
@@ -6638,15 +6602,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        5.0,
         3.5,
         null,
         4.5,
+        null,
         null
       ],
       "g": 0,
-      "gs": 6,
-      "played": 3
+      "gs": 5,
+      "played": 2
     },
     "name": "Meret",
     "role": "P",
@@ -6659,7 +6623,7 @@
       "medV": 6.0,
       "pres": 7
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "Il portiere KO il 19 novembre in allenamento vittima della frattura della quinta vertebra lombare e ipotizziamo un rientro in campo da gennaio."
@@ -6701,10 +6665,10 @@
     "last5": {
       "a": 2,
       "fv": [
-        6.5,
         10.0,
         6.0,
         9.5,
+        6.5,
         6.5
       ],
       "g": 1,
@@ -6720,13 +6684,10 @@
       "gs": 0,
       "medFV": 6.5,
       "medV": 6.5,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "5735": {
     "club": "sassuolo",
@@ -6860,10 +6821,10 @@
     "last5": {
       "a": 0,
       "fv": [
-        null,
         3.5,
         5.0,
         5.0,
+        null,
         null
       ],
       "g": 0,
@@ -6881,11 +6842,8 @@
       "medV": 5.5,
       "pres": 5
     },
-    "startPct": 40,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "5757": {
     "club": "frosinone",
@@ -7040,7 +6998,7 @@
       "medV": 6.0,
       "pres": 3
     },
-    "startPct": 55,
+    "startPct": null,
     "status": null
   },
   "5812": {
@@ -7194,7 +7152,10 @@
       "pres": 4
     },
     "startPct": 55,
-    "status": null
+    "status": {
+      "kind": "doubtful",
+      "text": ""
+    }
   },
   "5833": {
     "club": "milan",
@@ -7262,32 +7223,29 @@
     "last5": {
       "a": 1,
       "fv": [
-        null,
         7.0,
         6.0,
         5.5,
+        6.0,
         6.0
       ],
       "g": 0,
       "gs": 0,
-      "played": 4
+      "played": 5
     },
     "name": "Olivera",
     "role": "D",
     "season": {
       "a": 1,
-      "cs": 0,
+      "cs": 1,
       "g": 0,
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 6
+      "pres": 7
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "5841": {
     "club": "roma",
@@ -7299,11 +7257,11 @@
         null,
         null,
         null,
-        null
+        6.0
       ],
       "g": 0,
-      "gs": 0,
-      "played": 0
+      "gs": 1,
+      "played": 1
     },
     "name": "Svilar",
     "role": "P",
@@ -7311,12 +7269,12 @@
       "a": 0,
       "cs": 3,
       "g": 0,
-      "gs": 3,
+      "gs": 4,
       "medFV": 6.0,
       "medV": 6.5,
-      "pres": 5
+      "pres": 6
     },
-    "startPct": 85,
+    "startPct": null,
     "status": null
   },
   "5844": {
@@ -7449,10 +7407,10 @@
       "a": 0,
       "fv": [
         5.5,
-        5.5,
         6.0,
         6.5,
-        5.5
+        5.5,
+        4.5
       ],
       "g": 0,
       "gs": 0,
@@ -7467,9 +7425,9 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "5872": {
@@ -7694,11 +7652,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
         null,
         null,
         null,
-        null
+        null,
+        5.5
       ],
       "g": 0,
       "gs": 0,
@@ -7713,13 +7671,10 @@
       "gs": 0,
       "medFV": 5.5,
       "medV": 5.5,
-      "pres": 2
+      "pres": 3
     },
-    "startPct": 55,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "5918": {
     "club": "atalanta",
@@ -7942,8 +7897,8 @@
       "fv": [
         null,
         null,
-        null,
         5.0,
+        null,
         null
       ],
       "g": 0,
@@ -7961,7 +7916,7 @@
       "medV": 5.5,
       "pres": 5
     },
-    "startPct": 60,
+    "startPct": null,
     "status": null
   },
   "6010": {
@@ -7972,13 +7927,13 @@
       "fv": [
         null,
         null,
-        null,
         5.0,
-        5.5
+        5.5,
+        6.0
       ],
       "g": 0,
       "gs": 0,
-      "played": 2
+      "played": 3
     },
     "name": "Fazzini",
     "role": "C",
@@ -7989,13 +7944,10 @@
       "gs": 0,
       "medFV": 5.5,
       "medV": 5.5,
-      "pres": 6
+      "pres": 7
     },
-    "startPct": 55,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "6015": {
     "club": "lecce",
@@ -8024,7 +7976,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 20,
+    "startPct": null,
     "status": null
   },
   "6020": {
@@ -8147,7 +8099,7 @@
       "medV": 6.0,
       "pres": 4
     },
-    "startPct": 80,
+    "startPct": 85,
     "status": null
   },
   "6042": {
@@ -8252,11 +8204,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.5,
         6.0,
         10.0,
         null,
-        5.5
+        5.5,
+        6.0
       ],
       "g": 1,
       "gs": 0,
@@ -8269,11 +8221,11 @@
       "cs": null,
       "g": 3,
       "gs": 0,
-      "medFV": 6.25,
-      "medV": 6.25,
-      "pres": 10
+      "medFV": 6.0,
+      "medV": 6.0,
+      "pres": 11
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "6054": {
@@ -8344,13 +8296,13 @@
       "fv": [
         null,
         null,
-        null,
         5.5,
-        null
+        null,
+        6.0
       ],
       "g": 0,
       "gs": 0,
-      "played": 1
+      "played": 2
     },
     "name": "Zapata D.",
     "role": "A",
@@ -8361,9 +8313,9 @@
       "gs": 0,
       "medFV": 5.5,
       "medV": 5.5,
-      "pres": 2
+      "pres": 3
     },
-    "startPct": 30,
+    "startPct": null,
     "status": null
   },
   "610": {
@@ -8372,15 +8324,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
         3.5,
         5.0,
         4.0,
+        null,
         null
       ],
       "g": 0,
       "gs": 7,
-      "played": 4
+      "played": 3
     },
     "name": "Gollini",
     "role": "P",
@@ -8393,7 +8345,7 @@
       "medV": 6.5,
       "pres": 5
     },
-    "startPct": 5,
+    "startPct": null,
     "status": null
   },
   "6125": {
@@ -8405,8 +8357,8 @@
         null,
         null,
         null,
-        null,
-        6.0
+        6.0,
+        null
       ],
       "g": 0,
       "gs": 0,
@@ -8423,7 +8375,7 @@
       "medV": 6.0,
       "pres": 1
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "6145": {
@@ -8466,14 +8418,14 @@
       "a": 0,
       "fv": [
         null,
-        null,
         6.0,
         null,
-        null
+        null,
+        5.0
       ],
       "g": 0,
       "gs": 0,
-      "played": 1
+      "played": 2
     },
     "name": "Carboni F.",
     "role": "D",
@@ -8482,11 +8434,11 @@
       "cs": 1,
       "g": 0,
       "gs": 0,
-      "medFV": 5.5,
-      "medV": 5.5,
-      "pres": 2
+      "medFV": 5.0,
+      "medV": 5.0,
+      "pres": 3
     },
-    "startPct": 70,
+    "startPct": null,
     "status": null
   },
   "6151": {
@@ -8495,11 +8447,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
         6.5,
         5.0,
         6.0,
-        5.5
+        5.5,
+        6.0
       ],
       "g": 0,
       "gs": 0,
@@ -8514,13 +8466,10 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 55,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "6164": {
     "club": "genoa",
@@ -8561,9 +8510,9 @@
     "last5": {
       "a": 1,
       "fv": [
-        5.5,
         7.5,
         6.0,
+        5.5,
         5.5,
         5.5
       ],
@@ -8580,9 +8529,9 @@
       "gs": 0,
       "medFV": 5.5,
       "medV": 5.5,
-      "pres": 9
+      "pres": 10
     },
-    "startPct": 50,
+    "startPct": null,
     "status": null
   },
   "6189": {
@@ -8621,15 +8570,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
         5.5,
         9.5,
         6.0,
-        6.5
+        6.5,
+        null
       ],
       "g": 1,
       "gs": 0,
-      "played": 5
+      "played": 4
     },
     "name": "Pisilli",
     "role": "C",
@@ -8642,7 +8591,7 @@
       "medV": 6.5,
       "pres": 9
     },
-    "startPct": 60,
+    "startPct": null,
     "status": null
   },
   "6191": {
@@ -8651,10 +8600,10 @@
     "last5": {
       "a": 0,
       "fv": [
-        7.0,
         6.5,
         7.0,
         5.5,
+        6.5,
         6.5
       ],
       "g": 0,
@@ -8668,11 +8617,11 @@
       "cs": null,
       "g": 0,
       "gs": 0,
-      "medFV": 6.25,
+      "medFV": 6.5,
       "medV": 6.5,
-      "pres": 10
+      "pres": 11
     },
-    "startPct": 80,
+    "startPct": null,
     "status": null
   },
   "6202": {
@@ -8681,11 +8630,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
         5.0,
         null,
         null,
-        6.0
+        6.0,
+        6.5
       ],
       "g": 0,
       "gs": 0,
@@ -8695,14 +8644,14 @@
     "role": "D",
     "season": {
       "a": 0,
-      "cs": 0,
+      "cs": 1,
       "g": 0,
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 3
+      "pres": 4
     },
-    "startPct": 80,
+    "startPct": null,
     "status": null
   },
   "6204": {
@@ -8741,11 +8690,11 @@
     "last5": {
       "a": 2,
       "fv": [
-        5.5,
         7.0,
         5.5,
         11.5,
-        6.5
+        6.5,
+        6.0
       ],
       "g": 1,
       "gs": 0,
@@ -8758,15 +8707,12 @@
       "cs": null,
       "g": 1,
       "gs": 0,
-      "medFV": 5.75,
-      "medV": 5.75,
-      "pres": 8
+      "medFV": 6.0,
+      "medV": 6.0,
+      "pres": 9
     },
-    "startPct": 75,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "6207": {
     "club": "parma",
@@ -8795,7 +8741,7 @@
       "medV": 6.25,
       "pres": 4
     },
-    "startPct": 50,
+    "startPct": null,
     "status": null
   },
   "6212": {
@@ -8834,15 +8780,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        5.0,
         null,
         null,
         6.5,
-        5.5
+        5.5,
+        null
       ],
       "g": 0,
       "gs": 0,
-      "played": 3
+      "played": 2
     },
     "name": "Lucca",
     "role": "A",
@@ -8855,7 +8801,7 @@
       "medV": 5.5,
       "pres": 8
     },
-    "startPct": 60,
+    "startPct": null,
     "status": null
   },
   "6217": {
@@ -8896,8 +8842,8 @@
       "fv": [
         null,
         null,
-        null,
         5.5,
+        null,
         null
       ],
       "g": 0,
@@ -8915,7 +8861,7 @@
       "medV": 5.5,
       "pres": 3
     },
-    "startPct": 55,
+    "startPct": null,
     "status": null
   },
   "6219": {
@@ -8991,10 +8937,10 @@
       "a": 0,
       "fv": [
         5.5,
-        5.5,
         5.0,
         6.5,
-        5.0
+        5.0,
+        6.0
       ],
       "g": 0,
       "gs": 0,
@@ -9009,9 +8955,9 @@
       "gs": 0,
       "medFV": 5.5,
       "medV": 5.5,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 60,
+    "startPct": null,
     "status": null
   },
   "6238": {
@@ -9101,7 +9047,7 @@
       "medV": 6.0,
       "pres": 1
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "6244": {
@@ -9284,7 +9230,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "6274": {
@@ -9353,48 +9299,45 @@
     "last5": {
       "a": 0,
       "fv": [
-        null,
         6.0,
         5.5,
         6.0,
-        6.0
+        6.0,
+        6.5
       ],
       "g": 0,
       "gs": 0,
-      "played": 4
+      "played": 5
     },
     "name": "Leite",
     "role": "D",
     "season": {
       "a": 0,
-      "cs": 0,
+      "cs": 1,
       "g": 0,
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 5
+      "pres": 6
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "632": {
     "club": "lazio",
     "id": 632,
     "last5": {
-      "a": 3,
+      "a": 2,
       "fv": [
-        7.0,
         6.0,
         9.5,
         6.0,
+        null,
         null
       ],
       "g": 1,
       "gs": 0,
-      "played": 4
+      "played": 3
     },
     "name": "Zaccagni",
     "role": "C",
@@ -9407,7 +9350,7 @@
       "medV": 6.25,
       "pres": 10
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "Il capitano dei biancocelesti in rapido recupero da una lesione del quadricipite femorale sinistro, tornerà arruolabile dalla 13a di A."
@@ -9423,28 +9366,25 @@
         null,
         null,
         null,
-        null
+        6.5
       ],
       "g": 0,
       "gs": 0,
-      "played": 0
+      "played": 1
     },
     "name": "Doekhi",
     "role": "D",
     "season": {
       "a": 1,
-      "cs": 2,
+      "cs": 3,
       "g": 0,
       "gs": 0,
-      "medFV": 6.25,
-      "medV": 6.25,
-      "pres": 4
+      "medFV": 6.5,
+      "medV": 6.5,
+      "pres": 5
     },
-    "startPct": 40,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "6344": {
     "club": "como",
@@ -9453,10 +9393,10 @@
       "a": 0,
       "fv": [
         null,
-        null,
         6.0,
         null,
-        4.0
+        4.0,
+        null
       ],
       "g": 0,
       "gs": 3,
@@ -9473,7 +9413,7 @@
       "medV": 6.0,
       "pres": 3
     },
-    "startPct": 5,
+    "startPct": null,
     "status": null
   },
   "6372": {
@@ -9540,30 +9480,30 @@
     "club": "lazio",
     "id": 6398,
     "last5": {
-      "a": 1,
+      "a": 2,
       "fv": [
-        10.0,
         6.5,
         12.0,
         10.5,
-        6.5
+        6.5,
+        7.5
       ],
-      "g": 3,
+      "g": 2,
       "gs": 0,
       "played": 5
     },
     "name": "Isaksen",
     "role": "C",
     "season": {
-      "a": 1,
+      "a": 2,
       "cs": null,
       "g": 4,
       "gs": 0,
       "medFV": 6.5,
       "medV": 6.5,
-      "pres": 10
+      "pres": 11
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "6403": {
@@ -9602,9 +9542,9 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
         5.5,
         null,
+        5.5,
         5.5,
         5.5
       ],
@@ -9620,10 +9560,10 @@
       "g": 0,
       "gs": 0,
       "medFV": 5.5,
-      "medV": 6.0,
-      "pres": 5
+      "medV": 5.75,
+      "pres": 6
     },
-    "startPct": 60,
+    "startPct": null,
     "status": null
   },
   "6415": {
@@ -9683,7 +9623,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "6426": {
@@ -9713,7 +9653,7 @@
       "medV": 6.0,
       "pres": 1
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "6434": {
@@ -9815,11 +9755,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
         5.5,
         4.0,
         5.0,
-        6.0
+        6.0,
+        6.5
       ],
       "g": 0,
       "gs": 5,
@@ -9829,14 +9769,14 @@
     "role": "P",
     "season": {
       "a": 0,
-      "cs": 4,
+      "cs": 5,
       "g": 0,
       "gs": 9,
-      "medFV": 5.5,
+      "medFV": 5.75,
       "medV": 6.5,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "6485": {
@@ -9878,11 +9818,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
         5.0,
         5.5,
         5.5,
-        7.0
+        7.0,
+        5.0
       ],
       "g": 0,
       "gs": 0,
@@ -9895,11 +9835,11 @@
       "cs": 1,
       "g": 1,
       "gs": 0,
-      "medFV": 5.75,
-      "medV": 5.75,
-      "pres": 10
+      "medFV": 5.5,
+      "medV": 5.5,
+      "pres": 11
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "6496": {
@@ -10052,7 +9992,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "6530": {
@@ -10121,14 +10061,14 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.5,
         4.5,
         3.0,
         3.5,
-        5.0
+        5.0,
+        6.0
       ],
       "g": 0,
-      "gs": 8,
+      "gs": 9,
       "played": 5
     },
     "name": "Perri",
@@ -10137,12 +10077,12 @@
       "a": 0,
       "cs": 1,
       "g": 0,
-      "gs": 13,
-      "medFV": 4.5,
+      "gs": 14,
+      "medFV": 4.75,
       "medV": 6.0,
-      "pres": 9
+      "pres": 10
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "6537": {
@@ -10181,7 +10121,7 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
+        null,
         null,
         null,
         null,
@@ -10189,7 +10129,7 @@
       ],
       "g": 0,
       "gs": 0,
-      "played": 1
+      "played": 0
     },
     "name": "Pierotti",
     "role": "C",
@@ -10202,7 +10142,7 @@
       "medV": 5.5,
       "pres": 7
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "l'ala offensiva dei salentini ferma ai box per la frattura composta del malleolo mediale della caviglia destra rimediata nella seconda metà di ottobre, poi operato a inizio novembre. Lungo stop, ipotizziamo un rientro in campo da gennaio."
@@ -10215,12 +10155,12 @@
       "a": 2,
       "fv": [
         5.5,
-        5.5,
         14.0,
         7.5,
-        7.5
+        7.5,
+        13.5
       ],
-      "g": 2,
+      "g": 4,
       "gs": 0,
       "played": 5
     },
@@ -10229,13 +10169,13 @@
     "season": {
       "a": 4,
       "cs": null,
-      "g": 4,
+      "g": 6,
       "gs": 0,
-      "medFV": 7.5,
-      "medV": 6.5,
-      "pres": 9
+      "medFV": 8.5,
+      "medV": 6.75,
+      "pres": 10
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "6569": {
@@ -10274,15 +10214,15 @@
     "last5": {
       "a": 1,
       "fv": [
-        10.0,
         6.5,
         5.5,
         7.5,
+        null,
         null
       ],
-      "g": 1,
+      "g": 0,
       "gs": 0,
-      "played": 4
+      "played": 3
     },
     "name": "Castro S.",
     "role": "A",
@@ -10295,7 +10235,7 @@
       "medV": 6.25,
       "pres": 8
     },
-    "startPct": 50,
+    "startPct": null,
     "status": null
   },
   "6592": {
@@ -10385,7 +10325,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "6601": {
@@ -10394,8 +10334,8 @@
     "last5": {
       "a": 0,
       "fv": [
-        null,
         6.0,
+        null,
         null,
         null,
         null
@@ -10415,7 +10355,7 @@
       "medV": 6.0,
       "pres": 1
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "6618": {
@@ -10454,15 +10394,15 @@
     "last5": {
       "a": 1,
       "fv": [
-        10.0,
         6.0,
         7.5,
         6.0,
-        6.0
+        6.0,
+        null
       ],
-      "g": 1,
+      "g": 0,
       "gs": 0,
-      "played": 5
+      "played": 4
     },
     "name": "Dele-Bashiru",
     "role": "C",
@@ -10475,11 +10415,8 @@
       "medV": 6.0,
       "pres": 7
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "6631": {
     "club": "roma",
@@ -10488,9 +10425,9 @@
       "a": 1,
       "fv": [
         null,
-        null,
         7.5,
         10.0,
+        null,
         null
       ],
       "g": 1,
@@ -10508,7 +10445,7 @@
       "medV": 6.5,
       "pres": 5
     },
-    "startPct": 35,
+    "startPct": null,
     "status": null
   },
   "6632": {
@@ -10517,15 +10454,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        10.5,
         4.0,
         null,
         null,
-        3.5
+        3.5,
+        null
       ],
-      "g": 1,
+      "g": 0,
       "gs": 0,
-      "played": 3
+      "played": 2
     },
     "name": "Gaspar K.",
     "role": "D",
@@ -10538,11 +10475,8 @@
       "medV": 5.0,
       "pres": 7
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "6638": {
     "club": "napoli",
@@ -10550,28 +10484,28 @@
     "last5": {
       "a": 0,
       "fv": [
-        null,
         5.5,
         9.5,
+        5.5,
         5.5,
         5.5
       ],
       "g": 1,
       "gs": 0,
-      "played": 4
+      "played": 5
     },
     "name": "Marin R.",
     "role": "D",
     "season": {
       "a": 0,
-      "cs": 3,
+      "cs": 4,
       "g": 1,
       "gs": 0,
       "medFV": 5.5,
-      "medV": 5.75,
-      "pres": 10
+      "medV": 5.5,
+      "pres": 11
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "6640": {
@@ -10601,7 +10535,7 @@
       "medV": 6.0,
       "pres": 1
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "il centrocampista KO il 7 settembre contro il Lecce in casa vittima della rottura del legamento crociato anteriore. Verrà operato e costretto a un lungo stop (ipotizziamo un rientro da marzo)."
@@ -10634,7 +10568,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "6642": {
@@ -10643,11 +10577,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.5,
         6.0,
         5.0,
         6.5,
-        6.0
+        6.0,
+        6.5
       ],
       "g": 0,
       "gs": 0,
@@ -10662,9 +10596,9 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "6643": {
@@ -10703,13 +10637,13 @@
     "last5": {
       "a": 0,
       "fv": [
-        10.0,
         6.5,
         10.0,
         5.5,
+        6.0,
         6.0
       ],
-      "g": 2,
+      "g": 1,
       "gs": 0,
       "played": 5
     },
@@ -10720,11 +10654,11 @@
       "cs": null,
       "g": 4,
       "gs": 0,
-      "medFV": 6.5,
-      "medV": 6.5,
-      "pres": 9
+      "medFV": 6.25,
+      "medV": 6.25,
+      "pres": 10
     },
-    "startPct": 80,
+    "startPct": null,
     "status": null
   },
   "6650": {
@@ -10754,7 +10688,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 1,
+    "startPct": null,
     "status": null
   },
   "6659": {
@@ -10823,15 +10757,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        3.0,
         3.5,
+        null,
         null,
         null,
         null
       ],
       "g": 0,
-      "gs": 5,
-      "played": 2
+      "gs": 2,
+      "played": 1
     },
     "name": "Corvi",
     "role": "P",
@@ -10844,7 +10778,7 @@
       "medV": 6.0,
       "pres": 8
     },
-    "startPct": 5,
+    "startPct": null,
     "status": null
   },
   "6663": {
@@ -10874,7 +10808,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "6664": {
@@ -10883,11 +10817,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        5.0,
         5.5,
         6.5,
         6.5,
-        5.5
+        5.5,
+        5.0
       ],
       "g": 0,
       "gs": 0,
@@ -10902,9 +10836,9 @@
       "gs": 0,
       "medFV": 5.5,
       "medV": 6.0,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "6666": {
@@ -10913,15 +10847,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
         5.5,
         2.0,
+        null,
         null,
         null
       ],
       "g": 0,
       "gs": 0,
-      "played": 3
+      "played": 2
     },
     "name": "Bernabè",
     "role": "C",
@@ -10934,11 +10868,8 @@
       "medV": 5.5,
       "pres": 7
     },
-    "startPct": 55,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "6669": {
     "club": "inter",
@@ -11135,13 +11066,13 @@
     "last5": {
       "a": 0,
       "fv": [
-        10.0,
         null,
         null,
         6.0,
+        6.0,
         6.0
       ],
-      "g": 1,
+      "g": 0,
       "gs": 0,
       "played": 3
     },
@@ -11154,9 +11085,9 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 4
+      "pres": 5
     },
-    "startPct": 80,
+    "startPct": null,
     "status": null
   },
   "6680": {
@@ -11319,30 +11250,30 @@
     "club": "como",
     "id": 6727,
     "last5": {
-      "a": 1,
+      "a": 3,
       "fv": [
-        null,
         5.5,
         7.5,
         6.5,
-        5.5
+        5.5,
+        9.0
       ],
       "g": 0,
       "gs": 0,
-      "played": 4
+      "played": 5
     },
     "name": "Couto",
     "role": "D",
     "season": {
-      "a": 2,
-      "cs": 3,
+      "a": 4,
+      "cs": 4,
       "g": 0,
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 10
+      "pres": 11
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "6752": {
@@ -11445,9 +11376,9 @@
       "a": 0,
       "fv": [
         null,
-        null,
         6.0,
         4.0,
+        null,
         null
       ],
       "g": 0,
@@ -11465,7 +11396,7 @@
       "medV": 5.5,
       "pres": 2
     },
-    "startPct": 40,
+    "startPct": null,
     "status": null
   },
   "6813": {
@@ -11534,15 +11465,15 @@
     "last5": {
       "a": 1,
       "fv": [
-        5.0,
         5.5,
         5.5,
         7.5,
+        null,
         null
       ],
       "g": 0,
       "gs": 0,
-      "played": 4
+      "played": 3
     },
     "name": "Fadera",
     "role": "C",
@@ -11555,11 +11486,8 @@
       "medV": 6.0,
       "pres": 8
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "6821": {
     "club": "venezia",
@@ -11629,9 +11557,9 @@
       "fv": [
         null,
         null,
-        null,
         6.0,
-        6.5
+        6.5,
+        null
       ],
       "g": 0,
       "gs": 0,
@@ -11648,11 +11576,8 @@
       "medV": 6.25,
       "pres": 2
     },
-    "startPct": 55,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "6827": {
     "club": "fiorentina",
@@ -11714,7 +11639,7 @@
       "medV": 6.0,
       "pres": 3
     },
-    "startPct": 40,
+    "startPct": null,
     "status": null
   },
   "6833": {
@@ -11787,17 +11712,17 @@
     "club": "como",
     "id": 6867,
     "last5": {
-      "a": 1,
+      "a": 0,
       "fv": [
-        7.0,
         null,
         5.5,
         null,
-        5.0
+        5.0,
+        null
       ],
       "g": 0,
       "gs": 0,
-      "played": 3
+      "played": 2
     },
     "name": "Valle",
     "role": "D",
@@ -11810,11 +11735,8 @@
       "medV": 5.5,
       "pres": 7
     },
-    "startPct": 55,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "6869": {
     "club": "como",
@@ -11823,12 +11745,12 @@
       "a": 0,
       "fv": [
         6.5,
-        6.5,
         9.5,
         6.5,
-        5.0
+        5.0,
+        10.5
       ],
-      "g": 1,
+      "g": 2,
       "gs": 0,
       "played": 5
     },
@@ -11836,29 +11758,29 @@
     "role": "D",
     "season": {
       "a": 0,
-      "cs": 3,
-      "g": 2,
+      "cs": 4,
+      "g": 3,
       "gs": 0,
       "medFV": 6.5,
       "medV": 6.5,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "6875": {
     "club": "como",
     "id": 6875,
     "last5": {
-      "a": 2,
+      "a": 1,
       "fv": [
-        11.0,
         null,
         11.5,
         6.0,
-        5.0
+        5.0,
+        6.0
       ],
-      "g": 2,
+      "g": 1,
       "gs": 0,
       "played": 4
     },
@@ -11871,9 +11793,9 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 10
+      "pres": 11
     },
-    "startPct": 80,
+    "startPct": null,
     "status": null
   },
   "6883": {
@@ -11903,7 +11825,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 25,
+    "startPct": null,
     "status": null
   },
   "6884": {
@@ -11963,7 +11885,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "6890": {
@@ -12036,10 +11958,10 @@
       "a": 0,
       "fv": [
         6.5,
-        6.5,
         6.0,
         6.5,
-        5.0
+        5.0,
+        6.0
       ],
       "g": 0,
       "gs": 0,
@@ -12049,14 +11971,14 @@
     "role": "D",
     "season": {
       "a": 0,
-      "cs": 2,
+      "cs": 3,
       "g": 0,
       "gs": 0,
-      "medFV": 6.5,
-      "medV": 6.5,
-      "pres": 7
+      "medFV": 6.25,
+      "medV": 6.25,
+      "pres": 8
     },
-    "startPct": 75,
+    "startPct": null,
     "status": null
   },
   "6895": {
@@ -12153,10 +12075,10 @@
       "a": 0,
       "fv": [
         5.5,
-        5.5,
         6.5,
         6.5,
-        6.0
+        6.0,
+        5.0
       ],
       "g": 0,
       "gs": 0,
@@ -12169,11 +12091,11 @@
       "cs": null,
       "g": 0,
       "gs": 0,
-      "medFV": 6.0,
+      "medFV": 5.75,
       "medV": 6.0,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "6903": {
@@ -12395,28 +12317,28 @@
     "last5": {
       "a": 0,
       "fv": [
-        5.5,
         6.0,
         null,
         6.0,
-        null
+        null,
+        6.0
       ],
       "g": 0,
-      "gs": 1,
+      "gs": 0,
       "played": 3
     },
     "name": "Butez",
     "role": "P",
     "season": {
       "a": 0,
-      "cs": 3,
+      "cs": 4,
       "g": 0,
       "gs": 6,
-      "medFV": 5.25,
+      "medFV": 5.5,
       "medV": 6.0,
-      "pres": 8
+      "pres": 9
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "6967": {
@@ -12446,7 +12368,7 @@
       "medV": 6.25,
       "pres": 6
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "L'attaccante KO il 14 ottobre in Champions League, costretto al cambio per una lesione muscolare al flessore della gamba, rientro tra i convocati dalla seconda metà di novembre e proverà a esserci dunque dalla 13a giornata."
@@ -12539,7 +12461,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "6984": {
@@ -12569,7 +12491,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "6985": {
@@ -12608,15 +12530,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        5.5,
         5.0,
         5.0,
+        null,
         null,
         null
       ],
       "g": 0,
       "gs": 0,
-      "played": 3
+      "played": 2
     },
     "name": "Rensch",
     "role": "D",
@@ -12629,7 +12551,7 @@
       "medV": 5.5,
       "pres": 5
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "Il difensore KO a Manchester in Champions League il 3 novembre per una lesione di primo grado dell'adduttore lungo di destra, rientro in campo dalla seconda metà di novembre."
@@ -12641,11 +12563,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        7.0,
         5.5,
         4.5,
         5.0,
-        6.5
+        6.5,
+        5.5
       ],
       "g": 0,
       "gs": 0,
@@ -12660,9 +12582,9 @@
       "gs": 0,
       "medFV": 5.5,
       "medV": 5.5,
-      "pres": 10
+      "pres": 11
     },
-    "startPct": 80,
+    "startPct": null,
     "status": null
   },
   "6990": {
@@ -12671,11 +12593,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.5,
         5.5,
         5.0,
         5.0,
-        6.5
+        6.5,
+        4.5
       ],
       "g": 0,
       "gs": 0,
@@ -12690,9 +12612,9 @@
       "gs": 0,
       "medFV": 5.5,
       "medV": 5.5,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "6994": {
@@ -12731,13 +12653,13 @@
     "last5": {
       "a": 0,
       "fv": [
-        10.5,
         5.5,
         5.0,
         5.5,
-        7.0
+        7.0,
+        6.0
       ],
-      "g": 1,
+      "g": 0,
       "gs": 0,
       "played": 5
     },
@@ -12748,15 +12670,12 @@
       "cs": null,
       "g": 1,
       "gs": 0,
-      "medFV": 5.75,
+      "medFV": 6.0,
       "medV": 6.0,
-      "pres": 10
+      "pres": 11
     },
-    "startPct": 55,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "7008": {
     "club": "milan",
@@ -12794,15 +12713,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        10.0,
         5.5,
         null,
         6.0,
-        6.0
+        6.0,
+        null
       ],
-      "g": 1,
+      "g": 0,
       "gs": 0,
-      "played": 4
+      "played": 3
     },
     "name": "Provstgaard",
     "role": "D",
@@ -12815,11 +12734,8 @@
       "medV": 6.0,
       "pres": 10
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "7014": {
     "club": "como",
@@ -12828,9 +12744,9 @@
       "a": 0,
       "fv": [
         6.0,
+        null,
+        null,
         6.0,
-        null,
-        null,
         6.0
       ],
       "g": 0,
@@ -12841,14 +12757,14 @@
     "role": "D",
     "season": {
       "a": 0,
-      "cs": 1,
+      "cs": 2,
       "g": 0,
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 4
+      "pres": 5
     },
-    "startPct": 50,
+    "startPct": null,
     "status": null
   },
   "7017": {
@@ -12857,13 +12773,13 @@
     "last5": {
       "a": 0,
       "fv": [
-        10.0,
         13.5,
         5.5,
         6.5,
-        5.0
+        5.0,
+        6.0
       ],
-      "g": 3,
+      "g": 2,
       "gs": 0,
       "played": 5
     },
@@ -12876,9 +12792,9 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "7023": {
@@ -12938,7 +12854,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "7036": {
@@ -12998,7 +12914,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 1,
+    "startPct": null,
     "status": null
   },
   "7060": {
@@ -13007,11 +12923,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
         5.5,
         6.0,
         null,
-        6.0
+        6.0,
+        5.5
       ],
       "g": 0,
       "gs": 0,
@@ -13026,9 +12942,9 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 10
+      "pres": 11
     },
-    "startPct": 85,
+    "startPct": null,
     "status": null
   },
   "7068": {
@@ -13088,7 +13004,7 @@
       "medV": 6.0,
       "pres": 5
     },
-    "startPct": 30,
+    "startPct": null,
     "status": null
   },
   "7070": {
@@ -13215,34 +13131,31 @@
     "club": "napoli",
     "id": 7120,
     "last5": {
-      "a": 1,
+      "a": 2,
       "fv": [
-        null,
         6.0,
         8.0,
         5.5,
-        6.0
+        6.0,
+        7.5
       ],
       "g": 0,
       "gs": 0,
-      "played": 4
+      "played": 5
     },
     "name": "Lang",
     "role": "A",
     "season": {
-      "a": 1,
+      "a": 2,
       "cs": null,
       "g": 1,
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 9
+      "pres": 10
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "7125": {
     "club": "cagliari",
@@ -13271,7 +13184,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 30,
+    "startPct": null,
     "status": null
   },
   "7126": {
@@ -13280,15 +13193,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        null,
         5.5,
         10.0,
         6.5,
-        5.5
+        5.5,
+        6.5
       ],
       "g": 1,
       "gs": 0,
-      "played": 4
+      "played": 5
     },
     "name": "Baturina",
     "role": "C",
@@ -13297,15 +13210,12 @@
       "cs": null,
       "g": 3,
       "gs": 0,
-      "medFV": 5.75,
-      "medV": 5.75,
-      "pres": 10
+      "medFV": 6.0,
+      "medV": 6.0,
+      "pres": 11
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "7127": {
     "club": "como",
@@ -13313,9 +13223,9 @@
     "last5": {
       "a": 0,
       "fv": [
-        null,
         6.5,
         6.0,
+        null,
         null,
         null
       ],
@@ -13334,7 +13244,7 @@
       "medV": 6.25,
       "pres": 2
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "l'esterno offensivo in recupero da un problema muscolare alla gamba, assente nel prossimo turno contro il Cagliari. Proverà a tornare arruolabile dalla 13a di campionato."
@@ -13367,7 +13277,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "7129": {
@@ -13397,7 +13307,7 @@
       "medV": 6.0,
       "pres": 4
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "Il calciatore si è infortunato in allenamento il 20 ottobre vittima di un problema muscolare al quadricipite alto. Rimane da valutare per stabilire i tempi di recupero, si ipotizza un ritorno in campo da metà dicembre."
@@ -13409,11 +13319,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.5,
         5.5,
         10.0,
         6.0,
-        6.0
+        6.0,
+        6.5
       ],
       "g": 1,
       "gs": 0,
@@ -13423,14 +13333,14 @@
     "role": "D",
     "season": {
       "a": 0,
-      "cs": 4,
+      "cs": 5,
       "g": 1,
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "7138": {
@@ -13439,15 +13349,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        null,
         5.5,
         null,
         6.0,
-        null
+        null,
+        5.5
       ],
       "g": 0,
       "gs": 0,
-      "played": 2
+      "played": 3
     },
     "name": "Ordonez C.",
     "role": "C",
@@ -13456,11 +13366,11 @@
       "cs": null,
       "g": 0,
       "gs": 0,
-      "medFV": 6.0,
-      "medV": 6.0,
-      "pres": 5
+      "medFV": 5.75,
+      "medV": 5.75,
+      "pres": 6
     },
-    "startPct": 40,
+    "startPct": null,
     "status": null
   },
   "7146": {
@@ -13680,14 +13590,14 @@
       "a": 0,
       "fv": [
         5.5,
-        5.5,
+        null,
         null,
         null,
         null
       ],
       "g": 0,
       "gs": 0,
-      "played": 2
+      "played": 1
     },
     "name": "Giovane",
     "role": "A",
@@ -13700,7 +13610,7 @@
       "medV": 5.5,
       "pres": 3
     },
-    "startPct": 55,
+    "startPct": null,
     "status": null
   },
   "7164": {
@@ -13730,7 +13640,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "7165": {
@@ -13741,8 +13651,8 @@
       "fv": [
         null,
         null,
-        null,
         6.0,
+        null,
         null
       ],
       "g": 0,
@@ -13760,7 +13670,7 @@
       "medV": 6.0,
       "pres": 1
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "il centrocampista out a Como sabato per noie fisiche, da valutare in vista della 13a di campionato."
@@ -13830,30 +13740,30 @@
     "club": "roma",
     "id": 7181,
     "last5": {
-      "a": 2,
+      "a": 5,
       "fv": [
-        null,
         6.5,
         6.0,
         7.5,
-        6.5
+        6.5,
+        11.0
       ],
       "g": 0,
       "gs": 0,
-      "played": 4
+      "played": 5
     },
     "name": "Wesley",
     "role": "D",
     "season": {
-      "a": 3,
+      "a": 6,
       "cs": 4,
       "g": 0,
       "gs": 0,
       "medFV": 6.5,
       "medV": 6.5,
-      "pres": 9
+      "pres": 10
     },
-    "startPct": 75,
+    "startPct": null,
     "status": null
   },
   "7182": {
@@ -13862,9 +13772,9 @@
     "last5": {
       "a": 0,
       "fv": [
-        null,
         6.0,
         5.5,
+        null,
         null,
         null
       ],
@@ -13883,7 +13793,7 @@
       "medV": 5.75,
       "pres": 4
     },
-    "startPct": 35,
+    "startPct": null,
     "status": null
   },
   "7183": {
@@ -13892,10 +13802,10 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
         null,
         null,
         5.0,
+        5.5,
         5.5
       ],
       "g": 0,
@@ -13911,9 +13821,9 @@
       "gs": 0,
       "medFV": 5.5,
       "medV": 5.5,
-      "pres": 5
+      "pres": 6
     },
-    "startPct": 40,
+    "startPct": null,
     "status": null
   },
   "7198": {
@@ -13957,9 +13867,9 @@
       "fv": [
         null,
         null,
-        null,
         6.5,
-        3.0
+        3.0,
+        null
       ],
       "g": 0,
       "gs": 0,
@@ -13976,7 +13886,7 @@
       "medV": 6.0,
       "pres": 3
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "suspended",
       "text": "squalificato nella 12a giornata di campionato"
@@ -14069,7 +13979,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "7211": {
@@ -14139,14 +14049,14 @@
       "a": 0,
       "fv": [
         6.0,
-        6.0,
         5.5,
         6.0,
+        null,
         null
       ],
       "g": 0,
       "gs": 0,
-      "played": 4
+      "played": 3
     },
     "name": "Frigan",
     "role": "A",
@@ -14159,7 +14069,7 @@
       "medV": 5.75,
       "pres": 6
     },
-    "startPct": 60,
+    "startPct": null,
     "status": null
   },
   "7219": {
@@ -14189,7 +14099,7 @@
       "medV": 5.5,
       "pres": 9
     },
-    "startPct": 55,
+    "startPct": 60,
     "status": {
       "kind": "doubtful",
       "text": ""
@@ -14199,13 +14109,13 @@
     "club": "torino",
     "id": 7220,
     "last5": {
-      "a": 2,
+      "a": 0,
       "fv": [
-        9.0,
         10.0,
         6.0,
         6.0,
-        6.5
+        6.5,
+        6.0
       ],
       "g": 1,
       "gs": 0,
@@ -14219,14 +14129,11 @@
       "g": 1,
       "gs": 0,
       "medFV": 6.0,
-      "medV": 6.5,
-      "pres": 9
+      "medV": 6.25,
+      "pres": 10
     },
-    "startPct": 55,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "7223": {
     "club": "napoli",
@@ -14234,11 +14141,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        null,
         6.0,
         6.0,
         5.5,
-        5.0
+        5.0,
+        null
       ],
       "g": 0,
       "gs": 0,
@@ -14255,11 +14162,8 @@
       "medV": 6.0,
       "pres": 7
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "7232": {
     "club": "venezia",
@@ -14297,11 +14201,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        4.5,
         6.0,
         7.5,
         7.0,
-        5.5
+        5.5,
+        4.0
       ],
       "g": 0,
       "gs": 0,
@@ -14314,11 +14218,11 @@
       "cs": 2,
       "g": 0,
       "gs": 0,
-      "medFV": 6.0,
+      "medFV": 5.75,
       "medV": 6.0,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 80,
+    "startPct": null,
     "status": {
       "kind": "warned",
       "text": ""
@@ -14360,13 +14264,13 @@
     "last5": {
       "a": 0,
       "fv": [
-        10.0,
         6.0,
         4.0,
         4.0,
-        null
+        null,
+        4.0
       ],
-      "g": 1,
+      "g": 0,
       "gs": 0,
       "played": 4
     },
@@ -14377,15 +14281,12 @@
       "cs": 2,
       "g": 1,
       "gs": 0,
-      "medFV": 5.5,
-      "medV": 5.75,
-      "pres": 10
+      "medFV": 5.0,
+      "medV": 5.5,
+      "pres": 11
     },
-    "startPct": 40,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "7248": {
     "club": "lecce",
@@ -14394,9 +14295,9 @@
       "a": 1,
       "fv": [
         null,
-        null,
         7.0,
         5.5,
+        null,
         null
       ],
       "g": 0,
@@ -14414,7 +14315,7 @@
       "medV": 5.75,
       "pres": 4
     },
-    "startPct": 60,
+    "startPct": null,
     "status": null
   },
   "7249": {
@@ -14454,10 +14355,10 @@
       "a": 0,
       "fv": [
         null,
-        null,
         5.0,
         5.0,
-        5.5
+        5.5,
+        null
       ],
       "g": 0,
       "gs": 0,
@@ -14474,11 +14375,8 @@
       "medV": 5.5,
       "pres": 8
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "7253": {
     "club": "venezia",
@@ -14519,11 +14417,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        4.5,
         null,
         5.5,
         6.0,
-        5.0
+        5.0,
+        5.5
       ],
       "g": 0,
       "gs": 0,
@@ -14536,15 +14434,12 @@
       "cs": 2,
       "g": 0,
       "gs": 0,
-      "medFV": 6.0,
-      "medV": 6.0,
-      "pres": 7
+      "medFV": 5.75,
+      "medV": 5.75,
+      "pres": 8
     },
-    "startPct": 55,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "7260": {
     "club": "monza",
@@ -14582,11 +14477,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        4.5,
         5.0,
         5.0,
         5.5,
-        6.5
+        6.5,
+        5.5
       ],
       "g": 0,
       "gs": 0,
@@ -14601,13 +14496,10 @@
       "gs": 0,
       "medFV": 5.5,
       "medV": 6.0,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 55,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "7272": {
     "club": "udinese",
@@ -14648,11 +14540,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        4.5,
         5.5,
         5.0,
         5.5,
-        6.0
+        6.0,
+        5.0
       ],
       "g": 0,
       "gs": 0,
@@ -14665,11 +14557,11 @@
       "cs": 4,
       "g": 0,
       "gs": 0,
-      "medFV": 6.0,
+      "medFV": 5.75,
       "medV": 6.0,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "7276": {
@@ -14681,8 +14573,8 @@
         null,
         null,
         null,
-        null,
-        6.0
+        6.0,
+        null
       ],
       "g": 0,
       "gs": 0,
@@ -14699,11 +14591,8 @@
       "medV": 5.75,
       "pres": 2
     },
-    "startPct": 55,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "7294": {
     "club": "fiorentina",
@@ -14795,11 +14684,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        4.5,
         6.0,
         5.5,
         5.5,
-        6.0
+        6.0,
+        5.5
       ],
       "g": 0,
       "gs": 0,
@@ -14814,9 +14703,9 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "7312": {
@@ -14876,20 +14765,20 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "7314": {
     "club": "lazio",
     "id": 7314,
     "last5": {
-      "a": 1,
+      "a": 2,
       "fv": [
-        6.0,
         10.0,
         11.0,
         6.5,
-        6.5
+        6.5,
+        8.0
       ],
       "g": 2,
       "gs": 0,
@@ -14898,15 +14787,15 @@
     "name": "Taylor K.",
     "role": "C",
     "season": {
-      "a": 1,
+      "a": 2,
       "cs": null,
       "g": 2,
       "gs": 0,
       "medFV": 6.5,
       "medV": 6.5,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "7317": {
@@ -14917,13 +14806,13 @@
       "fv": [
         null,
         null,
-        null,
         6.0,
-        6.0
+        6.0,
+        5.5
       ],
       "g": 0,
       "gs": 0,
-      "played": 2
+      "played": 3
     },
     "name": "Trepy",
     "role": "A",
@@ -14934,9 +14823,9 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 2
+      "pres": 3
     },
-    "startPct": 60,
+    "startPct": null,
     "status": null
   },
   "7318": {
@@ -14946,9 +14835,9 @@
       "a": 0,
       "fv": [
         null,
-        null,
         5.5,
         6.0,
+        null,
         null
       ],
       "g": 0,
@@ -14966,7 +14855,7 @@
       "medV": 5.75,
       "pres": 2
     },
-    "startPct": 40,
+    "startPct": null,
     "status": null
   },
   "7319": {
@@ -14996,7 +14885,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 25,
+    "startPct": null,
     "status": null
   },
   "7322": {
@@ -15005,9 +14894,9 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
         5.0,
         4.5,
+        5.5,
         5.5,
         5.5
       ],
@@ -15024,9 +14913,9 @@
       "gs": 0,
       "medFV": 5.5,
       "medV": 5.5,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "7326": {
@@ -15149,7 +15038,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 5,
+    "startPct": null,
     "status": null
   },
   "7338": {
@@ -15179,7 +15068,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "7341": {
@@ -15220,30 +15109,27 @@
       "fv": [
         null,
         null,
-        null,
         6.0,
-        5.0
+        5.0,
+        9.5
       ],
-      "g": 0,
+      "g": 1,
       "gs": 0,
-      "played": 2
+      "played": 3
     },
     "name": "Elphege",
     "role": "A",
     "season": {
       "a": 1,
       "cs": null,
-      "g": 0,
+      "g": 1,
       "gs": 0,
       "medFV": 5.5,
       "medV": 5.5,
-      "pres": 6
+      "pres": 7
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "7345": {
     "club": "lazio",
@@ -15272,7 +15158,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 15,
+    "startPct": null,
     "status": null
   },
   "7346": {
@@ -15302,7 +15188,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "7347": {
@@ -15345,14 +15231,14 @@
       "a": 0,
       "fv": [
         6.0,
-        6.0,
         5.5,
         null,
-        5.0
+        5.0,
+        null
       ],
       "g": 0,
       "gs": 0,
-      "played": 4
+      "played": 3
     },
     "name": "Kulenovic",
     "role": "A",
@@ -15365,7 +15251,7 @@
       "medV": 6.0,
       "pres": 7
     },
-    "startPct": 60,
+    "startPct": null,
     "status": null
   },
   "7351": {
@@ -15374,7 +15260,7 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.5,
+        null,
         null,
         null,
         null,
@@ -15382,7 +15268,7 @@
       ],
       "g": 0,
       "gs": 0,
-      "played": 1
+      "played": 0
     },
     "name": "Santos A.",
     "role": "A",
@@ -15395,7 +15281,7 @@
       "medV": 6.0,
       "pres": 4
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "l'ala offensiva azzurra KO il 18 ottobre a Venezia, vittima di una lesione distrattiva di medio grado del bicipite femorale sinistro. Recuperabile dall'inizio di dicembre."
@@ -15441,11 +15327,11 @@
         null,
         null,
         null,
-        null
+        6.5
       ],
       "g": 0,
       "gs": 0,
-      "played": 0
+      "played": 1
     },
     "name": "Lahdo",
     "role": "C",
@@ -15454,11 +15340,11 @@
       "cs": null,
       "g": 0,
       "gs": 0,
-      "medFV": null,
-      "medV": null,
-      "pres": 0
+      "medFV": 6.5,
+      "medV": 6.5,
+      "pres": 1
     },
-    "startPct": 10,
+    "startPct": null,
     "status": null
   },
   "7363": {
@@ -15488,7 +15374,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 1,
+    "startPct": null,
     "status": null
   },
   "7374": {
@@ -15498,10 +15384,10 @@
       "a": 1,
       "fv": [
         5.5,
-        5.5,
         6.0,
         5.5,
-        8.0
+        8.0,
+        5.5
       ],
       "g": 0,
       "gs": 0,
@@ -15516,9 +15402,9 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "7392": {
@@ -15608,7 +15494,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "7408": {
@@ -15708,14 +15594,14 @@
       "a": 0,
       "fv": [
         null,
-        null,
         6.5,
         7.0,
-        5.0
+        5.0,
+        1.5
       ],
       "g": 0,
-      "gs": 2,
-      "played": 3
+      "gs": 7,
+      "played": 4
     },
     "name": "Daffara",
     "role": "P",
@@ -15723,12 +15609,12 @@
       "a": 0,
       "cs": 2,
       "g": 0,
-      "gs": 2,
-      "medFV": 6.5,
-      "medV": 7.0,
-      "pres": 3
+      "gs": 7,
+      "medFV": 5.75,
+      "medV": 6.75,
+      "pres": 4
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "7412": {
@@ -15737,9 +15623,9 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.5,
         6.0,
         6.5,
+        5.5,
         5.5,
         5.5
       ],
@@ -15754,11 +15640,11 @@
       "cs": null,
       "g": 0,
       "gs": 0,
-      "medFV": 6.25,
+      "medFV": 6.0,
       "medV": 6.5,
-      "pres": 8
+      "pres": 9
     },
-    "startPct": 85,
+    "startPct": null,
     "status": null
   },
   "7413": {
@@ -15797,11 +15683,11 @@
     "last5": {
       "a": 1,
       "fv": [
-        6.0,
         8.0,
         6.5,
         5.5,
-        6.0
+        6.0,
+        6.5
       ],
       "g": 0,
       "gs": 0,
@@ -15811,18 +15697,15 @@
     "role": "D",
     "season": {
       "a": 1,
-      "cs": 3,
+      "cs": 4,
       "g": 1,
       "gs": 0,
-      "medFV": 6.25,
-      "medV": 6.25,
-      "pres": 8
+      "medFV": 6.5,
+      "medV": 6.5,
+      "pres": 9
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "7418": {
     "club": "udinese",
@@ -16037,7 +15920,7 @@
       "medV": 5.75,
       "pres": 2
     },
-    "startPct": 5,
+    "startPct": null,
     "status": null
   },
   "7463": {
@@ -16725,11 +16608,11 @@
         null,
         null,
         null,
-        null
+        6.0
       ],
       "g": 0,
       "gs": 0,
-      "played": 0
+      "played": 1
     },
     "name": "Comert",
     "role": "D",
@@ -16738,11 +16621,11 @@
       "cs": 0,
       "g": 0,
       "gs": 0,
-      "medFV": 5.75,
-      "medV": 5.75,
-      "pres": 4
+      "medFV": 6.0,
+      "medV": 6.0,
+      "pres": 5
     },
-    "startPct": 30,
+    "startPct": null,
     "status": null
   },
   "7528": {
@@ -16781,15 +16664,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
         null,
         6.0,
+        null,
         null,
         null
       ],
       "g": 0,
       "gs": 0,
-      "played": 2
+      "played": 1
     },
     "name": "Koulierakis",
     "role": "D",
@@ -16802,7 +16685,7 @@
       "medV": 6.0,
       "pres": 3
     },
-    "startPct": 30,
+    "startPct": null,
     "status": null
   },
   "7531": {
@@ -16843,13 +16726,13 @@
       "fv": [
         null,
         null,
-        null,
         5.5,
-        6.5
+        6.5,
+        5.0
       ],
       "g": 0,
       "gs": 0,
-      "played": 2
+      "played": 3
     },
     "name": "Kofler",
     "role": "D",
@@ -16860,9 +16743,9 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 4
+      "pres": 5
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "7533": {
@@ -16922,7 +16805,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 1,
+    "startPct": null,
     "status": null
   },
   "7535": {
@@ -16931,11 +16814,11 @@
     "last5": {
       "a": 1,
       "fv": [
-        null,
         10.0,
         7.5,
         null,
-        5.0
+        5.0,
+        null
       ],
       "g": 1,
       "gs": 0,
@@ -16952,11 +16835,8 @@
       "medV": 6.0,
       "pres": 8
     },
-    "startPct": 55,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "7536": {
     "club": "parma",
@@ -16964,7 +16844,7 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
+        null,
         null,
         null,
         null,
@@ -16972,7 +16852,7 @@
       ],
       "g": 0,
       "gs": 0,
-      "played": 1
+      "played": 0
     },
     "name": "Diallo O.",
     "role": "C",
@@ -16985,7 +16865,7 @@
       "medV": 6.0,
       "pres": 2
     },
-    "startPct": 25,
+    "startPct": null,
     "status": null
   },
   "7537": {
@@ -17148,14 +17028,14 @@
       "a": 0,
       "fv": [
         5.5,
+        null,
+        null,
         5.5,
-        null,
-        null,
-        5.5
+        null
       ],
       "g": 0,
       "gs": 0,
-      "played": 3
+      "played": 2
     },
     "name": "Kevin Carlos",
     "role": "A",
@@ -17168,7 +17048,7 @@
       "medV": 5.5,
       "pres": 5
     },
-    "startPct": 55,
+    "startPct": null,
     "status": null
   },
   "7548": {
@@ -17198,7 +17078,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 20,
+    "startPct": null,
     "status": null
   },
   "7550": {
@@ -17301,14 +17181,14 @@
       "a": 0,
       "fv": [
         6.0,
-        6.0,
         5.5,
         null,
-        5.5
+        5.5,
+        null
       ],
       "g": 0,
       "gs": 0,
-      "played": 4
+      "played": 3
     },
     "name": "Romero D.",
     "role": "A",
@@ -17321,7 +17201,7 @@
       "medV": 6.0,
       "pres": 9
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "l'attaccante KO il 7 novembre contro il Bologna vittima in campo di una lussazione acromion-claveare della spalla destra. Recuperabile dalla metà di dicembre."
@@ -17334,12 +17214,12 @@
       "a": 0,
       "fv": [
         6.0,
-        6.0,
         10.5,
+        10.0,
         10.0,
         10.0
       ],
-      "g": 3,
+      "g": 4,
       "gs": 0,
       "played": 5
     },
@@ -17348,17 +17228,14 @@
     "season": {
       "a": 0,
       "cs": null,
-      "g": 4,
+      "g": 5,
       "gs": 0,
-      "medFV": 6.5,
-      "medV": 6.5,
-      "pres": 9
+      "medFV": 8.25,
+      "medV": 6.75,
+      "pres": 10
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "7557": {
     "club": "lecce",
@@ -17387,7 +17264,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "7560": {
@@ -17426,11 +17303,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        5.5,
         9.5,
         5.0,
         10.0,
-        6.5
+        6.5,
+        5.5
       ],
       "g": 2,
       "gs": 0,
@@ -17445,9 +17322,9 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 11
+      "pres": 12
     },
-    "startPct": 80,
+    "startPct": null,
     "status": null
   },
   "7563": {
@@ -17477,7 +17354,7 @@
       "medV": 6.75,
       "pres": 2
     },
-    "startPct": 35,
+    "startPct": null,
     "status": null
   },
   "7564": {
@@ -17540,7 +17417,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 10,
+    "startPct": null,
     "status": null
   },
   "7571": {
@@ -17570,7 +17447,7 @@
       "medV": null,
       "pres": 0
     },
-    "startPct": 0,
+    "startPct": null,
     "status": null
   },
   "7572": {
@@ -17705,8 +17582,8 @@
     "last5": {
       "a": 0,
       "fv": [
-        null,
         5.5,
+        null,
         null,
         null,
         null
@@ -17726,7 +17603,7 @@
       "medV": 5.75,
       "pres": 2
     },
-    "startPct": 40,
+    "startPct": null,
     "status": null
   },
   "7580": {
@@ -17735,15 +17612,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.5,
         6.0,
         3.5,
         5.5,
-        6.5
+        6.5,
+        null
       ],
       "g": 0,
       "gs": 0,
-      "played": 5
+      "played": 4
     },
     "name": "Sutalo J.",
     "role": "D",
@@ -17756,7 +17633,7 @@
       "medV": 6.0,
       "pres": 8
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "il difensore KO l'8 novembre a Napoli vittima di una lesione muscolare di secondo grado al flessore della gamba. Recuperabile dalla fine di dicembre."
@@ -17838,34 +17715,31 @@
     "club": "roma",
     "id": 7599,
     "last5": {
-      "a": 1,
+      "a": 2,
       "fv": [
-        10.0,
         null,
         11.5,
         null,
-        null
+        null,
+        7.5
       ],
-      "g": 2,
+      "g": 1,
       "gs": 0,
       "played": 2
     },
     "name": "Lulli",
     "role": "D",
     "season": {
-      "a": 1,
+      "a": 2,
       "cs": 4,
       "g": 2,
       "gs": 0,
       "medFV": 6.5,
       "medV": 6.5,
-      "pres": 6
+      "pres": 7
     },
-    "startPct": 55,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "7600": {
     "club": "genoa",
@@ -17905,9 +17779,9 @@
       "fv": [
         5.5,
         5.5,
-        5.5,
         6.0,
-        5.0
+        5.0,
+        6.0
       ],
       "g": 0,
       "gs": 0,
@@ -17922,9 +17796,9 @@
       "gs": 0,
       "medFV": 5.5,
       "medV": 5.5,
-      "pres": 10
+      "pres": 11
     },
-    "startPct": 80,
+    "startPct": null,
     "status": null
   },
   "7603": {
@@ -18159,14 +18033,14 @@
       "a": 0,
       "fv": [
         5.5,
-        5.5,
         6.0,
         6.0,
+        null,
         null
       ],
       "g": 0,
       "gs": 0,
-      "played": 4
+      "played": 3
     },
     "name": "Drobnic",
     "role": "D",
@@ -18179,7 +18053,7 @@
       "medV": 5.75,
       "pres": 6
     },
-    "startPct": 0,
+    "startPct": null,
     "status": {
       "kind": "injured",
       "text": "Il difensore non ha recuperato da un problema al piede e non è tra i convocati per sabato contro la Roma. Da valutare in vista della 13a giornata di campionato."
@@ -18221,15 +18095,15 @@
     "last5": {
       "a": 0,
       "fv": [
-        null,
         5.0,
         9.5,
         6.0,
-        null
+        null,
+        5.5
       ],
       "g": 1,
       "gs": 0,
-      "played": 3
+      "played": 4
     },
     "name": "Monteiro J.",
     "role": "C",
@@ -18240,9 +18114,9 @@
       "gs": 0,
       "medFV": 5.5,
       "medV": 5.5,
-      "pres": 6
+      "pres": 7
     },
-    "startPct": 60,
+    "startPct": null,
     "status": null
   },
   "7620": {
@@ -18285,14 +18159,14 @@
       "a": 0,
       "fv": [
         5.5,
-        5.5,
         4.5,
+        null,
         null,
         null
       ],
       "g": 0,
       "gs": 0,
-      "played": 3
+      "played": 2
     },
     "name": "Sugawara",
     "role": "D",
@@ -18305,7 +18179,7 @@
       "medV": 5.75,
       "pres": 6
     },
-    "startPct": 55,
+    "startPct": null,
     "status": null
   },
   "7622": {
@@ -18377,11 +18251,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.5,
         6.0,
         5.5,
         5.5,
-        3.5
+        3.5,
+        6.0
       ],
       "g": 0,
       "gs": 0,
@@ -18396,13 +18270,10 @@
       "gs": 0,
       "medFV": 6.0,
       "medV": 6.0,
-      "pres": 9
+      "pres": 10
     },
-    "startPct": 60,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "7625": {
     "club": "fiorentina",
@@ -18509,15 +18380,15 @@
     "last5": {
       "a": 1,
       "fv": [
-        null,
         5.5,
         5.5,
         8.0,
-        9.5
+        9.5,
+        5.5
       ],
       "g": 1,
       "gs": 0,
-      "played": 4
+      "played": 5
     },
     "name": "Sierro",
     "role": "C",
@@ -18527,10 +18398,10 @@
       "g": 1,
       "gs": 0,
       "medFV": 5.5,
-      "medV": 5.75,
-      "pres": 8
+      "medV": 5.5,
+      "pres": 9
     },
-    "startPct": 60,
+    "startPct": null,
     "status": null
   },
   "7629": {
@@ -18647,11 +18518,11 @@
     "last5": {
       "a": 0,
       "fv": [
-        6.0,
         5.5,
         5.0,
         5.5,
-        null
+        null,
+        5.5
       ],
       "g": 0,
       "gs": 0,
@@ -18666,9 +18537,9 @@
       "gs": 0,
       "medFV": 5.5,
       "medV": 5.5,
-      "pres": 7
+      "pres": 8
     },
-    "startPct": 40,
+    "startPct": null,
     "status": null
   },
   "7648": {
@@ -18784,9 +18655,9 @@
       "cs": 1,
       "g": 0,
       "gs": 0,
-      "medFV": 5.5,
-      "medV": 6.0,
-      "pres": 1
+      "medFV": 6.0,
+      "medV": 6.25,
+      "pres": 2
     },
     "startPct": null,
     "status": null
@@ -18797,15 +18668,15 @@
     "last5": {
       "a": 1,
       "fv": [
-        null,
         5.5,
         6.0,
         11.0,
+        6.5,
         6.5
       ],
       "g": 1,
       "gs": 0,
-      "played": 4
+      "played": 5
     },
     "name": "Cristante",
     "role": "C",
@@ -18816,9 +18687,9 @@
       "gs": 0,
       "medFV": 6.5,
       "medV": 6.5,
-      "pres": 9
+      "pres": 10
     },
-    "startPct": 90,
+    "startPct": null,
     "status": null
   },
   "787": {
@@ -18920,8 +18791,8 @@
     "last5": {
       "a": 0,
       "fv": [
-        null,
         5.0,
+        null,
         null,
         null,
         null
@@ -18941,11 +18812,8 @@
       "medV": 5.5,
       "pres": 2
     },
-    "startPct": 50,
-    "status": {
-      "kind": "doubtful",
-      "text": ""
-    }
+    "startPct": null,
+    "status": null
   },
   "827": {
     "club": "juventus",
