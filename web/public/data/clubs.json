@@ -23,16 +23,16 @@
     "name": "Atalanta",
     "next": {
       "h2h": [
-        "L",
-        "L",
-        "L",
-        "L",
-        "D"
+        "W",
+        "W",
+        "D",
+        "W",
+        "W"
       ],
-      "home": true,
-      "kickoff": "2026-11-22T20:45:00+01:00",
-      "matchday": 12,
-      "opponent": "inter"
+      "home": false,
+      "kickoff": "2026-11-30T18:30:00+01:00",
+      "matchday": 13,
+      "opponent": "lecce"
     },
     "played": 11,
     "points": 14,
@@ -62,16 +62,16 @@
     "name": "Bologna",
     "next": {
       "h2h": [
-        "D",
-        "D",
-        "D",
         "W",
-        "W"
+        "W",
+        "D",
+        "L",
+        "L"
       ],
       "home": true,
-      "kickoff": "2026-11-22T15:00:00+01:00",
-      "matchday": 12,
-      "opponent": "udinese"
+      "kickoff": "2026-12-04T20:45:00+01:00",
+      "matchday": 14,
+      "opponent": "roma"
     },
     "played": 11,
     "points": 17,
@@ -178,16 +178,16 @@
     "name": "Fiorentina",
     "next": {
       "h2h": [
+        "D",
         "L",
         "W",
         "W",
-        "D",
         "L"
       ],
       "home": false,
-      "kickoff": "2026-11-23T20:45:00+01:00",
-      "matchday": 12,
-      "opponent": "monza"
+      "kickoff": "2026-11-29T12:30:00+01:00",
+      "matchday": 13,
+      "opponent": "udinese"
     },
     "played": 11,
     "points": 9,
@@ -218,14 +218,12 @@
     "next": {
       "h2h": [
         "D",
-        "L",
-        "L",
-        "L"
+        "W"
       ],
-      "home": false,
-      "kickoff": "2026-11-22T18:00:00+01:00",
-      "matchday": 12,
-      "opponent": "milan"
+      "home": true,
+      "kickoff": "2026-11-28T15:00:00+01:00",
+      "matchday": 13,
+      "opponent": "parma"
     },
     "played": 11,
     "points": 20,
@@ -255,16 +253,16 @@
     "name": "Genoa",
     "next": {
       "h2h": [
+        "L",
         "D",
-        "W",
-        "W",
-        "W",
-        "W"
+        "L",
+        "L",
+        "L"
       ],
       "home": false,
-      "kickoff": "2026-11-22T15:00:00+01:00",
-      "matchday": 12,
-      "opponent": "sassuolo"
+      "kickoff": "2026-11-28T20:45:00+01:00",
+      "matchday": 13,
+      "opponent": "inter"
     },
     "played": 11,
     "points": 13,
@@ -295,15 +293,15 @@
     "next": {
       "h2h": [
         "W",
+        "D",
         "W",
         "W",
-        "W",
-        "D"
+        "W"
       ],
-      "home": false,
-      "kickoff": "2026-11-22T20:45:00+01:00",
-      "matchday": 12,
-      "opponent": "atalanta"
+      "home": true,
+      "kickoff": "2026-11-28T20:45:00+01:00",
+      "matchday": 13,
+      "opponent": "genoa"
     },
     "played": 11,
     "points": 28,
@@ -333,15 +331,15 @@
     "name": "Juventus",
     "next": {
       "h2h": [
-        "D",
         "W",
-        "D",
-        "W"
+        "W",
+        "L",
+        "L"
       ],
-      "home": true,
-      "kickoff": "2026-11-22T12:30:00+01:00",
-      "matchday": 12,
-      "opponent": "venezia"
+      "home": false,
+      "kickoff": "2026-11-29T20:45:00+01:00",
+      "matchday": 13,
+      "opponent": "como"
     },
     "played": 11,
     "points": 18,
@@ -449,15 +447,16 @@
     "name": "Milan",
     "next": {
       "h2h": [
+        "W",
+        "D",
         "D",
         "W",
-        "W",
-        "W"
+        "L"
       ],
-      "home": true,
-      "kickoff": "2026-11-22T18:00:00+01:00",
-      "matchday": 12,
-      "opponent": "frosinone"
+      "home": false,
+      "kickoff": "2026-11-30T20:45:00+01:00",
+      "matchday": 13,
+      "opponent": "cagliari"
     },
     "played": 11,
     "points": 24,
@@ -487,16 +486,16 @@
     "name": "Monza",
     "next": {
       "h2h": [
-        "W",
+        "D",
         "L",
         "L",
         "D",
-        "W"
+        "L"
       ],
-      "home": true,
-      "kickoff": "2026-11-23T20:45:00+01:00",
-      "matchday": 12,
-      "opponent": "fiorentina"
+      "home": false,
+      "kickoff": "2026-11-29T18:00:00+01:00",
+      "matchday": 13,
+      "opponent": "roma"
     },
     "played": 11,
     "points": 7,
@@ -640,16 +639,16 @@
     "name": "Sassuolo",
     "next": {
       "h2h": [
-        "D",
+        "L",
         "L",
         "L",
         "L",
         "L"
       ],
       "home": true,
-      "kickoff": "2026-11-22T15:00:00+01:00",
-      "matchday": 12,
-      "opponent": "genoa"
+      "kickoff": "2026-11-29T15:00:00+01:00",
+      "matchday": 13,
+      "opponent": "napoli"
     },
     "played": 11,
     "points": 8,
@@ -719,15 +718,15 @@
     "next": {
       "h2h": [
         "D",
-        "D",
-        "D",
+        "W",
         "L",
-        "L"
+        "L",
+        "W"
       ],
-      "home": false,
-      "kickoff": "2026-11-22T15:00:00+01:00",
-      "matchday": 12,
-      "opponent": "bologna"
+      "home": true,
+      "kickoff": "2026-11-29T12:30:00+01:00",
+      "matchday": 13,
+      "opponent": "fiorentina"
     },
     "played": 11,
     "points": 5,
@@ -757,15 +756,13 @@
     "name": "Venezia",
     "next": {
       "h2h": [
-        "D",
         "L",
-        "D",
         "L"
       ],
-      "home": false,
-      "kickoff": "2026-11-22T12:30:00+01:00",
-      "matchday": 12,
-      "opponent": "juventus"
+      "home": true,
+      "kickoff": "2026-12-07T18:30:00+01:00",
+      "matchday": 14,
+      "opponent": "sassuolo"
     },
     "played": 11,
     "points": 6,
